@@ -29,7 +29,8 @@ export const DictionaryPage = () => {
         const matchesSearch =
           !keyword ||
           entry.englishText.toLowerCase().includes(keyword) ||
-          entry.kasemText.toLowerCase().includes(keyword)
+          entry.kasemText.toLowerCase().includes(keyword) ||
+          entry.alternateKasemTerms?.toLowerCase().includes(keyword)
 
         const matchesEnglish =
           !filters.english ||
@@ -127,6 +128,11 @@ export const DictionaryPage = () => {
               <p className="mt-1 text-sm text-slate-600">
                 {entry.partOfSpeech} • {entry.dialect} • {entry.category}
               </p>
+              {entry.alternateKasemTerms ? (
+                <p className="mt-2 text-sm text-slate-700">
+                  Also said as: {entry.alternateKasemTerms}
+                </p>
+              ) : null}
               {entry.englishExample || entry.kasemExample ? (
                 <p className="mt-2 text-sm text-slate-700">
                   Example: {entry.englishExample} / {entry.kasemExample}

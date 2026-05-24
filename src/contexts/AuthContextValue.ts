@@ -11,7 +11,14 @@ export interface AuthContextValue {
   updateUserProfile: (
     updates: Pick<
       AppUser,
-      'displayName' | 'photoURL' | 'community' | 'dialect' | 'phone' | 'bio'
+      | 'displayName'
+      | 'photoURL'
+      | 'community'
+      | 'dialect'
+      | 'dialects'
+      | 'phone'
+      | 'bio'
+      | 'contributionFocus'
     >,
   ) => Promise<void>
   logout: () => Promise<void>

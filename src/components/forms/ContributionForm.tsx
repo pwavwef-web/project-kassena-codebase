@@ -10,6 +10,7 @@ import { validateContribution } from '../../lib/validators'
 export interface ContributionFormValues {
   englishText: string
   kasemText: string
+  alternateKasemTerms: string
   englishExample: string
   kasemExample: string
   dialect: string
@@ -23,6 +24,7 @@ export interface ContributionFormValues {
 const defaultValues: ContributionFormValues = {
   englishText: '',
   kasemText: '',
+  alternateKasemTerms: '',
   englishExample: '',
   kasemExample: '',
   dialect: '',
@@ -88,6 +90,21 @@ export const ContributionForm = ({
           />
         </label>
       </div>
+
+      <label className="space-y-1 text-sm">
+        <span>Other ways of saying this in Kasem</span>
+        <textarea
+          value={values.alternateKasemTerms}
+          onChange={(event) =>
+            setValues((prev) => ({
+              ...prev,
+              alternateKasemTerms: event.target.value,
+            }))
+          }
+          placeholder="Add alternate spellings, dialect variants or similar phrases"
+          className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+        />
+      </label>
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1 text-sm">

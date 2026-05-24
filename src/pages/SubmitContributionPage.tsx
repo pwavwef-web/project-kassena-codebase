@@ -35,6 +35,7 @@ export const SubmitContributionPage = () => {
       const contributionId = await createContribution({
         englishText: values.englishText,
         kasemText: values.kasemText,
+        alternateKasemTerms: values.alternateKasemTerms,
         englishExample: values.englishExample,
         kasemExample: values.kasemExample,
         dialect: values.dialect,

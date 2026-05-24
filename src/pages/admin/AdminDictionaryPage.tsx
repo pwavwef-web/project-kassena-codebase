@@ -60,6 +60,7 @@ export const AdminDictionaryPage = () => {
       {
         englishText,
         kasemText,
+        alternateKasemTerms: '',
         englishExample: '',
         kasemExample: '',
         dialect: 'Other',
@@ -88,6 +89,7 @@ export const AdminDictionaryPage = () => {
       {
         englishText,
         kasemText,
+        alternateKasemTerms: entry.alternateKasemTerms ?? '',
         englishExample: entry.englishExample,
         kasemExample: entry.kasemExample,
         dialect: entry.dialect,

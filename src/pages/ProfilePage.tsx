@@ -7,11 +7,19 @@ import { useAuth } from '../hooks/useAuth'
 import { DIALECT_OPTIONS } from '../lib/constants'
 import { toDateLabel } from '../lib/date'
 import { listUserContributions, listUserUploads } from '../lib/firestore'
+import { getUserDialects } from '../lib/profile'
 import type { AppUser, Contribution, UploadRecord } from '../types'
 
 type ProfileForm = Pick<
   AppUser,
-  'displayName' | 'photoURL' | 'community' | 'dialect' | 'phone' | 'bio'
+  | 'displayName'
+  | 'photoURL'
+  | 'community'
+  | 'dialect'
+  | 'dialects'
+  | 'phone'
+  | 'bio'
+  | 'contributionFocus'
 >
 
 const emptyProfileForm: ProfileForm = {
@@ -19,8 +27,10 @@ const emptyProfileForm: ProfileForm = {
   photoURL: '',
   community: '',
   dialect: '',
+  dialects: [],
   phone: '',
   bio: '',
+  contributionFocus: '',
 }
 
 const countByStatus = <T extends { status: string }>(items: T[]) => ({
@@ -111,6 +121,22 @@ export const ProfilePage = () => {
       .join('')
       .slice(0, 2)
       .toUpperCase() || 'PK'
+  const userDialects = getUserDialects(appUser)
+
+  const toggleDialect = (dialect: string) => {
+    setForm((current) => {
+      const currentDialects = current.dialects ?? []
+      const nextDialects = currentDialects.includes(dialect)
+        ? currentDialects.filter((item) => item !== dialect)
+        : [...currentDialects, dialect]
+
+      return {
+        ...current,
+        dialect: nextDialects[0] ?? '',
+        dialects: nextDialects,
+      }
+    })
+  }
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -167,9 +193,11 @@ export const ProfilePage = () => {
                   displayName: appUser.displayName ?? '',
                   photoURL: appUser.photoURL ?? '',
                   community: appUser.community ?? '',
-                  dialect: appUser.dialect ?? '',
+                  dialect: getUserDialects(appUser)[0] ?? '',
+                  dialects: getUserDialects(appUser),
                   phone: appUser.phone ?? '',
                   bio: appUser.bio ?? '',
+                  contributionFocus: appUser.contributionFocus ?? '',
                 })
               }
               setIsEditing((current) => !current)
@@ -231,26 +259,6 @@ export const ProfilePage = () => {
                 />
               </label>
               <label className="space-y-1 text-sm">
-                <span>Dialect/region</span>
-                <select
-                  value={form.dialect}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      dialect: event.target.value,
-                    }))
-                  }
-                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
-                >
-                  <option value="">Select dialect</option>
-                  {DIALECT_OPTIONS.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="space-y-1 text-sm">
                 <span>Phone</span>
                 <input
                   value={form.phone}
@@ -261,6 +269,39 @@ export const ProfilePage = () => {
                 />
               </label>
             </div>
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-semibold text-slate-900">
+                Dialects or regions you know
+              </legend>
+              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+                {DIALECT_OPTIONS.map((dialect) => (
+                  <label
+                    key={dialect}
+                    className="flex items-center gap-2 rounded-lg border border-kassena-cream px-3 py-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={(form.dialects ?? []).includes(dialect)}
+                      onChange={() => toggleDialect(dialect)}
+                    />
+                    <span>{dialect}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <label className="space-y-1 text-sm">
+              <span>Contribution focus</span>
+              <input
+                value={form.contributionFocus}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    contributionFocus: event.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+              />
+            </label>
             <label className="space-y-1 text-sm">
               <span>Bio or contribution notes</span>
               <textarea
@@ -286,12 +327,20 @@ export const ProfilePage = () => {
               <dd>{appUser.community || 'Not set'}</dd>
             </div>
             <div>
-              <dt className="font-semibold text-slate-900">Dialect/region</dt>
-              <dd>{appUser.dialect || 'Not set'}</dd>
+              <dt className="font-semibold text-slate-900">Dialects/regions</dt>
+              <dd>
+                {userDialects.length ? userDialects.join(', ') : 'Not set'}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-slate-900">Phone</dt>
               <dd>{appUser.phone || 'Not set'}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-slate-900">
+                Contribution focus
+              </dt>
+              <dd>{appUser.contributionFocus || 'Not set'}</dd>
             </div>
             <div>
               <dt className="font-semibold text-slate-900">Last sign-in</dt>
@@ -347,6 +396,11 @@ export const ProfilePage = () => {
                   <p className="mt-1 text-xs text-slate-500">
                     {item.category} - {toDateLabel(item.createdAt)}
                   </p>
+                  {item.alternateKasemTerms ? (
+                    <p className="mt-2 text-sm text-slate-600">
+                      Other Kasem forms: {item.alternateKasemTerms}
+                    </p>
+                  ) : null}
                   {item.reviewNotes ? (
                     <p className="mt-2 text-sm text-slate-600">
                       {item.reviewNotes}

@@ -1,15 +1,32 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { isUserProfileComplete } from '../../lib/profile'
 import { LoadingState } from './LoadingState'
 
 export const ProtectedRoute = () => {
-  const { firebaseUser, isLoading } = useAuth()
+  const { appUser, firebaseUser, isLoading } = useAuth()
+  const location = useLocation()
 
   if (isLoading) {
     return <LoadingState message="Checking authentication..." />
   }
 
-  return firebaseUser ? <Outlet /> : <Navigate to="/login" replace />
+  if (!firebaseUser) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!appUser) {
+    return <LoadingState message="Loading signup details..." />
+  }
+
+  if (
+    !isUserProfileComplete(appUser) &&
+    location.pathname !== '/complete-profile'
+  ) {
+    return <Navigate to="/complete-profile" replace />
+  }
+
+  return <Outlet />
 }
 
 export const ValidatorRoute = () => {
@@ -21,6 +38,10 @@ export const ValidatorRoute = () => {
 
   if (!appUser) {
     return <Navigate to="/login" replace />
+  }
+
+  if (!isUserProfileComplete(appUser)) {
+    return <Navigate to="/complete-profile" replace />
   }
 
   return appUser.role === 'validator' || appUser.role === 'admin' ? (

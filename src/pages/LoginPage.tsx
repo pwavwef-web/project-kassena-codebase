@@ -1,11 +1,25 @@
 import { Navigate } from 'react-router-dom'
 import { useState } from 'react'
 import { AlertMessage } from '../components/common/AlertMessage'
+import { LoadingState } from '../components/common/LoadingState'
 import { useAuth } from '../hooks/useAuth'
+import { isUserProfileComplete } from '../lib/profile'
 
 export const LoginPage = () => {
-  const { firebaseUser, signInWithGoogle } = useAuth()
+  const { appUser, firebaseUser, isLoading, signInWithGoogle } = useAuth()
   const [error, setError] = useState('')
+
+  if (isLoading) {
+    return <LoadingState message="Checking sign-in..." />
+  }
+
+  if (firebaseUser && !appUser) {
+    return <LoadingState message="Loading signup details..." />
+  }
+
+  if (firebaseUser && appUser && !isUserProfileComplete(appUser)) {
+    return <Navigate to="/complete-profile" replace />
+  }
 
   if (firebaseUser) {
     return <Navigate to="/dashboard" replace />

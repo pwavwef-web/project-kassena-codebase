@@ -12,8 +12,10 @@ export interface AppUser {
   role: UserRole
   community?: string
   dialect?: string
+  dialects?: string[]
   phone?: string
   bio?: string
+  contributionFocus?: string
   createdAt: Timestamp | null
   lastLoginAt: Timestamp | null
   status: UserStatus
@@ -32,6 +34,7 @@ export interface Contribution {
   id: string
   englishText: string
   kasemText: string
+  alternateKasemTerms: string
   englishExample: string
   kasemExample: string
   dialect: string
@@ -55,6 +58,7 @@ export interface DictionaryEntry {
   id: string
   englishText: string
   kasemText: string
+  alternateKasemTerms?: string
   englishExample: string
   kasemExample: string
   dialect: string

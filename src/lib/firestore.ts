@@ -88,6 +88,7 @@ export const listApprovedDictionaryEntries = async (
       return (
         item.englishText.toLowerCase().includes(keyword) ||
         item.kasemText.toLowerCase().includes(keyword) ||
+        item.alternateKasemTerms?.toLowerCase().includes(keyword) ||
         item.dialect.toLowerCase().includes(keyword) ||
         item.partOfSpeech.toLowerCase().includes(keyword)
       )
@@ -160,6 +161,7 @@ export const approveContribution = async (
   await setDoc(dictionaryRef, {
     englishText: contribution.englishText,
     kasemText: contribution.kasemText,
+    alternateKasemTerms: contribution.alternateKasemTerms ?? '',
     englishExample: contribution.englishExample,
     kasemExample: contribution.kasemExample,
     dialect: contribution.dialect,

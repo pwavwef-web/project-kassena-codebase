@@ -12,6 +12,7 @@ import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminSubmissionsPage } from '../pages/admin/AdminSubmissionsPage'
 import { AdminUploadsPage } from '../pages/admin/AdminUploadsPage'
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
+import { CompleteProfilePage } from '../pages/CompleteProfilePage'
 import { CulturePage } from '../pages/CulturePage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DictionaryPage } from '../pages/DictionaryPage'
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/complete-profile', element: <CompleteProfilePage /> },
           { path: '/submit', element: <SubmitContributionPage /> },
           { path: '/uploads', element: <UploadsPage /> },
           { path: '/profile', element: <ProfilePage /> },

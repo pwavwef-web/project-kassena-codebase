@@ -50,8 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         status: 'active',
         community: '',
         dialect: '',
+        dialects: [],
         phone: '',
         bio: '',
+        contributionFocus: '',
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
@@ -71,8 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         photoURL: existing.photoURL || user.photoURL || '',
         community: existing.community ?? '',
         dialect: existing.dialect ?? '',
+        dialects:
+          existing.dialects ?? (existing.dialect ? [existing.dialect] : []),
         phone: existing.phone ?? '',
         bio: existing.bio ?? '',
+        contributionFocus: existing.contributionFocus ?? '',
         lastLoginAt: serverTimestamp(),
       })
     }
@@ -121,7 +126,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     async (
       updates: Pick<
         AppUser,
-        'displayName' | 'photoURL' | 'community' | 'dialect' | 'phone' | 'bio'
+        | 'displayName'
+        | 'photoURL'
+        | 'community'
+        | 'dialect'
+        | 'dialects'
+        | 'phone'
+        | 'bio'
+        | 'contributionFocus'
       >,
     ) => {
       if (!firebaseUser || !appUser) {
@@ -132,9 +144,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         displayName: updates.displayName.trim() || 'Contributor',
         photoURL: updates.photoURL.trim(),
         community: updates.community?.trim() ?? '',
-        dialect: updates.dialect?.trim() ?? '',
+        dialect: updates.dialects?.[0] ?? updates.dialect?.trim() ?? '',
+        dialects: updates.dialects ?? [],
         phone: updates.phone?.trim() ?? '',
         bio: updates.bio?.trim() ?? '',
+        contributionFocus: updates.contributionFocus?.trim() ?? '',
       }
 
       await updateFirebaseProfile(firebaseUser, {

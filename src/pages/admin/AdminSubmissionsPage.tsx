@@ -65,6 +65,7 @@ export const AdminSubmissionsPage = () => {
           submission.status.toLowerCase().includes(keyword) ||
           submission.englishText.toLowerCase().includes(keyword) ||
           submission.kasemText.toLowerCase().includes(keyword) ||
+          submission.alternateKasemTerms?.toLowerCase().includes(keyword) ||
           submission.dialect.toLowerCase().includes(keyword) ||
           submission.category.toLowerCase().includes(keyword) ||
           submission.contributorName.toLowerCase().includes(keyword)
@@ -141,6 +142,11 @@ export const AdminSubmissionsPage = () => {
                 {submission.dialect} • {submission.category} •{' '}
                 {submission.contributorName}
               </p>
+              {submission.alternateKasemTerms ? (
+                <p className="mt-2 text-sm text-slate-700">
+                  Other Kasem forms: {submission.alternateKasemTerms}
+                </p>
+              ) : null}
               <p className="mt-2 text-sm text-slate-700">
                 {submission.notes || 'No notes provided'}
               </p>
