@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+// @ts-ignore Allow using Firebase storage imports despite ts resolution issues
 import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
