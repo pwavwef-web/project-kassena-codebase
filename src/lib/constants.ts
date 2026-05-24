@@ -1,0 +1,62 @@
+export const APP_NAME = 'Project Kassena'
+export const TAGLINE = 'Preserving Our Language. Empowering Our People.'
+
+export const DIALECT_OPTIONS = [
+  'Navrongo',
+  'Paga',
+  'Chiana',
+  'Chuchuliga',
+  'Sandema',
+  'Other',
+  'Not sure',
+] as const
+
+export const PART_OF_SPEECH_OPTIONS = [
+  'Noun',
+  'Verb',
+  'Adjective',
+  'Adverb',
+  'Phrase',
+  'Proverb',
+  'Greeting',
+  'Other',
+] as const
+
+export const CATEGORY_OPTIONS = [
+  'General vocabulary',
+  'Education',
+  'Health',
+  'Agriculture',
+  'Culture',
+  'Proverb',
+  'Greeting',
+  'Storytelling',
+  'Other',
+] as const
+
+export const UPLOAD_CATEGORIES = [
+  'Corpus Zero',
+  'Consent Forms',
+  'Dictionary Scans',
+  'Audio',
+  'Images',
+  'Research Documents',
+  'Other',
+] as const
+
+export const DATA_COLLECTION_TARGET = 20000
+export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
+
+export const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'audio/mpeg',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/mp4',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+] as const

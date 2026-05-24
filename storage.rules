@@ -1,0 +1,42 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdminOrValidator() {
+      return isSignedIn() && (
+        userDoc().data.role == 'admin' ||
+        userDoc().data.role == 'validator'
+      );
+    }
+
+    function isAllowedType() {
+      return request.resource.contentType.matches('application/pdf') ||
+        request.resource.contentType.matches('image/.*') ||
+        request.resource.contentType.matches('audio/.*') ||
+        request.resource.contentType.matches('text/plain') ||
+        request.resource.contentType.matches('application/msword') ||
+        request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+
+    function withinFileLimit() {
+      return request.resource.size < 20 * 1024 * 1024;
+    }
+
+    match /contributions/{userId}/{contributionId}/{fileName} {
+      allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
+    }
+
+    match /uploads/{userId}/{uploadId}/{fileName} {
+      allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
+    }
+  }
+}
