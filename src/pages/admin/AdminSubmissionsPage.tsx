@@ -7,7 +7,7 @@ import {
   approveContribution,
   listContributions,
   rejectContribution,
-} from '../../lib/firestore'
+} from '../../lib/firestore.ts'
 import type { Contribution } from '../../types'
 
 export const AdminSubmissionsPage = () => {
@@ -112,6 +112,7 @@ export const AdminSubmissionsPage = () => {
           onChange={(event) =>
             setStatusFilter(event.target.value as typeof statusFilter)
           }
+          aria-label="Filter submissions by status"
           className="rounded-lg border border-kassena-cream px-3 py-2"
         >
           <option value="all">All</option>

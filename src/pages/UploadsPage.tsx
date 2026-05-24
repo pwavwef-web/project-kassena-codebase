@@ -8,7 +8,11 @@ import {
   type UploadFormValues,
 } from '../components/forms/UploadForm'
 import { useAuth } from '../hooks/useAuth'
-import { createUploadRecord, listUploads } from '../lib/firestore'
+import {
+  createUploadRecord,
+  listUploads,
+  listUserUploads,
+} from '../lib/firestore.ts'
 import { uploadGeneralFile } from '../lib/storage'
 import type { UploadRecord } from '../types'
 
@@ -23,7 +27,15 @@ export const UploadsPage = () => {
   } | null>(null)
 
   const loadUploads = async () => {
-    const uploaded = await listUploads()
+    if (!appUser) {
+      setRecords([])
+      return
+    }
+
+    const uploaded =
+      appUser.role === 'contributor'
+        ? await listUserUploads(appUser.uid)
+        : await listUploads()
     setRecords(uploaded)
   }
 
@@ -31,7 +43,17 @@ export const UploadsPage = () => {
     let active = true
 
     const hydrate = async () => {
-      const uploaded = await listUploads()
+      if (!appUser) {
+        if (active) {
+          setIsLoading(false)
+        }
+        return
+      }
+
+      const uploaded =
+        appUser.role === 'contributor'
+          ? await listUserUploads(appUser.uid)
+          : await listUploads()
       if (active) {
         setRecords(uploaded)
         setIsLoading(false)
@@ -47,7 +69,7 @@ export const UploadsPage = () => {
     return () => {
       active = false
     }
-  }, [])
+  }, [appUser])
 
   const handleSubmit = async (values: UploadFormValues) => {
     if (!appUser || !firebaseUser || !values.file) {
@@ -73,6 +95,10 @@ export const UploadsPage = () => {
         title: values.title,
         description: values.description,
         category: values.category,
+        dialect: values.dialect,
+        consentStatus: values.consentStatus,
+        culturalSensitivity: values.culturalSensitivity,
+        tags: values.tags,
         fileName: file.fileName,
         fileUrl: file.fileUrl,
         storagePath: file.storagePath,
@@ -141,6 +167,13 @@ export const UploadsPage = () => {
                   <StatusBadge status={record.status} />
                 </div>
                 <p className="mt-1 text-sm text-slate-600">{record.category}</p>
+                {record.dialect || record.consentStatus ? (
+                  <p className="mt-1 text-xs text-slate-500">
+                    {[record.dialect, record.consentStatus]
+                      .filter(Boolean)
+                      .join(' - ')}
+                  </p>
+                ) : null}
                 <a
                   className="mt-2 inline-block text-sm text-kassena-orange"
                   href={record.fileUrl}

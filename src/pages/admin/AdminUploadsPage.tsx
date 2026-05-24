@@ -95,6 +95,16 @@ export const AdminUploadsPage = () => {
                 <StatusBadge status={record.status} />
               </div>
               <p className="text-sm text-slate-600">{record.category}</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                {record.dialect ? <span>{record.dialect}</span> : null}
+                {record.consentStatus ? (
+                  <span>{record.consentStatus.replace('_', ' ')}</span>
+                ) : null}
+                {record.culturalSensitivity ? (
+                  <span>{record.culturalSensitivity.replace('_', ' ')}</span>
+                ) : null}
+                {record.tags ? <span>{record.tags}</span> : null}
+              </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 <a
                   className="rounded-lg border border-kassena-gold px-3 py-1 text-sm text-kassena-green"

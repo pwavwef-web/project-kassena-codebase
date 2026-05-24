@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { UPLOAD_CATEGORIES } from '../../lib/constants'
+import { DIALECT_OPTIONS, UPLOAD_CATEGORIES } from '../../lib/constants'
 import { AlertMessage } from '../common/AlertMessage'
 
 export interface UploadFormValues {
   title: string
   description: string
   category: string
+  dialect: string
+  consentStatus: 'not_required' | 'pending' | 'received'
+  culturalSensitivity: 'public' | 'private_archive' | 'restricted'
+  tags: string
   file?: File
 }
 
@@ -20,6 +24,10 @@ export const UploadForm = ({
     title: '',
     description: '',
     category: '',
+    dialect: '',
+    consentStatus: 'pending',
+    culturalSensitivity: 'public',
+    tags: '',
   })
   const [error, setError] = useState('')
 
@@ -32,7 +40,15 @@ export const UploadForm = ({
 
     setError('')
     await onSubmit(values)
-    setValues({ title: '', description: '', category: '' })
+    setValues({
+      title: '',
+      description: '',
+      category: '',
+      dialect: '',
+      consentStatus: 'pending',
+      culturalSensitivity: 'public',
+      tags: '',
+    })
   }
 
   return (
@@ -58,22 +74,90 @@ export const UploadForm = ({
           className="w-full rounded-lg border border-kassena-cream px-3 py-2"
         />
       </label>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block space-y-1 text-sm">
+          <span>Category *</span>
+          <select
+            value={values.category}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, category: event.target.value }))
+            }
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          >
+            <option value="">Select category</option>
+            {UPLOAD_CATEGORIES.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-1 text-sm">
+          <span>Dialect/region</span>
+          <select
+            value={values.dialect}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, dialect: event.target.value }))
+            }
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          >
+            <option value="">Select dialect</option>
+            {DIALECT_OPTIONS.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block space-y-1 text-sm">
+          <span>Consent status</span>
+          <select
+            value={values.consentStatus}
+            onChange={(event) =>
+              setValues((prev) => ({
+                ...prev,
+                consentStatus: event.target
+                  .value as UploadFormValues['consentStatus'],
+              }))
+            }
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          >
+            <option value="pending">Needs review</option>
+            <option value="received">Consent received</option>
+            <option value="not_required">Not required</option>
+          </select>
+        </label>
+        <label className="block space-y-1 text-sm">
+          <span>Cultural sensitivity</span>
+          <select
+            value={values.culturalSensitivity}
+            onChange={(event) =>
+              setValues((prev) => ({
+                ...prev,
+                culturalSensitivity: event.target
+                  .value as UploadFormValues['culturalSensitivity'],
+              }))
+            }
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          >
+            <option value="public">Public after approval</option>
+            <option value="private_archive">Private archive</option>
+            <option value="restricted">Restricted cultural content</option>
+          </select>
+        </label>
+      </div>
       <label className="block space-y-1 text-sm">
-        <span>Category *</span>
-        <select
-          value={values.category}
+        <span>Tags</span>
+        <input
+          value={values.tags}
           onChange={(event) =>
-            setValues((prev) => ({ ...prev, category: event.target.value }))
+            setValues((prev) => ({ ...prev, tags: event.target.value }))
           }
+          placeholder="education, story, song, proverb"
           className="w-full rounded-lg border border-kassena-cream px-3 py-2"
-        >
-          <option value="">Select category</option>
-          {UPLOAD_CATEGORIES.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        />
       </label>
       <label className="block space-y-1 text-sm">
         <span>File *</span>

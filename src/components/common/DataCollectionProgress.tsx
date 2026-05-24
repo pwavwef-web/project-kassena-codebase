@@ -20,12 +20,12 @@ export const DataCollectionProgress = ({
         <p>Pending entries: {pending.toLocaleString()}</p>
         <p>Completion: {percentage.toFixed(2)}%</p>
       </div>
-      <div className="h-3 rounded-full bg-kassena-cream">
-        <div
-          className="h-full rounded-full bg-kassena-orange"
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
+      <progress
+        className="kassena-progress"
+        value={percentage}
+        max={100}
+        aria-label="Data collection progress"
+      />
     </section>
   )
 }

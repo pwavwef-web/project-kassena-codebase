@@ -17,6 +17,7 @@ const defaultMetrics: DashboardMetrics = {
   rejectedContributions: 0,
   totalUploads: 0,
   pendingUploads: 0,
+  approvedUploads: 0,
   approvedDictionaryEntries: 0,
 }
 
@@ -49,6 +50,7 @@ export const AdminDashboardPage = () => {
           ['Rejected contributions', metrics.rejectedContributions],
           ['Total uploads', metrics.totalUploads],
           ['Pending uploads', metrics.pendingUploads],
+          ['Published media items', metrics.approvedUploads],
           ['Approved dictionary entries', metrics.approvedDictionaryEntries],
         ].map(([label, value]) => (
           <article key={label} className="rounded-2xl bg-white p-4 shadow-sm">

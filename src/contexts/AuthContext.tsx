@@ -2,6 +2,7 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signOut,
+  updateProfile as updateFirebaseProfile,
   type User,
 } from 'firebase/auth'
 import {
@@ -47,6 +48,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         photoURL: user.photoURL ?? '',
         role: defaultRole,
         status: 'active',
+        community: '',
+        dialect: '',
+        phone: '',
+        bio: '',
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
@@ -59,11 +64,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         { merge: true },
       )
     } else {
+      const existing = snapshot.data()
       await updateDoc(userRef, {
-        displayName:
-          user.displayName ?? snapshot.data().displayName ?? 'Contributor',
-        email: user.email ?? snapshot.data().email ?? '',
-        photoURL: user.photoURL ?? snapshot.data().photoURL ?? '',
+        displayName: existing.displayName || user.displayName || 'Contributor',
+        email: user.email ?? existing.email ?? '',
+        photoURL: existing.photoURL || user.photoURL || '',
+        community: existing.community ?? '',
+        dialect: existing.dialect ?? '',
+        phone: existing.phone ?? '',
+        bio: existing.bio ?? '',
         lastLoginAt: serverTimestamp(),
       })
     }
@@ -97,7 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return unsubscribe
   }, [hydrateUserRecord])
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     if (!isFirebaseConfigured) {
       throw new Error('Firebase environment variables are missing.')
     }
@@ -106,16 +115,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     await signInWithPopup(auth, googleProvider)
-  }
+  }, [])
 
-  const logout = async () => {
+  const updateUserProfile = useCallback(
+    async (
+      updates: Pick<
+        AppUser,
+        'displayName' | 'photoURL' | 'community' | 'dialect' | 'phone' | 'bio'
+      >,
+    ) => {
+      if (!firebaseUser || !appUser) {
+        throw new Error('Please sign in before editing your profile.')
+      }
+
+      const normalized = {
+        displayName: updates.displayName.trim() || 'Contributor',
+        photoURL: updates.photoURL.trim(),
+        community: updates.community?.trim() ?? '',
+        dialect: updates.dialect?.trim() ?? '',
+        phone: updates.phone?.trim() ?? '',
+        bio: updates.bio?.trim() ?? '',
+      }
+
+      await updateFirebaseProfile(firebaseUser, {
+        displayName: normalized.displayName,
+        photoURL: normalized.photoURL || null,
+      })
+
+      await updateDoc(doc(db, 'users', appUser.uid), {
+        ...normalized,
+        updatedAt: serverTimestamp(),
+      })
+
+      setAppUser((current) =>
+        current
+          ? {
+              ...current,
+              ...normalized,
+            }
+          : current,
+      )
+    },
+    [appUser, firebaseUser],
+  )
+
+  const logout = useCallback(async () => {
     if (!auth) {
       return
     }
 
     await signOut(auth)
     setAppUser(null)
-  }
+  }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -124,9 +175,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       role: appUser?.role ?? defaultRole,
       isLoading,
       signInWithGoogle,
+      updateUserProfile,
       logout,
     }),
-    [appUser, firebaseUser, isLoading],
+    [
+      appUser,
+      firebaseUser,
+      isLoading,
+      logout,
+      signInWithGoogle,
+      updateUserProfile,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

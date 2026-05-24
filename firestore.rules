@@ -36,7 +36,7 @@ service cloud.firestore {
     }
 
     match /dictionaryEntries/{entryId} {
-      allow read: if isSignedIn() && resource.data.isPublished == true;
+      allow read: if resource.data.isPublished == true;
       allow create, update, delete: if isAdmin();
     }
 
@@ -49,7 +49,7 @@ service cloud.firestore {
 
     match /uploads/{uploadId} {
       allow create: if isSignedIn() && request.resource.data.uploadedBy == request.auth.uid;
-      allow read: if isValidator() || (isSignedIn() && resource.data.uploadedBy == request.auth.uid);
+      allow read: if resource.data.isPublished == true || isValidator() || (isSignedIn() && resource.data.uploadedBy == request.auth.uid);
       allow update: if isValidator();
       allow delete: if false;
     }

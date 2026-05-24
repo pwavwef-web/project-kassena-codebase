@@ -10,6 +10,10 @@ export interface AppUser {
   email: string
   photoURL: string
   role: UserRole
+  community?: string
+  dialect?: string
+  phone?: string
+  bio?: string
   createdAt: Timestamp | null
   lastLoginAt: Timestamp | null
   status: UserStatus
@@ -70,6 +74,10 @@ export interface UploadRecord {
   title: string
   description: string
   category: string
+  dialect?: string
+  consentStatus?: 'not_required' | 'pending' | 'received'
+  culturalSensitivity?: 'public' | 'private_archive' | 'restricted'
+  tags?: string
   fileName: string
   fileUrl: string
   storagePath: string
@@ -78,6 +86,7 @@ export interface UploadRecord {
   uploadedBy: string
   uploadedByName: string
   status: ReviewStatus
+  isPublished?: boolean
   createdAt: Timestamp | null
   reviewedBy: string | null
   reviewedAt: Timestamp | null
@@ -116,6 +125,7 @@ export interface DashboardMetrics {
   rejectedContributions: number
   totalUploads: number
   pendingUploads: number
+  approvedUploads: number
   approvedDictionaryEntries: number
 }
 
@@ -124,4 +134,5 @@ export interface PublicDashboardMetrics {
   approvedEntries: number
   pendingReview: number
   activeContributors: number
+  approvedMediaItems: number
 }

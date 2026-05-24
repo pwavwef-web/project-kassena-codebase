@@ -1,4 +1,3 @@
-// @ts-ignore Allow using Firebase storage imports despite ts resolution issues
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import { storage } from '../config/firebase'
 import { validateFile } from './validators'

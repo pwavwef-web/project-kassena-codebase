@@ -8,6 +8,12 @@ export interface AuthContextValue {
   role: UserRole
   isLoading: boolean
   signInWithGoogle: () => Promise<void>
+  updateUserProfile: (
+    updates: Pick<
+      AppUser,
+      'displayName' | 'photoURL' | 'community' | 'dialect' | 'phone' | 'bio'
+    >,
+  ) => Promise<void>
   logout: () => Promise<void>
 }
 

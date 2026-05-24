@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
 import { listApprovedDictionaryEntries } from '../lib/firestore'
@@ -131,6 +132,12 @@ export const DictionaryPage = () => {
                   Example: {entry.englishExample} / {entry.kasemExample}
                 </p>
               ) : null}
+              <Link
+                to="/submit"
+                className="mt-3 inline-flex text-sm font-semibold text-kassena-orange"
+              >
+                Know a better translation? Submit a correction
+              </Link>
             </article>
           ))}
         </div>

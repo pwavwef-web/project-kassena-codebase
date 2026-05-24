@@ -12,6 +12,7 @@ import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminSubmissionsPage } from '../pages/admin/AdminSubmissionsPage'
 import { AdminUploadsPage } from '../pages/admin/AdminUploadsPage'
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
+import { CulturePage } from '../pages/CulturePage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DictionaryPage } from '../pages/DictionaryPage'
 import { HomePage } from '../pages/HomePage'
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/dictionary', element: <DictionaryPage /> },
+      { path: '/culture', element: <CulturePage /> },
       {
         element: <ProtectedRoute />,
         children: [

@@ -111,6 +111,25 @@ export const listContributions = async (
   )
 }
 
+export const listUserContributions = async (
+  userId: string,
+): Promise<Contribution[]> => {
+  const snapshot = await getDocs(
+    query(
+      collection(db, 'contributions'),
+      where('contributorId', '==', userId),
+    ),
+  )
+
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as Contribution)
+    .sort(
+      (first, second) =>
+        (second.createdAt?.toMillis() ?? 0) -
+        (first.createdAt?.toMillis() ?? 0),
+    )
+}
+
 export const approveContribution = async (
   contributionId: string,
   actor: { id: string; email: string },
@@ -223,6 +242,7 @@ export const createUploadRecord = async (
 ): Promise<string> => {
   const uploadRef = await addDoc(collection(db, 'uploads'), {
     ...payload,
+    isPublished: payload.isPublished ?? false,
     reviewedAt: null,
     createdAt: serverTimestamp(),
   })
@@ -236,12 +256,37 @@ export const reviewUpload = async (
   reviewNotes: string,
   actor: { id: string; email: string },
 ): Promise<void> => {
-  await updateDoc(doc(db, 'uploads', uploadId), {
+  const uploadRef = doc(db, 'uploads', uploadId)
+  const uploadSnapshot = await getDoc(uploadRef)
+  const upload = uploadSnapshot.exists()
+    ? (uploadSnapshot.data() as UploadRecord)
+    : null
+  const wasPublished = upload?.isPublished ?? false
+  const shouldPublish =
+    status === 'approved' &&
+    upload?.culturalSensitivity !== 'private_archive' &&
+    upload?.culturalSensitivity !== 'restricted' &&
+    upload?.consentStatus !== 'pending'
+
+  await updateDoc(uploadRef, {
     status,
+    isPublished: shouldPublish,
     reviewNotes,
     reviewedBy: actor.id,
     reviewedAt: serverTimestamp(),
   })
+
+  if (!wasPublished && shouldPublish) {
+    await syncPublicDashboardMetrics({
+      approvedMediaItems: increment(1),
+    })
+  }
+
+  if (wasPublished && !shouldPublish) {
+    await syncPublicDashboardMetrics({
+      approvedMediaItems: increment(-1),
+    })
+  }
 
   await createAuditLog({
     action: status === 'approved' ? 'UPLOAD_APPROVED' : 'UPLOAD_REJECTED',
@@ -261,6 +306,36 @@ export const listUploads = async (): Promise<UploadRecord[]> => {
   return snapshot.docs.map(
     (item) => ({ id: item.id, ...item.data() }) as UploadRecord,
   )
+}
+
+export const listUserUploads = async (
+  userId: string,
+): Promise<UploadRecord[]> => {
+  const snapshot = await getDocs(
+    query(collection(db, 'uploads'), where('uploadedBy', '==', userId)),
+  )
+
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as UploadRecord)
+    .sort(
+      (first, second) =>
+        (second.createdAt?.toMillis() ?? 0) -
+        (first.createdAt?.toMillis() ?? 0),
+    )
+}
+
+export const listApprovedUploads = async (): Promise<UploadRecord[]> => {
+  const snapshot = await getDocs(
+    query(collection(db, 'uploads'), where('isPublished', '==', true)),
+  )
+
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as UploadRecord)
+    .sort(
+      (first, second) =>
+        (second.createdAt?.toMillis() ?? 0) -
+        (first.createdAt?.toMillis() ?? 0),
+    )
 }
 
 export const listUsers = async (): Promise<
@@ -339,26 +414,35 @@ export const unpublishDictionaryEntry = async (
   })
 }
 
-export const getPublicDashboardMetrics = async (): Promise<PublicDashboardMetrics> => {
-  const snapshot = await getDoc(publicDashboardMetricsRef)
+export const getPublicDashboardMetrics =
+  async (): Promise<PublicDashboardMetrics> => {
+    const snapshot = await getDoc(publicDashboardMetricsRef)
 
-  if (!snapshot.exists()) {
+    if (!snapshot.exists()) {
+      return {
+        totalSubmissions: 0,
+        approvedEntries: 0,
+        pendingReview: 0,
+        activeContributors: 0,
+        approvedMediaItems: 0,
+      }
+    }
+
+    const data = snapshot.data() as Partial<PublicDashboardMetrics>
+
     return {
-      totalSubmissions: 0,
-      approvedEntries: 0,
-      pendingReview: 0,
-      activeContributors: 0,
+      totalSubmissions: data.totalSubmissions ?? 0,
+      approvedEntries: data.approvedEntries ?? 0,
+      pendingReview: data.pendingReview ?? 0,
+      activeContributors: data.activeContributors ?? 0,
+      approvedMediaItems: data.approvedMediaItems ?? 0,
     }
   }
 
-  const data = snapshot.data() as Partial<PublicDashboardMetrics>
-
-  return {
-    totalSubmissions: data.totalSubmissions ?? 0,
-    approvedEntries: data.approvedEntries ?? 0,
-    pendingReview: data.pendingReview ?? 0,
-    activeContributors: data.activeContributors ?? 0,
-  }
+export const setPublicDashboardMetrics = async (
+  metrics: PublicDashboardMetrics,
+): Promise<void> => {
+  await setDoc(publicDashboardMetricsRef, metrics, { merge: true })
 }
 
 export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
@@ -370,6 +454,7 @@ export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
     rejectedContributions,
     uploads,
     pendingUploads,
+    approvedUploads,
     approvedEntries,
   ] = await Promise.all([
     getCountFromServer(collection(db, 'users')),
@@ -388,6 +473,9 @@ export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
       query(collection(db, 'uploads'), where('status', '==', 'pending')),
     ),
     getCountFromServer(
+      query(collection(db, 'uploads'), where('isPublished', '==', true)),
+    ),
+    getCountFromServer(
       query(
         collection(db, 'dictionaryEntries'),
         where('isPublished', '==', true),
@@ -403,6 +491,7 @@ export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
     rejectedContributions: rejectedContributions.data().count,
     totalUploads: uploads.data().count,
     pendingUploads: pendingUploads.data().count,
+    approvedUploads: approvedUploads.data().count,
     approvedDictionaryEntries: approvedEntries.data().count,
   }
 }

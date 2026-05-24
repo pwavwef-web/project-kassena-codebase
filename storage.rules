@@ -20,6 +20,7 @@ service firebase.storage {
       return request.resource.contentType.matches('application/pdf') ||
         request.resource.contentType.matches('image/.*') ||
         request.resource.contentType.matches('audio/.*') ||
+        request.resource.contentType.matches('video/.*') ||
         request.resource.contentType.matches('text/plain') ||
         request.resource.contentType.matches('application/msword') ||
         request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -36,7 +37,9 @@ service firebase.storage {
 
     match /uploads/{userId}/{uploadId}/{fileName} {
       allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
-      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
+      allow read: if firestore.get(/databases/(default)/documents/uploads/$(uploadId)).data.isPublished == true ||
+        (isSignedIn() && request.auth.uid == userId) ||
+        isAdminOrValidator();
     }
   }
 }
