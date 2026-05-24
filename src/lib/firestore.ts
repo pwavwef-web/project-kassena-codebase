@@ -126,6 +126,7 @@ export const approveContribution = async (
     dialect: contribution.dialect,
     partOfSpeech: contribution.partOfSpeech,
     category: contribution.category,
+      wordUseRules: contribution.wordUseRules ?? '',
     sourceContributionId: contributionId,
     contributorId: contribution.contributorId,
     approvedBy: actor.id,

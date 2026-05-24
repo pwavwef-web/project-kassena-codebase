@@ -4,8 +4,10 @@ import { DataCollectionProgress } from '../components/common/DataCollectionProgr
 import { APP_NAME, TAGLINE } from '../lib/constants'
 import { getDashboardMetrics } from '../lib/firestore'
 import { LoadingState } from '../components/common/LoadingState'
+import { useAuth } from '../hooks/useAuth'
 
 export const HomePage = () => {
+  const { appUser } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState({
     totalSubmissions: 0,
@@ -47,12 +49,22 @@ export const HomePage = () => {
           >
             Browse Dictionary
           </Link>
-          <Link
-            to="/login"
-            className="rounded-lg border border-kassena-gold px-4 py-2 text-kassena-green"
+          {appUser ? null : (
+            <Link
+              to="/login"
+              className="rounded-lg border border-kassena-gold px-4 py-2 text-kassena-green"
+            >
+              Sign in with Google
+            </Link>
+          )}
+          <a
+            href="https://kassena.azlearner.me"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="rounded-lg border border-kassena-green px-4 py-2 text-kassena-green"
           >
-            Sign in with Google
-          </Link>
+            Learn more and docs
+          </a>
         </div>
       </div>
 

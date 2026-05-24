@@ -34,6 +34,7 @@ export interface Contribution {
   partOfSpeech: string
   category: string
   notes: string
+  wordUseRules?: string
   contributorId: string
   contributorName: string
   contributorEmail: string

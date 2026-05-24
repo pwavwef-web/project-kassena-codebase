@@ -47,6 +47,14 @@ export const MainLayout = () => {
                 Admin
               </NavLink>
             ) : null}
+            <a
+              href="https://kassena.azlearner.me"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-sm font-medium text-kassena-green transition hover:text-kassena-orange"
+            >
+              Learn more
+            </a>
           </nav>
           <div className="flex items-center gap-3">
             {appUser ? (

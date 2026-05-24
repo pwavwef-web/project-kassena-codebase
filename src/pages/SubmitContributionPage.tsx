@@ -41,6 +41,7 @@ export const SubmitContributionPage = () => {
         partOfSpeech: values.partOfSpeech,
         category: values.category,
         notes: values.notes,
+        wordUseRules: values.wordUseRules ?? '',
         contributorId: appUser.uid,
         contributorName: appUser.displayName,
         contributorEmail: appUser.email,

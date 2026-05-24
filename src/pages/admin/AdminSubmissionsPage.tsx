@@ -20,20 +20,14 @@ export const AdminSubmissionsPage = () => {
   >('pending')
 
   const loadSubmissions = async () => {
-    setSubmissions(
-      await listContributions(
-        statusFilter === 'all' ? undefined : statusFilter,
-      ),
-    )
+    setSubmissions(await listContributions())
   }
 
   useEffect(() => {
     let active = true
 
     const hydrate = async () => {
-      const contributionData = await listContributions(
-        statusFilter === 'all' ? undefined : statusFilter,
-      )
+      const contributionData = await listContributions()
 
       if (active) {
         setSubmissions(contributionData)
@@ -50,13 +44,25 @@ export const AdminSubmissionsPage = () => {
     return () => {
       active = false
     }
-  }, [statusFilter])
+  }, [])
 
   const filteredSubmissions = useMemo(
     () =>
       submissions.filter((submission) => {
-        const keyword = search.toLowerCase()
+        const keyword = search.trim().toLowerCase()
+        const matchesStatus =
+          statusFilter === 'all' || submission.status === statusFilter
+
+        if (!matchesStatus) {
+          return false
+        }
+
+        if (!keyword) {
+          return true
+        }
+
         return (
+          submission.status.toLowerCase().includes(keyword) ||
           submission.englishText.toLowerCase().includes(keyword) ||
           submission.kasemText.toLowerCase().includes(keyword) ||
           submission.dialect.toLowerCase().includes(keyword) ||
@@ -64,7 +70,7 @@ export const AdminSubmissionsPage = () => {
           submission.contributorName.toLowerCase().includes(keyword)
         )
       }),
-    [search, submissions],
+    [search, statusFilter, submissions],
   )
 
   const actor = { id: appUser?.uid ?? '', email: appUser?.email ?? '' }

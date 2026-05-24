@@ -16,6 +16,7 @@ export interface ContributionFormValues {
   partOfSpeech: string
   category: string
   notes: string
+  wordUseRules?: string
   file?: File
 }
 
@@ -28,6 +29,7 @@ const defaultValues: ContributionFormValues = {
   partOfSpeech: '',
   category: '',
   notes: '',
+  wordUseRules: '',
 }
 
 export const ContributionForm = ({
@@ -180,6 +182,18 @@ export const ContributionForm = ({
           onChange={(event) =>
             setValues((prev) => ({ ...prev, notes: event.target.value }))
           }
+          className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+        />
+      </label>
+
+      <label className="space-y-1 text-sm">
+        <span>Word use rules (optional)</span>
+        <textarea
+          value={values.wordUseRules}
+          onChange={(event) =>
+            setValues((prev) => ({ ...prev, wordUseRules: event.target.value }))
+          }
+          placeholder="Describe grammatical constraints or typical contexts for use"
           className="w-full rounded-lg border border-kassena-cream px-3 py-2"
         />
       </label>
