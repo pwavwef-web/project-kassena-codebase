@@ -117,6 +117,7 @@ export const CulturePage = () => {
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value)}
+            aria-label="Filter culture items by category"
             className="rounded-lg border border-kassena-cream px-3 py-2"
           >
             <option value="all">All categories</option>

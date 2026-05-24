@@ -3,7 +3,7 @@ import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import { useAuth } from '../../hooks/useAuth'
-import { listUploads, reviewUpload } from '../../lib/firestore'
+import { listUploads, reviewUpload } from '../../lib/firestore.ts'
 import type { UploadRecord } from '../../types'
 
 export const AdminUploadsPage = () => {
@@ -71,6 +71,7 @@ export const AdminUploadsPage = () => {
         onChange={(event) =>
           setStatusFilter(event.target.value as typeof statusFilter)
         }
+        aria-label="Filter uploads by status"
         className="rounded-lg border border-kassena-cream px-3 py-2"
       >
         <option value="all">All</option>
