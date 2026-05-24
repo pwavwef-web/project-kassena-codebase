@@ -118,3 +118,10 @@ export interface DashboardMetrics {
   pendingUploads: number
   approvedDictionaryEntries: number
 }
+
+export interface PublicDashboardMetrics {
+  totalSubmissions: number
+  approvedEntries: number
+  pendingReview: number
+  activeContributors: number
+}

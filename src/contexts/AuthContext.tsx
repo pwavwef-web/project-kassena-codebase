@@ -7,6 +7,7 @@ import {
 import {
   doc,
   getDoc,
+  increment,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -49,6 +50,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
+
+      await setDoc(
+        doc(db, 'publicStats', 'overview'),
+        {
+          activeContributors: increment(1),
+        },
+        { merge: true },
+      )
     } else {
       await updateDoc(userRef, {
         displayName:

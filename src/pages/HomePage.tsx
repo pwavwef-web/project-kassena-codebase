@@ -2,12 +2,10 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { DataCollectionProgress } from '../components/common/DataCollectionProgress'
 import { APP_NAME, TAGLINE } from '../lib/constants'
-import { getDashboardMetrics } from '../lib/firestore'
+import { getPublicDashboardMetrics } from '../lib/firestore'
 import { LoadingState } from '../components/common/LoadingState'
-import { useAuth } from '../hooks/useAuth'
 
 export const HomePage = () => {
-  const { appUser } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [metrics, setMetrics] = useState({
     totalSubmissions: 0,
@@ -18,12 +16,12 @@ export const HomePage = () => {
 
   useEffect(() => {
     const run = async () => {
-      const snapshot = await getDashboardMetrics()
+      const snapshot = await getPublicDashboardMetrics()
       setMetrics({
-        totalSubmissions: snapshot.totalContributions,
-        approvedEntries: snapshot.approvedDictionaryEntries,
-        pendingReview: snapshot.pendingContributions,
-        activeContributors: snapshot.totalUsers,
+        totalSubmissions: snapshot.totalSubmissions,
+        approvedEntries: snapshot.approvedEntries,
+        pendingReview: snapshot.pendingReview,
+        activeContributors: snapshot.activeContributors,
       })
       setIsLoading(false)
     }
@@ -49,14 +47,12 @@ export const HomePage = () => {
           >
             Browse Dictionary
           </Link>
-          {appUser ? null : (
-            <Link
-              to="/login"
-              className="rounded-lg border border-kassena-gold px-4 py-2 text-kassena-green"
-            >
-              Sign in with Google
-            </Link>
-          )}
+          <Link
+            to="/login"
+            className="rounded-lg border border-kassena-gold px-4 py-2 text-kassena-green"
+          >
+            Sign in with Google
+          </Link>
           <a
             href="https://kassena.azlearner.me"
             target="_blank"

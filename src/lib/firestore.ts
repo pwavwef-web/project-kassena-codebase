@@ -5,6 +5,7 @@ import {
   getCountFromServer,
   getDoc,
   getDocs,
+  increment,
   limit,
   orderBy,
   query,
@@ -21,11 +22,20 @@ import type {
   DashboardMetrics,
   DictionaryEntry,
   FileMetadata,
+  PublicDashboardMetrics,
   ReviewStatus,
   UploadRecord,
   UserRole,
   UserStatus,
 } from '../types'
+
+const publicDashboardMetricsRef = doc(db, 'publicStats', 'overview')
+
+const syncPublicDashboardMetrics = async (
+  updates: Partial<Record<keyof PublicDashboardMetrics, unknown>>,
+): Promise<void> => {
+  await setDoc(publicDashboardMetricsRef, updates, { merge: true })
+}
 
 export const createContribution = async (
   payload: Omit<Contribution, 'id' | 'createdAt' | 'updatedAt' | 'reviewedAt'>,
@@ -35,6 +45,11 @@ export const createContribution = async (
     reviewedAt: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+  })
+
+  await syncPublicDashboardMetrics({
+    totalSubmissions: increment(1),
+    pendingReview: increment(1),
   })
 
   return contributionRef.id
@@ -117,6 +132,11 @@ export const approveContribution = async (
     updatedAt: serverTimestamp(),
   })
 
+  await syncPublicDashboardMetrics({
+    approvedEntries: increment(1),
+    pendingReview: increment(-1),
+  })
+
   const dictionaryRef = doc(db, 'dictionaryEntries', contributionId)
   await setDoc(dictionaryRef, {
     englishText: contribution.englishText,
@@ -126,7 +146,7 @@ export const approveContribution = async (
     dialect: contribution.dialect,
     partOfSpeech: contribution.partOfSpeech,
     category: contribution.category,
-      wordUseRules: contribution.wordUseRules ?? '',
+    wordUseRules: contribution.wordUseRules ?? '',
     sourceContributionId: contributionId,
     contributorId: contribution.contributorId,
     approvedBy: actor.id,
@@ -158,6 +178,10 @@ export const rejectContribution = async (
     reviewedBy: actor.id,
     reviewedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+  })
+
+  await syncPublicDashboardMetrics({
+    pendingReview: increment(-1),
   })
 
   await createAuditLog({
@@ -313,6 +337,28 @@ export const unpublishDictionaryEntry = async (
     details: { isPublished: false },
     createdAt: null,
   })
+}
+
+export const getPublicDashboardMetrics = async (): Promise<PublicDashboardMetrics> => {
+  const snapshot = await getDoc(publicDashboardMetricsRef)
+
+  if (!snapshot.exists()) {
+    return {
+      totalSubmissions: 0,
+      approvedEntries: 0,
+      pendingReview: 0,
+      activeContributors: 0,
+    }
+  }
+
+  const data = snapshot.data() as Partial<PublicDashboardMetrics>
+
+  return {
+    totalSubmissions: data.totalSubmissions ?? 0,
+    approvedEntries: data.approvedEntries ?? 0,
+    pendingReview: data.pendingReview ?? 0,
+    activeContributors: data.activeContributors ?? 0,
+  }
 }
 
 export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
