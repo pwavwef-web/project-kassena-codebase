@@ -1,47 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
+import { MediaPreview } from '../components/common/MediaPreview'
 import { listApprovedUploads } from '../lib/firestore'
 import type { UploadRecord } from '../types'
-
-const renderPreview = (item: UploadRecord) => {
-  if (item.contentType.startsWith('image/')) {
-    return (
-      <img
-        src={item.fileUrl}
-        alt={item.title}
-        className="h-48 w-full rounded-lg object-cover"
-      />
-    )
-  }
-
-  if (item.contentType.startsWith('audio/')) {
-    return (
-      <audio controls className="mt-3 w-full">
-        <source src={item.fileUrl} type={item.contentType} />
-      </audio>
-    )
-  }
-
-  if (item.contentType.startsWith('video/')) {
-    return (
-      <video controls className="h-56 w-full rounded-lg bg-slate-950">
-        <source src={item.fileUrl} type={item.contentType} />
-      </video>
-    )
-  }
-
-  return (
-    <a
-      href={item.fileUrl}
-      target="_blank"
-      rel="noreferrer"
-      className="mt-3 inline-flex rounded-lg border border-kassena-gold px-3 py-2 text-sm font-semibold text-kassena-green"
-    >
-      Open approved file
-    </a>
-  )
-}
 
 export const CulturePage = () => {
   const [isLoading, setIsLoading] = useState(true)
@@ -139,7 +101,14 @@ export const CulturePage = () => {
               key={item.id}
               className="rounded-2xl bg-white p-4 shadow-sm"
             >
-              {renderPreview(item)}
+              <MediaPreview
+                file={{
+                  name: item.fileName || item.title,
+                  url: item.fileUrl,
+                  contentType: item.contentType,
+                }}
+                title={item.title}
+              />
               <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span>{item.category}</span>
                 {item.dialect ? <span>{item.dialect}</span> : null}

@@ -1,4 +1,4 @@
-export const APP_NAME = 'Project Kassena'
+export const APP_NAME = 'Project Kassena x Indigen World'
 export const TAGLINE = 'Preserving Our Language. Empowering Our People.'
 
 export const DIALECT_OPTIONS = [

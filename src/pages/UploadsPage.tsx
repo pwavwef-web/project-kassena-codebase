@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AlertMessage } from '../components/common/AlertMessage'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
+import { MediaPreview } from '../components/common/MediaPreview'
 import { StatusBadge } from '../components/common/StatusBadge'
 import {
   UploadForm,
@@ -174,6 +175,16 @@ export const UploadsPage = () => {
                       .join(' - ')}
                   </p>
                 ) : null}
+                <MediaPreview
+                  className="mt-3"
+                  compact
+                  file={{
+                    name: record.fileName,
+                    url: record.fileUrl,
+                    contentType: record.contentType,
+                  }}
+                  title={record.title}
+                />
                 <a
                   className="mt-2 inline-block text-sm text-kassena-orange"
                   href={record.fileUrl}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
+import { MediaPreview } from '../../components/common/MediaPreview'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import { useAuth } from '../../hooks/useAuth'
 import {
@@ -68,7 +69,12 @@ export const AdminSubmissionsPage = () => {
           submission.alternateKasemTerms?.toLowerCase().includes(keyword) ||
           submission.dialect.toLowerCase().includes(keyword) ||
           submission.category.toLowerCase().includes(keyword) ||
-          submission.contributorName.toLowerCase().includes(keyword)
+          submission.contributorName.toLowerCase().includes(keyword) ||
+          submission.attachedFiles?.some(
+            (file) =>
+              file.name.toLowerCase().includes(keyword) ||
+              file.contentType?.toLowerCase().includes(keyword),
+          )
         )
       }),
     [search, statusFilter, submissions],
@@ -150,6 +156,22 @@ export const AdminSubmissionsPage = () => {
               <p className="mt-2 text-sm text-slate-700">
                 {submission.notes || 'No notes provided'}
               </p>
+              {submission.attachedFiles?.length ? (
+                <div className="mt-3 space-y-3">
+                  {submission.attachedFiles.map((file) => (
+                    <MediaPreview
+                      key={file.storagePath || file.url || file.name}
+                      compact
+                      file={{
+                        name: file.name,
+                        url: file.url,
+                        contentType: file.contentType,
+                      }}
+                      title={`${submission.englishText} attachment`}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"

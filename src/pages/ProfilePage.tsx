@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AlertMessage } from '../components/common/AlertMessage'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
+import { MediaPreview } from '../components/common/MediaPreview'
 import { StatusBadge } from '../components/common/StatusBadge'
 import { useAuth } from '../hooks/useAuth'
 import { DIALECT_OPTIONS } from '../lib/constants'
@@ -406,6 +407,22 @@ export const ProfilePage = () => {
                       {item.reviewNotes}
                     </p>
                   ) : null}
+                  {item.attachedFiles?.length ? (
+                    <div className="mt-3 space-y-3">
+                      {item.attachedFiles.map((file) => (
+                        <MediaPreview
+                          key={file.storagePath || file.url || file.name}
+                          compact
+                          file={{
+                            name: file.name,
+                            url: file.url,
+                            contentType: file.contentType,
+                          }}
+                          title={`${item.englishText} attachment`}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
@@ -456,6 +473,16 @@ export const ProfilePage = () => {
                       {item.reviewNotes}
                     </p>
                   ) : null}
+                  <MediaPreview
+                    className="mt-3"
+                    compact
+                    file={{
+                      name: item.fileName,
+                      url: item.fileUrl,
+                      contentType: item.contentType,
+                    }}
+                    title={item.title}
+                  />
                 </article>
               ))}
             </div>

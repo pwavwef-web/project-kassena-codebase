@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
+import { MediaPreview } from '../../components/common/MediaPreview'
 import { StatusBadge } from '../../components/common/StatusBadge'
 import { useAuth } from '../../hooks/useAuth'
 import { listUploads, reviewUpload } from '../../lib/firestore.ts'
@@ -106,6 +107,15 @@ export const AdminUploadsPage = () => {
                 ) : null}
                 {record.tags ? <span>{record.tags}</span> : null}
               </div>
+              <MediaPreview
+                className="mt-3"
+                file={{
+                  name: record.fileName,
+                  url: record.fileUrl,
+                  contentType: record.contentType,
+                }}
+                title={record.title}
+              />
               <div className="mt-2 flex flex-wrap gap-2">
                 <a
                   className="rounded-lg border border-kassena-gold px-3 py-1 text-sm text-kassena-green"
