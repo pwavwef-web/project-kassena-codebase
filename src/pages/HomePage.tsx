@@ -1,76 +1,207 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { DataCollectionProgress } from '../components/common/DataCollectionProgress'
-import { APP_NAME, TAGLINE } from '../lib/constants'
+import { useAuth } from '../hooks/useAuth'
 import {
   getDashboardMetrics,
   listApprovedUploads,
   getPublicDashboardMetrics,
   setPublicDashboardMetrics,
+  listApprovedDictionaryEntries,
 } from '../lib/firestore.ts'
-import { LoadingState } from '../components/common/LoadingState'
-import { useAuth } from '../hooks/useAuth'
-import type { UploadRecord } from '../types'
+import { APP_NAME } from '../lib/constants'
+import { SearchBar } from '../components/common/SearchBar'
+import { WordOfTheDay } from '../components/common/WordOfTheDay'
+import { CommunityProgressDashboard } from '../components/common/CommunityProgressDashboard'
+import { ContributorRewards } from '../components/common/ContributorRewards'
+import { CommunityActivityFeed } from '../components/common/CommunityActivityFeed'
+import { LeaderboardPreview } from '../components/common/LeaderboardPreview'
+import { CulturalSpotlight } from '../components/common/CulturalSpotlight'
+// Types defined locally for homepage data
+
+interface WordOfDay {
+  kasemWord: string
+  pronunciation: string
+  englishMeaning: string
+  exampleSentence: string
+  culturalNote?: string
+}
+
+interface ActivityItem {
+  id: string
+  type: 'contribution' | 'proverb' | 'points' | 'dialect' | 'upload'
+  message: string
+  timestamp: string
+}
+
+interface LeaderboardEntry {
+  rank: number
+  name: string
+  points: number
+  avatar?: string
+}
+
+interface CulturalItem {
+  id: string
+  type: 'proverb' | 'story' | 'fact' | 'expression'
+  title: string
+  content: string
+  attribution?: string
+}
 
 export const HomePage = () => {
   const { appUser } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-  const [recentCulture, setRecentCulture] = useState<UploadRecord[]>([])
+  const [wordOfDay, setWordOfDay] = useState<WordOfDay | null>(null)
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [culturalItems, setCulturalItems] = useState<CulturalItem[]>([])
   const [metrics, setMetrics] = useState({
-    totalSubmissions: 0,
     approvedEntries: 0,
     pendingReview: 0,
-    activeContributors: 0,
-    approvedMediaItems: 0,
+    contributors: 0,
+    validationRate: 0,
   })
+  const [rewards, setRewards] = useState<{
+    currentPoints: number
+    pointsPerContribution: number
+    threshold: number
+    nextRewardName: string
+  } | null>(null)
+
+  const getTimeAgo = (date?: Date): string => {
+    if (!date) return 'Recently'
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    return `${diffDays}d ago`
+  }
 
   useEffect(() => {
     const run = async () => {
-      const cultureItems = await listApprovedUploads().catch(() => [])
-      setRecentCulture(cultureItems.slice(0, 3))
+      try {
+        let publicMetrics
+        if (appUser?.role === 'admin' || appUser?.role === 'validator') {
+          const snapshot = await getDashboardMetrics()
+          publicMetrics = {
+            approvedEntries: snapshot.approvedDictionaryEntries,
+            pendingReview: snapshot.pendingContributions,
+            contributors: snapshot.totalUsers,
+            validationRate:
+              snapshot.totalContributions > 0
+                ? (snapshot.approvedContributions / snapshot.totalContributions) * 100
+                : 0,
+          }
+          await setPublicDashboardMetrics({
+            totalSubmissions: snapshot.totalContributions,
+            approvedEntries: snapshot.approvedDictionaryEntries,
+            pendingReview: snapshot.pendingContributions,
+            activeContributors: snapshot.totalUsers,
+            approvedMediaItems: snapshot.approvedUploads,
+          })
+        } else {
+          const snapshot = await getPublicDashboardMetrics()
+          publicMetrics = {
+            approvedEntries: snapshot.approvedEntries,
+            pendingReview: snapshot.pendingReview,
+            contributors: snapshot.activeContributors,
+            validationRate:
+              snapshot.totalSubmissions > 0
+                ? (snapshot.approvedEntries / snapshot.totalSubmissions) * 100
+                : 0,
+          }
+        }
+        setMetrics(publicMetrics)
 
-      if (appUser?.role === 'admin' || appUser?.role === 'validator') {
-        const snapshot = await getDashboardMetrics()
-        const publicMetrics = {
-          totalSubmissions: snapshot.totalContributions,
-          approvedEntries: snapshot.approvedDictionaryEntries,
-          pendingReview: snapshot.pendingContributions,
-          activeContributors: snapshot.totalUsers,
-          approvedMediaItems: snapshot.approvedUploads,
+        // Fetch word of the day from dictionary
+        const entries = await listApprovedDictionaryEntries()
+        if (entries.length > 0) {
+          const today = new Date()
+          const dayIndex = today.getDate() % entries.length
+          const selectedEntry = entries[dayIndex]
+          setWordOfDay({
+            kasemWord: selectedEntry.kasemText,
+            pronunciation: `/${selectedEntry.kasemText.toLowerCase()}/`,
+            englishMeaning: selectedEntry.englishText,
+            exampleSentence: selectedEntry.kasemExample || selectedEntry.englishExample,
+            culturalNote: selectedEntry.category !== 'General vocabulary' ? `Category: ${selectedEntry.category}` : undefined,
+          })
         }
 
-        await setPublicDashboardMetrics(publicMetrics)
-        setMetrics(publicMetrics)
-        setIsLoading(false)
-        return
-      }
+        // Fetch recent uploads for activity feed
+        const uploads = await listApprovedUploads()
+        const recentActivities: ActivityItem[] = uploads.slice(0, 5).map((upload) => ({
+          id: upload.id,
+          type: upload.category.toLowerCase().includes('proverb') ? 'proverb' : 'upload',
+          message: `New ${upload.category.toLowerCase()} uploaded: "${upload.title}"`,
+          timestamp: getTimeAgo(upload.createdAt?.toDate()),
+        }))
+        setActivities(recentActivities)
 
-      const snapshot = await getPublicDashboardMetrics()
-      setMetrics({
-        totalSubmissions: snapshot.totalSubmissions,
-        approvedEntries: snapshot.approvedEntries,
-        pendingReview: snapshot.pendingReview,
-        activeContributors: snapshot.activeContributors,
-        approvedMediaItems: snapshot.approvedMediaItems,
-      })
-      setIsLoading(false)
+        // Mock leaderboard data (would come from Firestore in production)
+        setLeaderboard([
+          { rank: 1, name: 'Community Pioneer', points: 150 },
+          { rank: 2, name: 'Language Champion', points: 120 },
+          { rank: 3, name: 'Cultural Guardian', points: 95 },
+        ])
+
+        // Mock cultural items (would come from Firestore in production)
+        setCulturalItems([
+          {
+            id: '1',
+            type: 'proverb',
+            title: 'Wisdom of the Elders',
+            content: 'When the music changes, so does the dance.',
+            attribution: 'Kasem Proverb',
+          },
+          {
+            id: '2',
+            type: 'fact',
+            title: 'Kasem Language Facts',
+            content: 'Kasem is a Gur language spoken by approximately 100,000 people in northern Ghana and Burkina Faso.',
+            attribution: 'Indigen World Research',
+          },
+        ])
+
+        // Set rewards data
+        if (appUser) {
+          setRewards({
+            currentPoints: 45,
+            pointsPerContribution: 10,
+            threshold: 100,
+            nextRewardName: 'Airtime/Data Reward',
+          })
+        }
+      } catch (error) {
+        console.error('Error loading homepage data:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    run().catch(() => setIsLoading(false))
-  }, [appUser?.role])
+    run()
+  }, [appUser?.role, appUser])
 
   return (
     <section className="space-y-8 animate-fade-in pb-8">
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-kassena-green via-kassena-dark to-[#104022] p-8 text-white shadow-xl sm:p-12">
         <div className="relative z-10 space-y-6">
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-white to-kassena-cream animate-slide-up">
-            {APP_NAME}
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-white to-kassena-cream animate-slide-up">
+            The Digital Home of the Kasem Language
           </h1>
-          <p className="max-w-2xl text-lg font-medium text-kassena-cream/90 sm:text-xl animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            {TAGLINE}
+          <p className="max-w-2xl text-lg font-medium text-kassena-cream/90 sm:text-xl animate-slide-up-delayed">
+            Translate. Learn. Preserve.
           </p>
-          <div className="flex flex-wrap gap-4 pt-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p className="max-w-2xl text-sm text-kassena-cream/70 animate-slide-up-delayed-2">
+            Help build the world's first AI-ready Kasem language platform.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-4 animate-slide-up-delayed-3">
             <Link
               to="/submit"
               className="rounded-full bg-gradient-to-r from-kassena-orange to-[#e67e22] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95"
@@ -83,20 +214,6 @@ export const HomePage = () => {
             >
               Browse Dictionary
             </Link>
-            <Link
-              to="/culture"
-              className="rounded-full bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-105 active:scale-95 hidden sm:inline-flex"
-            >
-              Explore Culture
-            </Link>
-            {appUser ? null : (
-              <Link
-                to="/login"
-                className="rounded-full bg-kassena-gold px-6 py-3 text-sm font-bold text-kassena-dark shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95"
-              >
-                Sign In
-              </Link>
-            )}
             <a
               href="https://kassena.azlearner.me"
               target="_blank"
@@ -112,79 +229,43 @@ export const HomePage = () => {
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-kassena-orange/20 blur-3xl pointer-events-none"></div>
       </div>
 
-      {isLoading ? (
-        <LoadingState />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="group rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md">
-            <p className="text-sm font-medium text-slate-500">Approved entries</p>
-            <p className="mt-2 text-3xl font-bold text-kassena-green group-hover:text-kassena-orange transition-colors">
-              {metrics.approvedEntries}
-            </p>
-          </article>
-          <article className="group rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md">
-            <p className="text-sm font-medium text-slate-500">Pending review</p>
-            <p className="mt-2 text-3xl font-bold text-kassena-green group-hover:text-kassena-orange transition-colors">
-              {metrics.pendingReview}
-            </p>
-          </article>
-          <article className="group rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md">
-            <p className="text-sm font-medium text-slate-500">Active contributors</p>
-            <p className="mt-2 text-3xl font-bold text-kassena-green group-hover:text-kassena-orange transition-colors">
-              {metrics.activeContributors}
-            </p>
-          </article>
-          <article className="group rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md">
-            <p className="text-sm font-medium text-slate-500">Culture items</p>
-            <p className="mt-2 text-3xl font-bold text-kassena-green group-hover:text-kassena-orange transition-colors">
-              {metrics.approvedMediaItems}
-            </p>
-          </article>
-        </div>
-      )}
-
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-        <DataCollectionProgress
-          approved={metrics.approvedEntries}
-          pending={metrics.pendingReview}
-        />
+      {/* Search Bar - Primary CTA */}
+      <div className="animate-slide-up-delayed-3">
+        <SearchBar autoFocus={false} />
       </div>
 
-      {recentCulture.length ? (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-kassena-green">
-              Latest Culture
-            </h2>
-            <Link
-              to="/culture"
-              className="text-sm font-bold text-kassena-orange hover:text-[#e67e22] transition-colors"
-            >
-              View all &rarr;
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recentCulture.map((item) => (
-              <article
-                key={item.id}
-                className="group flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md"
-              >
-                <div className="flex-1">
-                  <span className="inline-flex items-center rounded-full bg-kassena-cream/50 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-kassena-orange">
-                    {item.category}
-                  </span>
-                  <h3 className="mt-3 text-lg font-bold text-slate-900 group-hover:text-kassena-green transition-colors line-clamp-1">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-500 line-clamp-2">
-                    {item.description || 'Approved community archive item.'}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {/* Word of the Day */}
+      <WordOfTheDay data={wordOfDay} isLoading={isLoading} />
+
+      {/* Community Progress Dashboard */}
+      <CommunityProgressDashboard
+        approvedEntries={metrics.approvedEntries}
+        pendingReview={metrics.pendingReview}
+        contributors={metrics.contributors}
+        validationRate={metrics.validationRate}
+      />
+
+      {/* Two-column layout for Rewards and Leaderboard */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ContributorRewards data={rewards} isLoading={isLoading} />
+        <LeaderboardPreview entries={leaderboard} isLoading={isLoading} />
+      </div>
+
+      {/* Community Activity Feed */}
+      <CommunityActivityFeed activities={activities} isLoading={isLoading} />
+
+      {/* Cultural Spotlight */}
+      <CulturalSpotlight items={culturalItems} isLoading={isLoading} />
+
+      {/* App Name Footer */}
+      <div className="text-center pt-4">
+        <p className="text-sm text-slate-500">
+          {APP_NAME}
+        </p>
+        <p className="text-xs text-slate-400 mt-1">
+          Preserving language. Empowering communities.
+        </p>
+      </div>
     </section>
   )
 }

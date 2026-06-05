@@ -44,9 +44,20 @@ a {
 .kassena-progress::-webkit-progress-value {
   background-color: #d06d25;
   border-radius: 9999px;
+  transition: width 1s ease-out;
 }
 
 .kassena-progress::-moz-progress-bar {
   background-color: #d06d25;
   border-radius: 9999px;
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
