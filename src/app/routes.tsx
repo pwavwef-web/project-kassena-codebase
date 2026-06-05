@@ -13,6 +13,7 @@ import { AdminSubmissionsPage } from '../pages/admin/AdminSubmissionsPage'
 import { AdminUploadsPage } from '../pages/admin/AdminUploadsPage'
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
 import { CompleteProfilePage } from '../pages/CompleteProfilePage'
+import { ContributionsPage } from '../pages/ContributionsPage'
 import { CulturePage } from '../pages/CulturePage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DictionaryPage } from '../pages/DictionaryPage'
@@ -20,6 +21,7 @@ import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { ProfilePage } from '../pages/ProfilePage'
+import { RewardsPage } from '../pages/RewardsPage'
 import { SubmitContributionPage } from '../pages/SubmitContributionPage'
 import { UploadsPage } from '../pages/UploadsPage'
 
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
         children: [
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/complete-profile', element: <CompleteProfilePage /> },
+          { path: '/contributions', element: <ContributionsPage /> },
+          { path: '/rewards', element: <RewardsPage /> },
           { path: '/submit', element: <SubmitContributionPage /> },
           { path: '/uploads', element: <UploadsPage /> },
           { path: '/profile', element: <ProfilePage /> },

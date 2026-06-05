@@ -9,6 +9,11 @@ export interface AppUser {
   displayName: string
   email: string
   photoURL: string
+  totalPoints?: number
+  weeklyPoints?: number
+  monthlyPoints?: number
+  approvedEntries?: number
+  badgeTitle?: string
   role: UserRole
   community?: string
   dialect?: string
@@ -19,6 +24,26 @@ export interface AppUser {
   createdAt: Timestamp | null
   lastLoginAt: Timestamp | null
   status: UserStatus
+}
+
+export type LeaderboardPeriod = 'week' | 'month' | 'allTime'
+
+export interface LeaderboardProfile {
+  uid: string
+  displayName: string
+  photoURL: string
+  totalPoints: number
+  weeklyPoints: number
+  monthlyPoints: number
+  approvedEntries: number
+  badgeTitle: string
+  lastContributionAt: Timestamp | null
+  createdAt: Timestamp | null
+}
+
+export interface RankedLeaderboardProfile extends LeaderboardProfile {
+  rank: number
+  activePoints: number
 }
 
 export interface FileMetadata {

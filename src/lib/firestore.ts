@@ -7,12 +7,15 @@ import {
   getDocs,
   increment,
   limit,
+  onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
   where,
+  type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import type {
@@ -22,7 +25,10 @@ import type {
   DashboardMetrics,
   DictionaryEntry,
   FileMetadata,
+  LeaderboardPeriod,
+  LeaderboardProfile,
   PublicDashboardMetrics,
+  RankedLeaderboardProfile,
   ReviewStatus,
   UploadRecord,
   UserRole,
@@ -30,6 +36,178 @@ import type {
 } from '../types'
 
 const publicDashboardMetricsRef = doc(db, 'publicStats', 'overview')
+const contributionApprovalBasePoints = 50
+const uploadApprovalPoints = 100
+const leaderboardPointFieldByPeriod: Record<
+  LeaderboardPeriod,
+  keyof Pick<LeaderboardProfile, 'weeklyPoints' | 'monthlyPoints' | 'totalPoints'>
+> = {
+  week: 'weeklyPoints',
+  month: 'monthlyPoints',
+  allTime: 'totalPoints',
+}
+
+export const getBadgeTitleForPoints = (points: number): string => {
+  if (points >= 2500) return 'Elder Approved'
+  if (points >= 1000) return 'Kasem Champion'
+  if (points >= 500) return 'Community Builder'
+  if (points >= 100) return 'Language Helper'
+  return 'New Contributor'
+}
+
+const asNumber = (value: unknown): number =>
+  typeof value === 'number' && Number.isFinite(value) ? value : 0
+
+const normalizeLeaderboardProfile = (
+  id: string,
+  data: Record<string, unknown>,
+): LeaderboardProfile => {
+  const totalPoints = asNumber(data.totalPoints)
+
+  return {
+    uid: typeof data.uid === 'string' && data.uid ? data.uid : id,
+    displayName:
+      typeof data.displayName === 'string' && data.displayName.trim()
+        ? data.displayName.trim()
+        : 'Kasem Contributor',
+    photoURL: typeof data.photoURL === 'string' ? data.photoURL : '',
+    totalPoints,
+    weeklyPoints: asNumber(data.weeklyPoints),
+    monthlyPoints: asNumber(data.monthlyPoints),
+    approvedEntries: asNumber(data.approvedEntries),
+    badgeTitle:
+      typeof data.badgeTitle === 'string' && data.badgeTitle.trim()
+        ? data.badgeTitle.trim()
+        : getBadgeTitleForPoints(totalPoints),
+    lastContributionAt:
+      data.lastContributionAt && typeof data.lastContributionAt === 'object'
+        ? (data.lastContributionAt as LeaderboardProfile['lastContributionAt'])
+        : null,
+    createdAt:
+      data.createdAt && typeof data.createdAt === 'object'
+        ? (data.createdAt as LeaderboardProfile['createdAt'])
+        : null,
+  }
+}
+
+const getActivePoints = (
+  profile: LeaderboardProfile,
+  period: LeaderboardPeriod,
+): number => profile[leaderboardPointFieldByPeriod[period]]
+
+const rankProfiles = (
+  profiles: LeaderboardProfile[],
+  period: LeaderboardPeriod,
+): RankedLeaderboardProfile[] =>
+  profiles.map((profile, index) => ({
+    ...profile,
+    rank: index + 1,
+    activePoints: getActivePoints(profile, period),
+  }))
+
+const pointsForContributionApproval = (contribution: Contribution): number => {
+  const hasExamples = Boolean(
+    contribution.englishExample || contribution.kasemExample,
+  )
+
+  return contributionApprovalBasePoints + (hasExamples ? 10 : 0)
+}
+
+const updateLeaderboardPoints = async (
+  userId: string,
+  pointDelta: number,
+  entryDelta: number,
+): Promise<void> => {
+  if (!userId || pointDelta === 0) {
+    return
+  }
+
+  const userRef = doc(db, 'users', userId)
+
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(userRef)
+    const data = snapshot.exists() ? snapshot.data() : {}
+    const totalPoints = Math.max(0, asNumber(data.totalPoints) + pointDelta)
+    const weeklyPoints = Math.max(0, asNumber(data.weeklyPoints) + pointDelta)
+    const monthlyPoints = Math.max(0, asNumber(data.monthlyPoints) + pointDelta)
+    const approvedEntries = Math.max(
+      0,
+      asNumber(data.approvedEntries) + entryDelta,
+    )
+
+    transaction.set(
+      userRef,
+      {
+        totalPoints,
+        weeklyPoints,
+        monthlyPoints,
+        approvedEntries,
+        badgeTitle: getBadgeTitleForPoints(totalPoints),
+        lastContributionAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    )
+  })
+}
+
+export const subscribeToLeaderboard = (
+  period: LeaderboardPeriod,
+  onChange: (profiles: RankedLeaderboardProfile[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe => {
+  const pointField = leaderboardPointFieldByPeriod[period]
+  const leaderboardQuery = query(
+    collection(db, 'users'),
+    orderBy(pointField, 'desc'),
+    limit(50),
+  )
+
+  // Firebase live leaderboard listener; each tab limits reads to the top 50.
+  return onSnapshot(
+    leaderboardQuery,
+    (snapshot) => {
+      onChange(
+        rankProfiles(
+          snapshot.docs.map((item) =>
+            normalizeLeaderboardProfile(item.id, item.data()),
+          ),
+          period,
+        ),
+      )
+    },
+    onError,
+  )
+}
+
+export const subscribeToLeaderboardUser = (
+  uid: string,
+  onChange: (profile: LeaderboardProfile | null) => void,
+  onError: (error: Error) => void,
+): Unsubscribe =>
+  onSnapshot(
+    doc(db, 'users', uid),
+    (snapshot) => {
+      onChange(
+        snapshot.exists()
+          ? normalizeLeaderboardProfile(snapshot.id, snapshot.data())
+          : null,
+      )
+    },
+    onError,
+  )
+
+export const getLeaderboardRank = async (
+  period: LeaderboardPeriod,
+  activePoints: number,
+): Promise<number> => {
+  const pointField = leaderboardPointFieldByPeriod[period]
+  const higherRankedSnapshot = await getCountFromServer(
+    query(collection(db, 'users'), where(pointField, '>', activePoints)),
+  )
+
+  return higherRankedSnapshot.data().count + 1
+}
 
 const syncPublicDashboardMetrics = async (
   updates: Partial<Record<keyof PublicDashboardMetrics, unknown>>,
@@ -143,6 +321,7 @@ export const approveContribution = async (
   }
 
   const contribution = contributionSnapshot.data() as Contribution
+  const wasAlreadyApproved = contribution.status === 'approved'
 
   await updateDoc(contributionRef, {
     status: 'approved',
@@ -177,6 +356,14 @@ export const approveContribution = async (
     isPublished: true,
   })
 
+  if (!wasAlreadyApproved) {
+    await updateLeaderboardPoints(
+      contribution.contributorId,
+      pointsForContributionApproval(contribution),
+      1,
+    )
+  }
+
   await createAuditLog({
     action: 'CONTRIBUTION_APPROVED',
     actorId: actor.id,
@@ -193,7 +380,13 @@ export const rejectContribution = async (
   actor: { id: string; email: string },
   reviewNotes: string,
 ): Promise<void> => {
-  await updateDoc(doc(db, 'contributions', contributionId), {
+  const contributionRef = doc(db, 'contributions', contributionId)
+  const contributionSnapshot = await getDoc(contributionRef)
+  const contribution = contributionSnapshot.exists()
+    ? (contributionSnapshot.data() as Contribution)
+    : null
+
+  await updateDoc(contributionRef, {
     status: 'rejected',
     reviewNotes,
     reviewedBy: actor.id,
@@ -204,6 +397,14 @@ export const rejectContribution = async (
   await syncPublicDashboardMetrics({
     pendingReview: increment(-1),
   })
+
+  if (contribution?.status === 'approved') {
+    await updateLeaderboardPoints(
+      contribution.contributorId,
+      -pointsForContributionApproval(contribution),
+      -1,
+    )
+  }
 
   await createAuditLog({
     action: 'CONTRIBUTION_REJECTED',
@@ -269,6 +470,7 @@ export const reviewUpload = async (
     upload?.culturalSensitivity !== 'private_archive' &&
     upload?.culturalSensitivity !== 'restricted' &&
     upload?.consentStatus !== 'pending'
+  const wasAlreadyApproved = upload?.status === 'approved'
 
   await updateDoc(uploadRef, {
     status,
@@ -288,6 +490,14 @@ export const reviewUpload = async (
     await syncPublicDashboardMetrics({
       approvedMediaItems: increment(-1),
     })
+  }
+
+  if (status === 'approved' && upload && !wasAlreadyApproved) {
+    await updateLeaderboardPoints(upload.uploadedBy, uploadApprovalPoints, 1)
+  }
+
+  if (status === 'rejected' && upload && wasAlreadyApproved) {
+    await updateLeaderboardPoints(upload.uploadedBy, -uploadApprovalPoints, -1)
   }
 
   await createAuditLog({

@@ -26,6 +26,7 @@ import {
   googleProvider,
   isFirebaseConfigured,
 } from '../config/firebase'
+import { getBadgeTitleForPoints } from '../lib/firestore'
 import type { AppUser, UserRole } from '../types'
 import { AuthContext, type AuthContextValue } from './AuthContextValue'
 
@@ -46,6 +47,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         displayName: user.displayName ?? 'Contributor',
         email: user.email ?? '',
         photoURL: user.photoURL ?? '',
+        totalPoints: 0,
+        weeklyPoints: 0,
+        monthlyPoints: 0,
+        approvedEntries: 0,
+        badgeTitle: getBadgeTitleForPoints(0),
+        lastContributionAt: null,
         role: defaultRole,
         status: 'active',
         community: '',
@@ -75,6 +82,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         dialect: existing.dialect ?? '',
         dialects:
           existing.dialects ?? (existing.dialect ? [existing.dialect] : []),
+        totalPoints: existing.totalPoints ?? 0,
+        weeklyPoints: existing.weeklyPoints ?? 0,
+        monthlyPoints: existing.monthlyPoints ?? 0,
+        approvedEntries: existing.approvedEntries ?? 0,
+        badgeTitle:
+          existing.badgeTitle ??
+          getBadgeTitleForPoints(existing.totalPoints ?? 0),
+        lastContributionAt: existing.lastContributionAt ?? null,
         phone: existing.phone ?? '',
         bio: existing.bio ?? '',
         contributionFocus: existing.contributionFocus ?? '',
