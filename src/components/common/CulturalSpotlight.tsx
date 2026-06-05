@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { EmptyState } from './EmptyState'
 
 interface CulturalItem {
@@ -62,6 +62,22 @@ const typeConfig: Record<
 
 export const CulturalSpotlight = ({ items, isLoading = false }: CulturalSpotlightProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
+
+  const nextIndex = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % items.length)
+  }, [items.length])
+
+  useEffect(() => {
+    if (isPaused || items.length <= 1) return
+    const timer = setInterval(nextIndex, 3000)
+    return () => clearInterval(timer)
+  }, [isPaused, items.length, nextIndex])
+
+  const handleDotClick = (index: number) => {
+    setActiveIndex(index)
+    setIsPaused(false)
+  }
 
   if (isLoading) {
     return (
@@ -96,7 +112,11 @@ export const CulturalSpotlight = ({ items, isLoading = false }: CulturalSpotligh
         </span>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
+      <div
+        className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
         <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-kassena-green/5 blur-2xl pointer-events-none" />
 
         <div className="relative z-10">
@@ -127,7 +147,7 @@ export const CulturalSpotlight = ({ items, isLoading = false }: CulturalSpotligh
             {items.map((_, index) => (
               <button
                 key={items[index].id}
-                onClick={() => setActiveIndex(index)}
+                onClick={() => handleDotClick(index)}
                 className={`h-2 rounded-full transition-all ${
                   index === activeIndex
                     ? 'w-6 bg-kassena-orange'

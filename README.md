@@ -107,6 +107,27 @@ Populate:
 - `auditLogs`
 - `settings`
 
+Leaderboard reads from `users` with these public-facing ranking fields:
+
+```ts
+users/{uid}: {
+  uid: string
+  displayName: string
+  photoURL?: string
+  totalPoints: number
+  weeklyPoints: number
+  monthlyPoints: number
+  approvedEntries: number
+  badgeTitle: string
+  lastContributionAt: Timestamp
+  createdAt: Timestamp
+}
+```
+
+Firestore indexes are registered in `firestore.indexes.json` for
+`weeklyPoints`, `monthlyPoints`, and `totalPoints` descending leaderboard
+queries. Deploy them with the normal Firebase deploy flow.
+
 ## 8. Storage path structure
 
 - `contributions/{uid}/{contributionId}/{filename}`

@@ -25,7 +25,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isValidator();
+      allow get: if isOwner(userId) || isValidator();
+      allow list: if isSignedIn();
       allow create: if isOwner(userId);
       allow update: if (
         isOwner(userId) &&

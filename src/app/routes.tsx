@@ -18,6 +18,7 @@ import { CulturePage } from '../pages/CulturePage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DictionaryPage } from '../pages/DictionaryPage'
 import { HomePage } from '../pages/HomePage'
+import { LeaderboardPage } from '../pages/LeaderboardPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { ProfilePage } from '../pages/ProfilePage'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/complete-profile', element: <CompleteProfilePage /> },
           { path: '/contributions', element: <ContributionsPage /> },
+          { path: '/leaderboard', element: <LeaderboardPage /> },
           { path: '/rewards', element: <RewardsPage /> },
           { path: '/submit', element: <SubmitContributionPage /> },
           { path: '/uploads', element: <UploadsPage /> },

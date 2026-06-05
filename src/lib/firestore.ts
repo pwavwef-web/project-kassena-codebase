@@ -21,6 +21,7 @@ import { db } from '../config/firebase'
 import type {
   AppSettings,
   AuditLog,
+  AuditLogRecord,
   Contribution,
   DashboardMetrics,
   DictionaryEntry,
@@ -448,6 +449,7 @@ export const createUploadRecord = async (
     isPublished: payload.isPublished ?? false,
     reviewedAt: null,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   })
 
   return uploadRef.id
@@ -478,6 +480,7 @@ export const reviewUpload = async (
     reviewNotes,
     reviewedBy: actor.id,
     reviewedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   })
 
   if (!wasPublished && shouldPublish) {
@@ -660,6 +663,8 @@ export const setPublicDashboardMetrics = async (
 export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
   const [
     users,
+    contributors,
+    validators,
     totalContributions,
     pendingContributions,
     approvedContributions,
@@ -670,6 +675,12 @@ export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
     approvedEntries,
   ] = await Promise.all([
     getCountFromServer(collection(db, 'users')),
+    getCountFromServer(
+      query(collection(db, 'users'), where('role', '==', 'contributor')),
+    ),
+    getCountFromServer(
+      query(collection(db, 'users'), where('role', '==', 'validator')),
+    ),
     getCountFromServer(collection(db, 'contributions')),
     getCountFromServer(
       query(collection(db, 'contributions'), where('status', '==', 'pending')),
@@ -697,6 +708,8 @@ export const getDashboardMetrics = async (): Promise<DashboardMetrics> => {
 
   return {
     totalUsers: users.data().count,
+    activeContributors: contributors.data().count,
+    activeValidators: validators.data().count,
     totalContributions: totalContributions.data().count,
     pendingContributions: pendingContributions.data().count,
     approvedContributions: approvedContributions.data().count,
@@ -720,6 +733,82 @@ export const getRecentContributions = async (): Promise<Contribution[]> => {
   return snapshot.docs.map(
     (item) => ({ id: item.id, ...item.data() }) as Contribution,
   )
+}
+
+export const subscribeToAdminDashboard = (
+  onChange: (payload: {
+    metrics: DashboardMetrics
+    recent: Contribution[]
+  }) => void,
+  onError: (error: Error) => void,
+): Unsubscribe => {
+  let isDisposed = false
+  let refreshTimer: ReturnType<typeof setTimeout> | null = null
+  let refreshSequence = 0
+
+  const refreshDashboard = async () => {
+    const sequence = ++refreshSequence
+
+    try {
+      const [metrics, recent] = await Promise.all([
+        getDashboardMetrics(),
+        getRecentContributions(),
+      ])
+
+      if (!isDisposed && sequence === refreshSequence) {
+        onChange({ metrics, recent })
+      }
+    } catch (error) {
+      if (!isDisposed) {
+        onError(error instanceof Error ? error : new Error(String(error)))
+      }
+    }
+  }
+
+  const scheduleRefresh = () => {
+    if (refreshTimer) {
+      clearTimeout(refreshTimer)
+    }
+
+    refreshTimer = setTimeout(() => {
+      void refreshDashboard()
+    }, 150)
+  }
+
+  void refreshDashboard()
+
+  const subscriptions = [
+    onSnapshot(
+      query(collection(db, 'contributions'), orderBy('updatedAt', 'desc'), limit(1)),
+      scheduleRefresh,
+      onError,
+    ),
+    onSnapshot(
+      query(collection(db, 'uploads'), orderBy('updatedAt', 'desc'), limit(1)),
+      scheduleRefresh,
+      onError,
+    ),
+    onSnapshot(
+      query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(1)),
+      scheduleRefresh,
+      onError,
+    ),
+    onSnapshot(
+      query(collection(db, 'dictionaryEntries'), orderBy('updatedAt', 'desc'), limit(1)),
+      scheduleRefresh,
+      onError,
+    ),
+  ]
+
+  return () => {
+    isDisposed = true
+
+    if (refreshTimer) {
+      clearTimeout(refreshTimer)
+    }
+
+    subscriptions.forEach((unsubscribe) => unsubscribe())
+  }
 }
 
 export const getAppSettings = async (): Promise<AppSettings | null> => {
@@ -750,3 +839,19 @@ export const createAuditLog = async (payload: AuditLog): Promise<void> => {
     createdAt: serverTimestamp(),
   })
 }
+
+export const subscribeToRecentAuditLogs = (
+  onChange: (logs: AuditLogRecord[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe =>
+  onSnapshot(
+    query(collection(db, 'auditLogs'), orderBy('createdAt', 'desc'), limit(5)),
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map(
+          (item) => ({ id: item.id, ...item.data() }) as AuditLogRecord,
+        ),
+      )
+    },
+    onError,
+  )

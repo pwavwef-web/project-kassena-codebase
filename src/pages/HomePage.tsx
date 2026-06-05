@@ -7,6 +7,7 @@ import {
   getPublicDashboardMetrics,
   setPublicDashboardMetrics,
   listApprovedDictionaryEntries,
+  subscribeToLeaderboard,
 } from '../lib/firestore.ts'
 import { APP_NAME } from '../lib/constants'
 import { SearchBar } from '../components/common/SearchBar'
@@ -143,12 +144,7 @@ export const HomePage = () => {
         }))
         setActivities(recentActivities)
 
-        // Mock leaderboard data (would come from Firestore in production)
-        setLeaderboard([
-          { rank: 1, name: 'Community Pioneer', points: 150 },
-          { rank: 2, name: 'Language Champion', points: 120 },
-          { rank: 3, name: 'Cultural Guardian', points: 95 },
-        ])
+        setLeaderboard([])
 
         // Mock cultural items (would come from Firestore in production)
         setCulturalItems([
@@ -186,6 +182,33 @@ export const HomePage = () => {
 
     run()
   }, [appUser?.role, appUser])
+
+  useEffect(() => {
+    if (!appUser) {
+      setLeaderboard([])
+      return () => undefined
+    }
+
+    const unsubscribe = subscribeToLeaderboard(
+      'month',
+      (entries) => {
+        setLeaderboard(
+          entries.slice(0, 5).map((entry) => ({
+            rank: entry.rank,
+            name: entry.displayName,
+            points: entry.monthlyPoints,
+            avatar: entry.photoURL,
+          })),
+        )
+      },
+      (error) => {
+        console.error('Homepage leaderboard preview failed:', error)
+        setLeaderboard([])
+      },
+    )
+
+    return unsubscribe
+  }, [appUser])
 
   return (
     <section className="space-y-8 animate-fade-in pb-8">

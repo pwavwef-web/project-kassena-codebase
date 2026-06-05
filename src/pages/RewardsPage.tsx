@@ -292,19 +292,26 @@ const pointsForUpload = (upload: UploadRecord) =>
 const SectionHeader = ({
   title,
   action = 'View all',
+  actionTo,
 }: {
   title: string
   action?: string
+  actionTo?: string
 }) => (
   <div className="mb-4 flex items-center justify-between gap-4">
     <h2 className="text-xl font-black text-[#073d24]">{title}</h2>
-    <button
-      type="button"
+    <Link
+      to={actionTo ?? '#'}
+      onClick={(event) => {
+        if (!actionTo) {
+          event.preventDefault()
+        }
+      }}
       className="flex shrink-0 items-center gap-2 text-sm font-semibold text-[#cf4f23]"
     >
       {action}
       <span aria-hidden="true">›</span>
-    </button>
+    </Link>
   </div>
 )
 
@@ -744,7 +751,11 @@ export const RewardsPage = () => {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Panel>
-            <SectionHeader title="Leaderboard" action="View full" />
+            <SectionHeader
+              title="Leaderboard"
+              action="View full"
+              actionTo="/leaderboard"
+            />
             <div className="space-y-3">
               {leaderboard.map((entry) => (
                 <div

@@ -117,6 +117,7 @@ export interface UploadRecord {
   status: ReviewStatus
   isPublished?: boolean
   createdAt: Timestamp | null
+  updatedAt?: Timestamp | null
   reviewedBy: string | null
   reviewedAt: Timestamp | null
   reviewNotes: string
@@ -146,8 +147,14 @@ export interface AuditLog {
   createdAt: Timestamp | null
 }
 
+export interface AuditLogRecord extends AuditLog {
+  id: string
+}
+
 export interface DashboardMetrics {
   totalUsers: number
+  activeContributors: number
+  activeValidators: number
   totalContributions: number
   pendingContributions: number
   approvedContributions: number

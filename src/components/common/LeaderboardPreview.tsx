@@ -45,6 +45,15 @@ export const LeaderboardPreview = ({
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
         <h3 className="text-lg font-bold text-kassena-green mb-4">Top Contributors This Month</h3>
         <EmptyState message="No contributions yet. Be the first!" />
+        <Link
+          to="/leaderboard"
+          className="mt-4 flex items-center justify-center gap-1 rounded-xl border border-kassena-cream bg-kassena-cream/50 py-2 text-sm font-semibold text-kassena-green transition-all hover:bg-kassena-cream hover:text-kassena-orange"
+        >
+          View Full Leaderboard
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     )
   }
@@ -107,7 +116,7 @@ export const LeaderboardPreview = ({
       </div>
 
       <Link
-        to="/profile"
+        to="/leaderboard"
         className="mt-4 flex items-center justify-center gap-1 rounded-xl border border-kassena-cream bg-kassena-cream/50 py-2 text-sm font-semibold text-kassena-green transition-all hover:bg-kassena-cream hover:text-kassena-orange"
       >
         View Full Leaderboard
