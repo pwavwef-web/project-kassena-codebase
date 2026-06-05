@@ -46,6 +46,65 @@ export interface RankedLeaderboardProfile extends LeaderboardProfile {
   activePoints: number
 }
 
+export interface RewardCatalogItem {
+  id: string
+  title: string
+  subtitle: string
+  cost: number
+  icon: string
+  category?: string
+  isActive: boolean
+  sortOrder: number
+  createdAt?: Timestamp | null
+  updatedAt?: Timestamp | null
+}
+
+export type RewardAchievementRequirement =
+  | 'firstContribution'
+  | 'approvedEntries'
+  | 'uploads'
+  | 'totalPoints'
+  | 'elderApproved'
+
+export interface RewardAchievement {
+  id: string
+  title: string
+  description: string
+  icon: string
+  requirementType: RewardAchievementRequirement
+  target: number
+  isActive: boolean
+  sortOrder: number
+  createdAt?: Timestamp | null
+  updatedAt?: Timestamp | null
+}
+
+export interface RewardBounty {
+  id: string
+  title: string
+  description: string
+  pointsPerContribution: number
+  currentContributions: number
+  targetContributions: number
+  deadlineLabel: string
+  sponsorName: string
+  icon: string
+  isActive: boolean
+  sortOrder: number
+  createdAt?: Timestamp | null
+  updatedAt?: Timestamp | null
+}
+
+export interface AdminUserSummary {
+  id: string
+  displayName: string
+  email: string
+  photoURL: string
+  role: UserRole
+  status: UserStatus
+  lastLoginAt: Timestamp | null
+}
+
 export interface FileMetadata {
   name: string
   url: string

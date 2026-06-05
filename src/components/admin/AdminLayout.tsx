@@ -4,17 +4,11 @@ import { isFirebaseConfigured } from '../../config/firebase'
 import { useAuth } from '../../hooks/useAuth'
 
 type AdminIconName =
-  | 'analytics'
   | 'book'
-  | 'chart'
   | 'clipboard'
-  | 'flower'
-  | 'gift'
   | 'globe'
   | 'home'
-  | 'reports'
   | 'settings'
-  | 'shield'
   | 'upload'
   | 'users'
 
@@ -22,23 +16,17 @@ interface AdminNavItem {
   to: string
   label: string
   icon: AdminIconName
-  badge?: number
-  hash?: string
   exact?: boolean
 }
 
 const adminItems: AdminNavItem[] = [
   { to: '/admin', label: 'Dashboard', icon: 'home', exact: true },
-  { to: '/admin/submissions', label: 'Contributions', icon: 'clipboard', badge: 4 },
+  { to: '/admin/submissions', label: 'Contributions', icon: 'clipboard' },
   { to: '/admin/uploads', label: 'Uploads', icon: 'upload' },
   { to: '/admin/dictionary', label: 'Dictionary', icon: 'book' },
-  { to: '/admin/users#validators', label: 'Validators', icon: 'shield', badge: 2 },
-  { to: '/admin#rewards', label: 'Rewards', icon: 'gift', badge: 2, hash: 'rewards' },
-  { to: '/admin#culture', label: 'Culture', icon: 'flower', badge: 3, hash: 'culture' },
   { to: '/admin/users', label: 'Users', icon: 'users' },
-  { to: '/admin#analytics', label: 'Analytics', icon: 'analytics', hash: 'analytics' },
-  { to: '/admin#reports', label: 'Reports', icon: 'reports', hash: 'reports' },
   { to: '/admin/settings', label: 'Settings', icon: 'settings' },
+  { to: '/', label: 'Back to Home', icon: 'globe' },
 ]
 
 const getInitials = (name?: string) =>
@@ -67,25 +55,10 @@ const AdminIcon = ({
   }
 
   const paths: Record<AdminIconName, ReactNode> = {
-    analytics: (
-      <>
-        <path d="M4 19V5" />
-        <path d="M4 19h16" />
-        <path d="m7 15 3-3 3 2 5-7" />
-      </>
-    ),
     book: (
       <>
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
         <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z" />
-      </>
-    ),
-    chart: (
-      <>
-        <path d="M4 19h16" />
-        <path d="M7 16V9" />
-        <path d="M12 16V5" />
-        <path d="M17 16v-4" />
       </>
     ),
     clipboard: (
@@ -94,23 +67,6 @@ const AdminIcon = ({
         <path d="M9 12h6" />
         <path d="M9 16h4" />
         <path d="M8 3h8l1 2h2v16H5V5h2z" />
-      </>
-    ),
-    flower: (
-      <>
-        <path d="M12 22v-8" />
-        <path d="M8 14c-3 0-5-2-5-5 3 0 5 2 5 5z" />
-        <path d="M16 14c3 0 5-2 5-5-3 0-5 2-5 5z" />
-        <path d="M12 10c-2-2-2-5 0-8 2 3 2 6 0 8z" />
-      </>
-    ),
-    gift: (
-      <>
-        <path d="M20 12v8H4v-8" />
-        <path d="M2 7h20v5H2z" />
-        <path d="M12 22V7" />
-        <path d="M12 7H8.5A2.5 2.5 0 1 1 11 4.5L12 7z" />
-        <path d="M12 7h3.5A2.5 2.5 0 1 0 13 4.5L12 7z" />
       </>
     ),
     globe: (
@@ -128,24 +84,10 @@ const AdminIcon = ({
         <path d="M9 21v-6h6v6" />
       </>
     ),
-    reports: (
-      <>
-        <path d="M6 2h9l5 5v15H6z" />
-        <path d="M14 2v6h6" />
-        <path d="M9 13h6" />
-        <path d="M9 17h4" />
-      </>
-    ),
     settings: (
       <>
         <circle cx="12" cy="12" r="3" />
         <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7.1 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1z" />
-      </>
-    ),
-    shield: (
-      <>
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <path d="m9 12 2 2 4-5" />
       </>
     ),
     upload: (
@@ -184,15 +126,14 @@ export const AdminLayout = () => {
   const location = useLocation()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const initials = getInitials(appUser?.displayName)
-  const currentHash = location.hash.replace('#', '')
 
   const isItemActive = (item: AdminNavItem) => {
-    if (item.hash) {
-      return location.pathname === '/admin' && currentHash === item.hash
+    if (item.to === '/') {
+      return false
     }
 
     if (item.exact) {
-      return location.pathname === item.to && !currentHash
+      return location.pathname === item.to
     }
 
     return location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
@@ -216,11 +157,6 @@ export const AdminLayout = () => {
           >
             <AdminIcon name={item.icon} className="h-5 w-5 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{item.label}</span>
-            {item.badge ? (
-              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-kassena-orange px-2 text-xs font-bold text-white">
-                {item.badge}
-              </span>
-            ) : null}
           </Link>
         )
       })}
@@ -241,41 +177,9 @@ export const AdminLayout = () => {
         {renderAdminNav()}
       </div>
 
-      <div className="space-y-3 px-3 pb-4">
-        <section className="overflow-hidden rounded-lg border border-kassena-gold/70 bg-[#07351f]">
-          <div className="p-4">
-            <p className="text-sm font-bold text-kassena-gold">Project Impact</p>
-            <p className="mt-2 max-w-[11rem] text-xs leading-5 text-white">
-              Every contribution helps preserve Kasem heritage.
-            </p>
-          </div>
-          <div className="grid h-20 grid-cols-5 gap-1 border-t border-kassena-gold/40 bg-kassena-orange/80 p-2">
-            {Array.from({ length: 20 }, (_, index) => (
-              <span
-                key={index}
-                className={`rounded-sm ${
-                  index % 4 === 0
-                    ? 'bg-[#07351f]'
-                    : index % 3 === 0
-                      ? 'bg-kassena-gold'
-                      : 'bg-[#0c5a34]'
-                }`}
-              />
-            ))}
-          </div>
-        </section>
-
-        <button
-          type="button"
-          className="flex w-full items-center justify-between rounded-lg border border-white/20 bg-white/10 px-3 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/20"
-        >
-          <span className="flex min-w-0 items-center gap-3">
-            <AdminIcon name="globe" className="h-5 w-5 shrink-0" />
-            <span className="truncate">Kasem (KAS)</span>
-          </span>
-          <span aria-hidden="true">v</span>
-        </button>
-      </div>
+      <p className="px-4 pb-4 text-xs leading-5 text-white/70">
+        Project Kasena admin workspace
+      </p>
     </div>
   )
 
@@ -316,15 +220,15 @@ export const AdminLayout = () => {
 
       {isSidebarOpen ? (
         <div className="fixed inset-0 z-40 bg-slate-950/50 md:hidden">
-          <aside className="h-full w-[min(20rem,88vw)] shadow-2xl">
-            {sidebar}
-          </aside>
           <button
             type="button"
             aria-label="Close admin navigation"
-            className="absolute inset-0 -z-10 h-full w-full"
+            className="absolute inset-0 h-full w-full"
             onClick={() => setIsSidebarOpen(false)}
           />
+          <aside className="relative z-10 h-full w-[min(20rem,88vw)] shadow-2xl">
+            {sidebar}
+          </aside>
         </div>
       ) : null}
 
@@ -332,7 +236,7 @@ export const AdminLayout = () => {
         {sidebar}
       </aside>
 
-      <section className="min-w-0 flex-1">
+      <section className="min-w-0 flex-1 overflow-x-hidden">
         {!isFirebaseConfigured ? (
           <div className="border-b border-amber-200 bg-amber-100 px-4 py-2 text-center text-xs text-amber-800">
             Firebase is not configured. Add values in .env.local to enable

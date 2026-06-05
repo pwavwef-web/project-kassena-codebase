@@ -19,6 +19,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import type {
+  AdminUserSummary,
   AppSettings,
   AuditLog,
   AuditLogRecord,
@@ -30,6 +31,9 @@ import type {
   LeaderboardProfile,
   PublicDashboardMetrics,
   RankedLeaderboardProfile,
+  RewardAchievement,
+  RewardBounty,
+  RewardCatalogItem,
   ReviewStatus,
   UploadRecord,
   UserRole,
@@ -58,6 +62,12 @@ export const getBadgeTitleForPoints = (points: number): string => {
 
 const asNumber = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 0
+
+const asString = (value: unknown, fallback = ''): string =>
+  typeof value === 'string' ? value : fallback
+
+const asBoolean = (value: unknown, fallback = false): boolean =>
+  typeof value === 'boolean' ? value : fallback
 
 const normalizeLeaderboardProfile = (
   id: string,
@@ -105,6 +115,109 @@ const rankProfiles = (
     rank: index + 1,
     activePoints: getActivePoints(profile, period),
   }))
+
+const bySortOrder = <T extends { sortOrder: number }>(first: T, second: T) =>
+  first.sortOrder - second.sortOrder
+
+export const listRewardCatalogItems = async (): Promise<
+  RewardCatalogItem[]
+> => {
+  const snapshot = await getDocs(collection(db, 'rewardCatalog'))
+
+  return snapshot.docs
+    .map((item) => {
+      const data = item.data()
+
+      return {
+        id: item.id,
+        title: asString(data.title, 'Reward'),
+        subtitle: asString(data.subtitle),
+        cost: asNumber(data.cost),
+        icon: asString(data.icon, 'gift'),
+        category: asString(data.category),
+        isActive: asBoolean(data.isActive, true),
+        sortOrder: asNumber(data.sortOrder),
+        createdAt:
+          data.createdAt && typeof data.createdAt === 'object'
+            ? (data.createdAt as RewardCatalogItem['createdAt'])
+            : null,
+        updatedAt:
+          data.updatedAt && typeof data.updatedAt === 'object'
+            ? (data.updatedAt as RewardCatalogItem['updatedAt'])
+            : null,
+      }
+    })
+    .filter((item) => item.isActive)
+    .sort(bySortOrder)
+}
+
+export const listRewardAchievements = async (): Promise<
+  RewardAchievement[]
+> => {
+  const snapshot = await getDocs(collection(db, 'rewardAchievements'))
+
+  return snapshot.docs
+    .map((item) => {
+      const data = item.data()
+
+      return {
+        id: item.id,
+        title: asString(data.title, 'Achievement'),
+        description: asString(data.description),
+        icon: asString(data.icon, 'badge'),
+        requirementType: asString(
+          data.requirementType,
+          'totalPoints',
+        ) as RewardAchievement['requirementType'],
+        target: asNumber(data.target),
+        isActive: asBoolean(data.isActive, true),
+        sortOrder: asNumber(data.sortOrder),
+        createdAt:
+          data.createdAt && typeof data.createdAt === 'object'
+            ? (data.createdAt as RewardAchievement['createdAt'])
+            : null,
+        updatedAt:
+          data.updatedAt && typeof data.updatedAt === 'object'
+            ? (data.updatedAt as RewardAchievement['updatedAt'])
+            : null,
+      }
+    })
+    .filter((item) => item.isActive)
+    .sort(bySortOrder)
+}
+
+export const listRewardBounties = async (): Promise<RewardBounty[]> => {
+  const snapshot = await getDocs(collection(db, 'rewardBounties'))
+
+  return snapshot.docs
+    .map((item) => {
+      const data = item.data()
+
+      return {
+        id: item.id,
+        title: asString(data.title, 'Language bounty'),
+        description: asString(data.description),
+        pointsPerContribution: asNumber(data.pointsPerContribution),
+        currentContributions: asNumber(data.currentContributions),
+        targetContributions: asNumber(data.targetContributions),
+        deadlineLabel: asString(data.deadlineLabel),
+        sponsorName: asString(data.sponsorName),
+        icon: asString(data.icon, 'medical'),
+        isActive: asBoolean(data.isActive, true),
+        sortOrder: asNumber(data.sortOrder),
+        createdAt:
+          data.createdAt && typeof data.createdAt === 'object'
+            ? (data.createdAt as RewardBounty['createdAt'])
+            : null,
+        updatedAt:
+          data.updatedAt && typeof data.updatedAt === 'object'
+            ? (data.updatedAt as RewardBounty['updatedAt'])
+            : null,
+      }
+    })
+    .filter((item) => item.isActive)
+    .sort(bySortOrder)
+}
 
 const pointsForContributionApproval = (contribution: Contribution): number => {
   const hasExamples = Boolean(
@@ -581,6 +694,32 @@ export const listUsers = async (): Promise<
     }
   })
 }
+
+export const subscribeToAdminUsers = (
+  onChange: (users: AdminUserSummary[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe =>
+  onSnapshot(
+    query(collection(db, 'users'), orderBy('displayName')),
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map((item) => {
+          const data = item.data() as Partial<AdminUserSummary>
+
+          return {
+            id: item.id,
+            displayName: data.displayName ?? '',
+            email: data.email ?? '',
+            photoURL: data.photoURL ?? '',
+            role: data.role ?? 'contributor',
+            status: data.status ?? 'active',
+            lastLoginAt: data.lastLoginAt ?? null,
+          }
+        }),
+      )
+    },
+    onError,
+  )
 
 export const upsertDictionaryEntry = async (
   entryId: string,
