@@ -13,6 +13,19 @@ export const AdminDictionaryPage = () => {
   const { appUser } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [entries, setEntries] = useState<DictionaryEntry[]>([])
+  const [editingEntry, setEditingEntry] = useState<DictionaryEntry | null>(null)
+  const [editValues, setEditValues] = useState({
+    englishText: '',
+    kasemText: '',
+    alternateKasemTerms: '',
+    englishExample: '',
+    kasemExample: '',
+    dialect: 'Other',
+    partOfSpeech: 'Other',
+    category: 'General vocabulary',
+    pronunciation: '',
+    culturalNote: '',
+  })
 
   const load = async () => {
     setEntries(await listApprovedDictionaryEntries())
@@ -43,16 +56,13 @@ export const AdminDictionaryPage = () => {
   const actor = { id: appUser?.uid ?? '', email: appUser?.email ?? '' }
 
   const addManualEntry = async () => {
-    if (appUser?.role !== 'admin') {
-      return
-    }
+    if (appUser?.role !== 'admin') return
 
     const englishText = window.prompt('English text')
     const kasemText = window.prompt('Kasem text')
+    const pronunciation = window.prompt('Pronunciation (phonetic guide)') ?? ''
 
-    if (!englishText || !kasemText) {
-      return
-    }
+    if (!englishText || !kasemText) return
 
     const id = crypto.randomUUID()
     await upsertDictionaryEntry(
@@ -66,6 +76,9 @@ export const AdminDictionaryPage = () => {
         dialect: 'Other',
         partOfSpeech: 'Other',
         category: 'General vocabulary',
+        pronunciation,
+        audioUrl: '',
+        culturalNote: '',
         isPublished: true,
       },
       actor,
@@ -73,44 +86,55 @@ export const AdminDictionaryPage = () => {
     await load()
   }
 
-  const editEntry = async (entry: DictionaryEntry) => {
-    if (appUser?.role !== 'admin') {
-      return
-    }
+  const openEditModal = (entry: DictionaryEntry) => {
+    if (appUser?.role !== 'admin') return
+    setEditingEntry(entry)
+    setEditValues({
+      englishText: entry.englishText,
+      kasemText: entry.kasemText,
+      alternateKasemTerms: entry.alternateKasemTerms ?? '',
+      englishExample: entry.englishExample,
+      kasemExample: entry.kasemExample,
+      dialect: entry.dialect,
+      partOfSpeech: entry.partOfSpeech,
+      category: entry.category,
+      pronunciation: entry.pronunciation ?? '',
+      culturalNote: entry.culturalNote ?? '',
+    })
+  }
 
-    const englishText = window.prompt('English text', entry.englishText)
-    const kasemText = window.prompt('Kasem text', entry.kasemText)
-    if (!englishText || !kasemText) {
-      return
-    }
+  const handleSaveEdit = async () => {
+    if (!editingEntry || appUser?.role !== 'admin') return
 
     await upsertDictionaryEntry(
-      entry.id,
+      editingEntry.id,
       {
-        englishText,
-        kasemText,
-        alternateKasemTerms: entry.alternateKasemTerms ?? '',
-        englishExample: entry.englishExample,
-        kasemExample: entry.kasemExample,
-        dialect: entry.dialect,
-        partOfSpeech: entry.partOfSpeech,
-        category: entry.category,
-        sourceContributionId: entry.sourceContributionId,
-        contributorId: entry.contributorId,
-        approvedBy: entry.approvedBy,
-        approvedAt: entry.approvedAt,
-        isPublished: entry.isPublished,
+        englishText: editValues.englishText,
+        kasemText: editValues.kasemText,
+        alternateKasemTerms: editValues.alternateKasemTerms,
+        englishExample: editValues.englishExample,
+        kasemExample: editValues.kasemExample,
+        dialect: editValues.dialect,
+        partOfSpeech: editValues.partOfSpeech,
+        category: editValues.category,
+        pronunciation: editValues.pronunciation,
+        audioUrl: editingEntry.audioUrl ?? '',
+        culturalNote: editValues.culturalNote,
+        sourceContributionId: editingEntry.sourceContributionId,
+        contributorId: editingEntry.contributorId,
+        contributorName: editingEntry.contributorName,
+        approvedBy: editingEntry.approvedBy,
+        approvedAt: editingEntry.approvedAt,
+        isPublished: editingEntry.isPublished,
       },
       actor,
     )
+    setEditingEntry(null)
     await load()
   }
 
   const handleUnpublish = async (id: string) => {
-    if (appUser?.role !== 'admin') {
-      return
-    }
-
+    if (appUser?.role !== 'admin') return
     await unpublishDictionaryEntry(id, actor)
     await load()
   }
@@ -146,10 +170,18 @@ export const AdminDictionaryPage = () => {
               <p className="text-sm text-slate-600">
                 {entry.dialect} • {entry.partOfSpeech} • {entry.category}
               </p>
+              {entry.pronunciation && (
+                <p className="text-xs text-slate-500">/{entry.pronunciation}/</p>
+              )}
+              {entry.culturalNote && (
+                <p className="mt-1 text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
+                  Cultural note: {entry.culturalNote}
+                </p>
+              )}
               <div className="mt-2 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => editEntry(entry)}
+                  onClick={() => openEditModal(entry)}
                   disabled={appUser?.role !== 'admin'}
                   className="rounded-lg border border-kassena-gold px-3 py-1 text-sm text-kassena-green disabled:opacity-60"
                 >
@@ -169,6 +201,92 @@ export const AdminDictionaryPage = () => {
         </div>
       ) : (
         <EmptyState message="No approved dictionary entries available." />
+      )}
+
+      {/* Edit Modal */}
+      {editingEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="mb-4 text-lg font-bold text-kassena-green">Edit Entry</h2>
+            <div className="space-y-3">
+              <label className="space-y-1 text-sm">
+                <span>English text</span>
+                <input
+                  value={editValues.englishText}
+                  onChange={(e) => setEditValues((prev) => ({ ...prev, englishText: e.target.value }))}
+                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span>Kasem text</span>
+                <input
+                  value={editValues.kasemText}
+                  onChange={(e) => setEditValues((prev) => ({ ...prev, kasemText: e.target.value }))}
+                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span>Pronunciation</span>
+                <input
+                  value={editValues.pronunciation}
+                  onChange={(e) => setEditValues((prev) => ({ ...prev, pronunciation: e.target.value }))}
+                  placeholder="/lám/"
+                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span>Alternative spellings</span>
+                <textarea
+                  value={editValues.alternateKasemTerms}
+                  onChange={(e) => setEditValues((prev) => ({ ...prev, alternateKasemTerms: e.target.value }))}
+                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="space-y-1 text-sm">
+                  <span>English example</span>
+                  <textarea
+                    value={editValues.englishExample}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, englishExample: e.target.value }))}
+                    className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                  />
+                </label>
+                <label className="space-y-1 text-sm">
+                  <span>Kasem example</span>
+                  <textarea
+                    value={editValues.kasemExample}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, kasemExample: e.target.value }))}
+                    className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                  />
+                </label>
+              </div>
+              <label className="space-y-1 text-sm">
+                <span>Cultural note</span>
+                <textarea
+                  value={editValues.culturalNote}
+                  onChange={(e) => setEditValues((prev) => ({ ...prev, culturalNote: e.target.value }))}
+                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                />
+              </label>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  className="rounded-lg bg-kassena-orange px-4 py-2 text-sm font-semibold text-white"
+                >
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingEntry(null)}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   )

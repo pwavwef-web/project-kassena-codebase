@@ -5,7 +5,7 @@ import type { AppSettings } from '../../types'
 
 export const AdminSettingsPage = () => {
   const [settings, setSettings] = useState<Omit<AppSettings, 'updatedAt'>>({
-    appName: 'Project Kassena',
+    appName: 'TribeStudio',
     launchMode: 'mvp',
     allowPublicSubmissions: false,
   })

@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.svg', 'icons.svg'],
       manifest: {
-        name: 'Kassena - Kasem Language Preservation',
-        short_name: 'Kassena',
+        name: 'TribeStudio',
+        short_name: 'TribeStudio',
         description: 'Kasem language preservation and AI/data collection platform',
         theme_color: '#4f46e5',
         background_color: '#ffffff',

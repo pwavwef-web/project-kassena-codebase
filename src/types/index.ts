@@ -32,6 +32,7 @@ export interface LeaderboardProfile {
   uid: string
   displayName: string
   photoURL: string
+  community?: string
   totalPoints: number
   weeklyPoints: number
   monthlyPoints: number
@@ -95,6 +96,60 @@ export interface RewardBounty {
   updatedAt?: Timestamp | null
 }
 
+export interface ContributorLevel {
+  id: string
+  title: string
+  description: string
+  icon: string
+  minPoints: number
+  maxPoints: number | null
+  isActive: boolean
+  sortOrder: number
+  createdAt?: Timestamp | null
+  updatedAt?: Timestamp | null
+}
+
+export interface CommunityRecognition {
+  id: string
+  userId: string
+  title: string
+  description: string
+  icon: string
+  scope: string
+  awardedAt: Timestamp | null
+  isActive: boolean
+  sortOrder: number
+  createdAt?: Timestamp | null
+  updatedAt?: Timestamp | null
+}
+
+export interface RewardRedemption {
+  id: string
+  userId: string
+  rewardId: string
+  title: string
+  cost: number
+  status: string
+  createdAt: Timestamp | null
+  updatedAt?: Timestamp | null
+}
+
+export interface Announcement {
+  id: string
+  title: string
+  body: string
+  category: string
+  actionLabel?: string
+  actionUrl?: string
+  isPublished: boolean
+  createdBy: string
+  createdByEmail: string
+  createdByName: string
+  publishedAt: Timestamp | null
+  createdAt: Timestamp | null
+  updatedAt: Timestamp | null
+}
+
 export interface AdminUserSummary {
   id: string
   displayName: string
@@ -126,6 +181,9 @@ export interface Contribution {
   category: string
   notes: string
   wordUseRules?: string
+  pronunciation?: string
+  audioUrl?: string
+  culturalNote?: string
   contributorId: string
   contributorName: string
   contributorEmail: string
@@ -148,8 +206,14 @@ export interface DictionaryEntry {
   dialect: string
   partOfSpeech: string
   category: string
+  pronunciation?: string
+  audioUrl?: string
+  culturalNote?: string
+  relatedWordIds?: string[]
+  wordUseRules?: string
   sourceContributionId?: string
   contributorId?: string
+  contributorName?: string
   approvedBy?: string
   approvedAt?: Timestamp | null
   createdAt: Timestamp | null
@@ -198,6 +262,7 @@ export interface AuditLog {
     | 'UPLOAD_REJECTED'
     | 'DICTIONARY_ENTRY_UPDATED'
     | 'DICTIONARY_ENTRY_UNPUBLISHED'
+    | 'ANNOUNCEMENT_SENT'
   actorId: string
   actorEmail: string
   targetCollection: string
@@ -230,4 +295,34 @@ export interface PublicDashboardMetrics {
   pendingReview: number
   activeContributors: number
   approvedMediaItems: number
+}
+
+export interface UserFavorite {
+  id: string
+  userId: string
+  entryId: string
+  createdAt: Timestamp | null
+}
+
+export interface RecentlyViewedWord {
+  id: string
+  userId: string
+  entryId: string
+  viewedAt: Timestamp | null
+}
+
+export interface SearchHistoryEntry {
+  id: string
+  userId: string
+  query: string
+  searchedAt: Timestamp | null
+}
+
+export interface DictionaryAnalytics {
+  totalSearches: number
+  totalViews: number
+  totalFavorites: number
+  totalCorrections: number
+  mostViewedWords: Array<{ entryId: string; englishText: string; kasemText: string; viewCount: number }>
+  mostFavoritedWords: Array<{ entryId: string; englishText: string; kasemText: string; favCount: number }>
 }

@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
+import { SearchBar } from '../components/common/SearchBar'
+import { WordOfTheDay } from '../components/common/WordOfTheDay'
+import { ExpandableDictionaryCard } from '../components/common/ExpandableDictionaryCard'
 import { listApprovedDictionaryEntries } from '../lib/firestore'
 import type { DictionaryEntry } from '../types'
 
 export const DictionaryPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [entries, setEntries] = useState<DictionaryEntry[]>([])
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('search') ?? '')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filters, setFilters] = useState({
-    english: '',
-    kasem: '',
     dialect: '',
     partOfSpeech: '',
   })
@@ -21,6 +24,30 @@ export const DictionaryPage = () => {
       .then(setEntries)
       .finally(() => setIsLoading(false))
   }, [])
+
+  const handleSearch = (query: string) => {
+    setSearch(query)
+    if (query) {
+      setSearchParams({ search: query })
+    } else {
+      setSearchParams({})
+    }
+  }
+
+  const wordOfDay = useMemo(() => {
+    if (entries.length === 0) return null
+    const today = new Date()
+    const dayIndex = today.getDate() % entries.length
+    const selected = entries[dayIndex]
+    return {
+      kasemWord: selected.kasemText,
+      pronunciation: selected.pronunciation || `/${selected.kasemText.toLowerCase()}/`,
+      englishMeaning: selected.englishText,
+      exampleSentence: selected.kasemExample || selected.englishExample,
+      culturalNote: selected.category !== 'General vocabulary' ? `Category: ${selected.category}` : undefined,
+      audioUrl: selected.audioUrl,
+    }
+  }, [entries])
 
   const filteredEntries = useMemo(
     () =>
@@ -32,14 +59,6 @@ export const DictionaryPage = () => {
           entry.kasemText.toLowerCase().includes(keyword) ||
           entry.alternateKasemTerms?.toLowerCase().includes(keyword)
 
-        const matchesEnglish =
-          !filters.english ||
-          entry.englishText
-            .toLowerCase()
-            .includes(filters.english.toLowerCase())
-        const matchesKasem =
-          !filters.kasem ||
-          entry.kasemText.toLowerCase().includes(filters.kasem.toLowerCase())
         const matchesDialect =
           !filters.dialect ||
           entry.dialect.toLowerCase().includes(filters.dialect.toLowerCase())
@@ -49,102 +68,94 @@ export const DictionaryPage = () => {
             .toLowerCase()
             .includes(filters.partOfSpeech.toLowerCase())
 
-        return (
-          matchesSearch &&
-          matchesEnglish &&
-          matchesKasem &&
-          matchesDialect &&
-          matchesPartOfSpeech
-        )
+        return matchesSearch && matchesDialect && matchesPartOfSpeech
       }),
-    [
-      entries,
-      filters.dialect,
-      filters.english,
-      filters.kasem,
-      filters.partOfSpeech,
-      search,
-    ],
+    [entries, filters.dialect, filters.partOfSpeech, search],
   )
 
   return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-bold text-kassena-green">Dictionary</h1>
-      <div className="grid gap-3 rounded-2xl bg-white p-4 shadow-sm md:grid-cols-5">
-        <input
-          placeholder="Search approved entries"
-          className="rounded-lg border border-kassena-cream px-3 py-2"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+    <section className="space-y-6">
+      <WordOfTheDay data={wordOfDay} isLoading={isLoading} />
+
+      <div className="space-y-3">
+        <SearchBar
+          onSearch={handleSearch}
+          autoFocus={false}
         />
-        <input
-          placeholder="Filter by English"
-          className="rounded-lg border border-kassena-cream px-3 py-2"
-          value={filters.english}
-          onChange={(event) =>
-            setFilters((prev) => ({ ...prev, english: event.target.value }))
-          }
-        />
-        <input
-          placeholder="Filter by Kasem"
-          className="rounded-lg border border-kassena-cream px-3 py-2"
-          value={filters.kasem}
-          onChange={(event) =>
-            setFilters((prev) => ({ ...prev, kasem: event.target.value }))
-          }
-        />
-        <input
-          placeholder="Filter by dialect"
-          className="rounded-lg border border-kassena-cream px-3 py-2"
-          value={filters.dialect}
-          onChange={(event) =>
-            setFilters((prev) => ({ ...prev, dialect: event.target.value }))
-          }
-        />
-        <input
-          placeholder="Filter by part of speech"
-          className="rounded-lg border border-kassena-cream px-3 py-2"
-          value={filters.partOfSpeech}
-          onChange={(event) =>
-            setFilters((prev) => ({
-              ...prev,
-              partOfSpeech: event.target.value,
-            }))
-          }
-        />
+
+        <div className="flex flex-wrap gap-3">
+          <select
+            value={filters.dialect}
+            onChange={(e) =>
+              setFilters((prev) => ({ ...prev, dialect: e.target.value }))
+            }
+            className="rounded-lg border border-kassena-cream bg-white px-3 py-2 text-sm"
+          >
+            <option value="">All Dialects</option>
+            <option value="Navrongo">Navrongo</option>
+            <option value="Paga">Paga</option>
+            <option value="Chiana">Chiana</option>
+            <option value="Chuchuliga">Chuchuliga</option>
+            <option value="Sandema">Sandema</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <select
+            value={filters.partOfSpeech}
+            onChange={(e) =>
+              setFilters((prev) => ({ ...prev, partOfSpeech: e.target.value }))
+            }
+            className="rounded-lg border border-kassena-cream bg-white px-3 py-2 text-sm"
+          >
+            <option value="">All Parts of Speech</option>
+            <option value="Noun">Noun</option>
+            <option value="Verb">Verb</option>
+            <option value="Adjective">Adjective</option>
+            <option value="Adverb">Adverb</option>
+            <option value="Phrase">Phrase</option>
+            <option value="Proverb">Proverb</option>
+            <option value="Greeting">Greeting</option>
+            <option value="Other">Other</option>
+          </select>
+
+          {(filters.dialect || filters.partOfSpeech) && (
+            <button
+              type="button"
+              onClick={() => setFilters({ dialect: '', partOfSpeech: '' })}
+              className="text-sm font-semibold text-kassena-orange hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-600">
+          {isLoading ? (
+            'Loading...'
+          ) : (
+            <>
+              {filteredEntries.length} {filteredEntries.length === 1 ? 'word' : 'words'} found
+              {search && <span className="text-slate-400"> for &ldquo;{search}&rdquo;</span>}
+            </>
+          )}
+        </p>
+      </div>
+
       {isLoading ? (
         <LoadingState />
       ) : filteredEntries.length ? (
         <div className="space-y-3">
           {filteredEntries.map((entry) => (
-            <article
+            <ExpandableDictionaryCard
               key={entry.id}
-              className="rounded-2xl bg-white p-4 shadow-sm"
-            >
-              <h2 className="text-lg font-semibold text-kassena-green">
-                {entry.englishText} — {entry.kasemText}
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                {entry.partOfSpeech} • {entry.dialect} • {entry.category}
-              </p>
-              {entry.alternateKasemTerms ? (
-                <p className="mt-2 text-sm text-slate-700">
-                  Also said as: {entry.alternateKasemTerms}
-                </p>
-              ) : null}
-              {entry.englishExample || entry.kasemExample ? (
-                <p className="mt-2 text-sm text-slate-700">
-                  Example: {entry.englishExample} / {entry.kasemExample}
-                </p>
-              ) : null}
-              <Link
-                to="/submit"
-                className="mt-3 inline-flex text-sm font-semibold text-kassena-orange"
-              >
-                Know a better translation? Submit a correction
-              </Link>
-            </article>
+              entry={entry}
+              isExpanded={expandedId === entry.id}
+              onToggleExpand={() =>
+                setExpandedId((prev) => (prev === entry.id ? null : entry.id))
+              }
+            />
           ))}
         </div>
       ) : (

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
+import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { useAuth } from '../hooks/useAuth'
 import {
   getBadgeTitleForPoints,
@@ -263,6 +265,7 @@ const Header = ({
   currentUser: LeaderboardProfile | null
 }) => {
   const navigate = useNavigate()
+  const { unreadCount } = useAnnouncementNotifications()
 
   return (
     <header className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:gap-3">
@@ -285,16 +288,17 @@ const Header = ({
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-        <button
-          type="button"
+        <Link
+          to="/announcements"
           className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#0b4b2b] sm:h-11 sm:w-11"
           aria-label="Notifications"
         >
           <Icon name="bell" className="h-6 w-6 sm:h-7 sm:w-7" />
-          <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d85b27] px-1 text-[10px] font-black leading-none text-white ring-2 ring-[#fffaf0] sm:right-2 sm:top-2">
-            3
-          </span>
-        </button>
+          <UnreadAnnouncementBadge
+            count={unreadCount}
+            className="absolute -right-1 -top-1 ring-[#fffaf0]"
+          />
+        </Link>
         {currentUser ? (
           <Avatar
             name={currentUser.displayName}

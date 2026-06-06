@@ -9,7 +9,7 @@ import {
   createContribution,
   setContributionAttachedFiles,
 } from '../lib/firestore'
-import { uploadContributionFile } from '../lib/storage'
+import { uploadContributionFile, uploadPronunciationAudio } from '../lib/storage'
 
 export const SubmitContributionPage = () => {
   const { firebaseUser, appUser } = useAuth()
@@ -32,6 +32,17 @@ export const SubmitContributionPage = () => {
     setFeedback(null)
 
     try {
+      let audioUrl = ''
+
+      if (values.audioFile) {
+        const audioMetadata = await uploadPronunciationAudio(
+          firebaseUser.uid,
+          'temp',
+          values.audioFile,
+        )
+        audioUrl = audioMetadata.url
+      }
+
       const contributionId = await createContribution({
         englishText: values.englishText,
         kasemText: values.kasemText,
@@ -43,6 +54,9 @@ export const SubmitContributionPage = () => {
         category: values.category,
         notes: values.notes,
         wordUseRules: values.wordUseRules ?? '',
+        pronunciation: values.pronunciation,
+        audioUrl,
+        culturalNote: values.culturalNote,
         contributorId: appUser.uid,
         contributorName: appUser.displayName,
         contributorEmail: appUser.email,
@@ -86,7 +100,7 @@ export const SubmitContributionPage = () => {
         Submit Contribution
       </h1>
       <p className="text-sm text-slate-600">
-        All entries are reviewed by validators before publication.
+        All entries are reviewed by validators before publication. Pronunciation and audio are required.
       </p>
       {feedback ? (
         <AlertMessage type={feedback.type} message={feedback.message} />

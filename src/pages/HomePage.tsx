@@ -1,31 +1,27 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import {
   getDashboardMetrics,
   listApprovedUploads,
   getPublicDashboardMetrics,
   setPublicDashboardMetrics,
-  listApprovedDictionaryEntries,
   subscribeToLeaderboard,
+  subscribeToLeaderboardUser,
+  listRewardCatalogItems,
 } from '../lib/firestore.ts'
 import { APP_NAME } from '../lib/constants'
+import type { LeaderboardProfile, RewardCatalogItem } from '../types'
 import { SearchBar } from '../components/common/SearchBar'
-import { WordOfTheDay } from '../components/common/WordOfTheDay'
 import { CommunityProgressDashboard } from '../components/common/CommunityProgressDashboard'
 import { ContributorRewards } from '../components/common/ContributorRewards'
 import { CommunityActivityFeed } from '../components/common/CommunityActivityFeed'
 import { LeaderboardPreview } from '../components/common/LeaderboardPreview'
 import { CulturalSpotlight } from '../components/common/CulturalSpotlight'
+import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
+import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
+import { MissionCarousel } from '../components/common/MissionCarousel'
 // Types defined locally for homepage data
-
-interface WordOfDay {
-  kasemWord: string
-  pronunciation: string
-  englishMeaning: string
-  exampleSentence: string
-  culturalNote?: string
-}
 
 interface ActivityItem {
   id: string
@@ -51,8 +47,8 @@ interface CulturalItem {
 
 export const HomePage = () => {
   const { appUser } = useAuth()
+  const { unreadCount } = useAnnouncementNotifications()
   const [isLoading, setIsLoading] = useState(true)
-  const [wordOfDay, setWordOfDay] = useState<WordOfDay | null>(null)
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [culturalItems, setCulturalItems] = useState<CulturalItem[]>([])
@@ -62,12 +58,8 @@ export const HomePage = () => {
     contributors: 0,
     validationRate: 0,
   })
-  const [rewards, setRewards] = useState<{
-    currentPoints: number
-    pointsPerContribution: number
-    threshold: number
-    nextRewardName: string
-  } | null>(null)
+  const [leaderboardUser, setLeaderboardUser] = useState<LeaderboardProfile | null>(null)
+  const [rewardItems, setRewardItems] = useState<RewardCatalogItem[]>([])
 
   const getTimeAgo = (date?: Date): string => {
     if (!date) return 'Recently'
@@ -119,21 +111,6 @@ export const HomePage = () => {
         }
         setMetrics(publicMetrics)
 
-        // Fetch word of the day from dictionary
-        const entries = await listApprovedDictionaryEntries()
-        if (entries.length > 0) {
-          const today = new Date()
-          const dayIndex = today.getDate() % entries.length
-          const selectedEntry = entries[dayIndex]
-          setWordOfDay({
-            kasemWord: selectedEntry.kasemText,
-            pronunciation: `/${selectedEntry.kasemText.toLowerCase()}/`,
-            englishMeaning: selectedEntry.englishText,
-            exampleSentence: selectedEntry.kasemExample || selectedEntry.englishExample,
-            culturalNote: selectedEntry.category !== 'General vocabulary' ? `Category: ${selectedEntry.category}` : undefined,
-          })
-        }
-
         // Fetch recent uploads for activity feed
         const uploads = await listApprovedUploads()
         const recentActivities: ActivityItem[] = uploads.slice(0, 5).map((upload) => ({
@@ -164,15 +141,15 @@ export const HomePage = () => {
           },
         ])
 
-        // Set rewards data
-        if (appUser) {
-          setRewards({
-            currentPoints: 45,
-            pointsPerContribution: 10,
-            threshold: 100,
-            nextRewardName: 'Airtime/Data Reward',
-          })
+        // Fetch reward catalog items for threshold and next reward name
+        try {
+          const items = await listRewardCatalogItems()
+          setRewardItems(items)
+        } catch {
+          console.error('Error loading reward catalog:')
         }
+
+        // Rewards data will be set by the leaderboardUser subscription
       } catch (error) {
         console.error('Error loading homepage data:', error)
       } finally {
@@ -210,6 +187,46 @@ export const HomePage = () => {
     return unsubscribe
   }, [appUser])
 
+  useEffect(() => {
+    if (!appUser) {
+      return () => undefined
+    }
+
+    const unsubscribe = subscribeToLeaderboardUser(
+      appUser.uid,
+      (profile) => {
+        setLeaderboardUser(profile)
+      },
+      (error) => {
+        console.error('Homepage user profile subscription failed:', error)
+        setLeaderboardUser(null)
+      },
+    )
+
+    return unsubscribe
+  }, [appUser])
+
+  const rewards = useMemo(() => {
+    const userPoints =
+      leaderboardUser?.totalPoints ?? appUser?.totalPoints ?? 0
+
+    if (userPoints === 0 && !leaderboardUser && !appUser) {
+      return null
+    }
+
+    const nextReward = rewardItems
+      .map((item) => ({ cost: item.cost, name: item.title }))
+      .filter((item) => item.cost > userPoints)
+      .sort((first, second) => first.cost - second.cost)[0]
+
+    return {
+      currentPoints: userPoints,
+      pointsPerContribution: 10,
+      threshold: nextReward?.cost ?? 100,
+      nextRewardName: nextReward?.name ?? 'Airtime/Data Reward',
+    }
+  }, [leaderboardUser, appUser, rewardItems])
+
   return (
     <section className="space-y-8 animate-fade-in pb-8">
       {/* Hero Section */}
@@ -237,13 +254,36 @@ export const HomePage = () => {
             >
               Browse Dictionary
             </Link>
+            <Link
+              to="/announcements"
+              className="relative inline-flex items-center gap-2 rounded-full bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-105 active:scale-95"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M15.5 17h4l-1.2-1.5a2.5 2.5 0 0 1-.5-1.5v-3a5.8 5.8 0 0 0-11.6 0v3a2.5 2.5 0 0 1-.5 1.5L4.5 17h4" />
+                <path d="M9.7 19a2.7 2.7 0 0 0 4.6 0" />
+              </svg>
+              Notifications
+              <UnreadAnnouncementBadge
+                count={unreadCount}
+                className="absolute -right-1 -top-1 ring-kassena-green"
+              />
+            </Link>
             <a
               href="https://kassena.azlearner.me"
               target="_blank"
               rel="noreferrer noopener"
               className="rounded-full bg-white/5 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/10 transition-all hover:bg-white/10 hover:scale-105 active:scale-95"
             >
-              Learn More
+              Our Mission
             </a>
           </div>
         </div>
@@ -252,13 +292,13 @@ export const HomePage = () => {
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-kassena-orange/20 blur-3xl pointer-events-none"></div>
       </div>
 
+      {/* Mission Carousel */}
+      <MissionCarousel />
+
       {/* Search Bar - Primary CTA */}
       <div className="animate-slide-up-delayed-3">
         <SearchBar autoFocus={false} />
       </div>
-
-      {/* Word of the Day */}
-      <WordOfTheDay data={wordOfDay} isLoading={isLoading} />
 
       {/* Community Progress Dashboard */}
       <CommunityProgressDashboard

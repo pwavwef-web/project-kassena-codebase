@@ -9,6 +9,7 @@ import {
   subscribeToAdminUsers,
   subscribeToLeaderboard,
   subscribeToRecentAuditLogs,
+  getDictionaryAnalytics,
 } from '../../lib/firestore'
 import type {
   AdminUserSummary,
@@ -214,6 +215,14 @@ export const AdminDashboardPage = () => {
   >([])
   const [auditLogs, setAuditLogs] = useState<AuditLogRecord[]>([])
   const [adminUsers, setAdminUsers] = useState<AdminUserSummary[]>([])
+  const [dictAnalytics, setDictAnalytics] = useState<{
+    totalSearches: number
+    totalViews: number
+    totalFavorites: number
+    totalCorrections: number
+    mostViewedWords: Array<{ entryId: string; englishText: string; kasemText: string; viewCount: number }>
+    mostFavoritedWords: Array<{ entryId: string; englishText: string; kasemText: string; favCount: number }>
+  } | null>(null)
 
   useEffect(() => {
     const unsubscribe = subscribeToAdminDashboard(
@@ -260,6 +269,12 @@ export const AdminDashboardPage = () => {
       ),
     [],
   )
+
+  useEffect(() => {
+    getDictionaryAnalytics()
+      .then(setDictAnalytics)
+      .catch(() => {})
+  }, [])
 
   const statCards = [
     {
@@ -381,7 +396,7 @@ export const AdminDashboardPage = () => {
               Language Operations Center
             </h1>
             <p className="mt-1 text-sm text-slate-600">
-              Live admin view of Project Kasena data
+              Live admin view of TribeStudio data
             </p>
             {loadError ? (
               <p className="mt-2 text-sm font-semibold text-red-700">
@@ -475,8 +490,58 @@ export const AdminDashboardPage = () => {
           <AuditLogsPanel logs={auditLogs} />
         </div>
 
+        {dictAnalytics && (
+          <section className="rounded-lg border border-[#eadcc7] bg-white p-4 shadow-[0_10px_32px_rgba(88,55,22,0.08)]">
+            <h2 className="text-base font-bold text-[#13231a]">Dictionary Analytics</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg bg-blue-50 p-3">
+                <p className="text-2xl font-bold text-blue-700">{formatNumber(dictAnalytics.totalSearches)}</p>
+                <p className="text-xs font-semibold text-blue-600">Total Searches</p>
+              </div>
+              <div className="rounded-lg bg-green-50 p-3">
+                <p className="text-2xl font-bold text-green-700">{formatNumber(dictAnalytics.totalViews)}</p>
+                <p className="text-xs font-semibold text-green-600">Word Views</p>
+              </div>
+              <div className="rounded-lg bg-amber-50 p-3">
+                <p className="text-2xl font-bold text-amber-700">{formatNumber(dictAnalytics.totalFavorites)}</p>
+                <p className="text-xs font-semibold text-amber-600">Favorites</p>
+              </div>
+              <div className="rounded-lg bg-purple-50 p-3">
+                <p className="text-2xl font-bold text-purple-700">{formatNumber(dictAnalytics.totalCorrections)}</p>
+                <p className="text-xs font-semibold text-purple-600">Corrections</p>
+              </div>
+            </div>
+            {dictAnalytics.mostViewedWords.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-bold text-[#13231a]">Most Viewed Words</h3>
+                <div className="mt-2 space-y-2">
+                  {dictAnalytics.mostViewedWords.slice(0, 5).map((word) => (
+                    <div key={word.entryId} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                      <span className="text-sm font-semibold text-kassena-green">{word.kasemText} ({word.englishText})</span>
+                      <span className="text-xs font-bold text-slate-600">{word.viewCount} views</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {dictAnalytics.mostFavoritedWords.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-bold text-[#13231a]">Most Favorited Words</h3>
+                <div className="mt-2 space-y-2">
+                  {dictAnalytics.mostFavoritedWords.slice(0, 5).map((word) => (
+                    <div key={word.entryId} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                      <span className="text-sm font-semibold text-kassena-green">{word.kasemText} ({word.englishText})</span>
+                      <span className="text-xs font-bold text-slate-600">{word.favCount} favorites</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
         <footer className="pb-4 text-center text-xs text-slate-500">
-          Project Kasena Admin Dashboard
+          TribeStudio Admin Dashboard
         </footer>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LoadingState } from '../components/common/LoadingState'
+import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
+import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { useAuth } from '../hooks/useAuth'
 import {
   getLeaderboardRank,
@@ -368,6 +370,7 @@ const Emblem = () => (
 
 export const RewardsPage = () => {
   const { appUser } = useAuth()
+  const { unreadCount } = useAnnouncementNotifications()
   const navigate = useNavigate()
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [uploads, setUploads] = useState<UploadRecord[]>([])
@@ -667,14 +670,17 @@ export const RewardsPage = () => {
               </p>
             </div>
           </div>
-          <button
-            type="button"
+          <Link
+            to="/announcements"
             className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white"
             aria-label="Notifications"
           >
             <Icon name="bell" className="h-7 w-7" />
-            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-kassena-orange ring-2 ring-[#0b4b2b]" />
-          </button>
+            <UnreadAnnouncementBadge
+              count={unreadCount}
+              className="absolute -right-1 -top-1 ring-[#0b4b2b]"
+            />
+          </Link>
         </div>
       </div>
 

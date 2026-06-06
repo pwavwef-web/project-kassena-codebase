@@ -6,12 +6,14 @@ import {
   ValidatorRoute,
 } from '../components/common/RouteGuards'
 import { MainLayout } from '../components/layout/MainLayout'
+import { AdminAnnouncementsPage } from '../pages/admin/AdminAnnouncementsPage'
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 import { AdminDictionaryPage } from '../pages/admin/AdminDictionaryPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminSubmissionsPage } from '../pages/admin/AdminSubmissionsPage'
 import { AdminUploadsPage } from '../pages/admin/AdminUploadsPage'
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
+import { AnnouncementsPage } from '../pages/AnnouncementsPage'
 import { CompleteProfilePage } from '../pages/CompleteProfilePage'
 import { ContributionsPage } from '../pages/ContributionsPage'
 import { CulturePage } from '../pages/CulturePage'
@@ -41,6 +43,7 @@ export const router = createBrowserRouter([
           { path: '/complete-profile', element: <CompleteProfilePage /> },
           { path: '/contributions', element: <ContributionsPage /> },
           { path: '/leaderboard', element: <LeaderboardPage /> },
+          { path: '/announcements', element: <AnnouncementsPage /> },
           { path: '/rewards', element: <RewardsPage /> },
           { path: '/submit', element: <SubmitContributionPage /> },
           { path: '/uploads', element: <UploadsPage /> },
@@ -62,6 +65,10 @@ export const router = createBrowserRouter([
                 children: [
                   { path: 'users', element: <AdminUsersPage /> },
                   { path: 'dictionary', element: <AdminDictionaryPage /> },
+                  {
+                    path: 'announcements',
+                    element: <AdminAnnouncementsPage />,
+                  },
                   { path: 'settings', element: <AdminSettingsPage /> },
                 ],
               },

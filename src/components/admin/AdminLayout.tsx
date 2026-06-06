@@ -4,6 +4,7 @@ import { isFirebaseConfigured } from '../../config/firebase'
 import { useAuth } from '../../hooks/useAuth'
 
 type AdminIconName =
+  | 'bell'
   | 'book'
   | 'clipboard'
   | 'globe'
@@ -23,6 +24,7 @@ const adminItems: AdminNavItem[] = [
   { to: '/admin', label: 'Dashboard', icon: 'home', exact: true },
   { to: '/admin/submissions', label: 'Contributions', icon: 'clipboard' },
   { to: '/admin/uploads', label: 'Uploads', icon: 'upload' },
+  { to: '/admin/announcements', label: 'Announcements', icon: 'bell' },
   { to: '/admin/dictionary', label: 'Dictionary', icon: 'book' },
   { to: '/admin/users', label: 'Users', icon: 'users' },
   { to: '/admin/settings', label: 'Settings', icon: 'settings' },
@@ -30,7 +32,7 @@ const adminItems: AdminNavItem[] = [
 ]
 
 const getInitials = (name?: string) =>
-  (name || 'Project Kassena')
+  (name || 'TribeStudio')
     .split(' ')
     .map((part) => part[0])
     .join('')
@@ -55,6 +57,12 @@ const AdminIcon = ({
   }
 
   const paths: Record<AdminIconName, ReactNode> = {
+    bell: (
+      <>
+        <path d="M15.5 17h4l-1.2-1.5a2.5 2.5 0 0 1-.5-1.5v-3a5.8 5.8 0 0 0-11.6 0v3a2.5 2.5 0 0 1-.5 1.5L4.5 17h4" />
+        <path d="M9.7 19a2.7 2.7 0 0 0 4.6 0" />
+      </>
+    ),
     book: (
       <>
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -168,7 +176,7 @@ export const AdminLayout = () => {
       <div className="flex items-center gap-3 px-4 py-5">
         <BrandMark />
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold">Project Kasena</p>
+          <p className="truncate text-lg font-bold">TribeStudio</p>
           <p className="text-xs font-medium text-white/75">Admin Dashboard</p>
         </div>
       </div>
@@ -178,7 +186,7 @@ export const AdminLayout = () => {
       </div>
 
       <p className="px-4 pb-4 text-xs leading-5 text-white/70">
-        Project Kasena admin workspace
+        TribeStudio admin workspace
       </p>
     </div>
   )
@@ -200,7 +208,7 @@ export const AdminLayout = () => {
         </button>
         <div className="min-w-0 px-3 text-center">
           <p className="truncate text-sm font-bold text-kassena-green">
-            Project Kasena
+            TribeStudio
           </p>
           <p className="text-xs text-slate-500">Operations Center</p>
         </div>

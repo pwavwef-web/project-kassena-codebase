@@ -49,3 +49,21 @@ export const uploadGeneralFile = async (
     size: file.size,
   }
 }
+
+export const uploadPronunciationAudio = async (
+  uid: string,
+  entryId: string,
+  file: File,
+): Promise<{ url: string; storagePath: string }> => {
+  const validation = validateFile(file)
+  if (validation) {
+    throw new Error(validation)
+  }
+
+  const storagePath = `pronunciation/${uid}/${entryId}/${file.name}`
+  const fileRef = ref(storage, storagePath)
+  await uploadBytes(fileRef, file)
+  const url = await getDownloadURL(fileRef)
+
+  return { url, storagePath }
+}

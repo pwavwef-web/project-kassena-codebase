@@ -1,5 +1,5 @@
 {
-  "name": "project-kassena-codebase",
+  "name": "tribestudio",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "firebase": "^12.13.0",
+    "html2canvas": "^1.4.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1"

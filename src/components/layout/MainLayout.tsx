@@ -117,7 +117,7 @@ export const MainLayout = () => {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link to="/" className="text-lg font-bold text-kassena-green flex items-center gap-2">
             <span className="bg-gradient-to-r from-kassena-green to-kassena-orange bg-clip-text text-transparent">
-              Project Kassena
+              TribeStudio
             </span>
           </Link>
           

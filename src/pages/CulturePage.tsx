@@ -67,7 +67,7 @@ export const CulturePage = () => {
         </h1>
         <p className="mt-2 text-sm text-slate-600">
           Approved songs, stories, poems, images and learning materials from the
-          Project Kassena community.
+          TribeStudio community.
         </p>
         <div className="mt-4 grid gap-3 md:grid-cols-[1fr_220px]">
           <input

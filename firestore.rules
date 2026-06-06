@@ -82,6 +82,49 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    match /contributorLevels/{levelId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /communityRecognitions/{recognitionId} {
+      allow read: if isValidator() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /rewardRedemptions/{redemptionId} {
+      allow read: if isValidator() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isValidator();
+      allow delete: if false;
+    }
+
+    match /userFavorites/{favoriteId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /recentlyViewed/{viewId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /searchHistory/{historyId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.isPublished == true);
+      allow create, update, delete: if isAdmin();
+    }
+
     match /settings/{settingId} {
       allow read: if isValidator();
       allow create, update: if isAdmin();
