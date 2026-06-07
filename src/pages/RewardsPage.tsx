@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AchievementBadgeCard } from '../components/common/AchievementBadge'
 import { LoadingState } from '../components/common/LoadingState'
+import { RankBadge, TrustScoreMeter } from '../components/common/RankBadge'
 import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { useAuth } from '../hooks/useAuth'
@@ -19,6 +20,7 @@ import {
   subscribeToLeaderboard,
   subscribeToLeaderboardUser,
 } from '../lib/firestore'
+import { getRankMetricsFromActivity, getRankState } from '../lib/ranks'
 import type {
   Contribution,
   LeaderboardProfile,
@@ -501,6 +503,17 @@ export const RewardsPage = () => {
     leaderboardUser?.approvedEntries ??
     appUser?.approvedEntries ??
     calculatedStats.approvedEntries
+  const rankMetrics = useMemo(
+    () =>
+      getRankMetricsFromActivity({
+        contributions,
+        points: currentPoints,
+        uploads,
+        user: appUser,
+      }),
+    [appUser, contributions, currentPoints, uploads],
+  )
+  const rankState = useMemo(() => getRankState(rankMetrics), [rankMetrics])
   const nextRewardCost = rewardItems
     .map((item) => item.cost)
     .filter((cost) => cost > currentPoints)
@@ -511,7 +524,6 @@ export const RewardsPage = () => {
   const rewardProgress = nextRewardCost
     ? Math.min(100, (currentPoints / nextRewardCost) * 100)
     : 100
-  const nextRankTarget = Math.max(currentPoints + pointsRemaining, 1)
   const initials =
     appUser?.displayName
       ?.split(' ')
@@ -737,6 +749,12 @@ export const RewardsPage = () => {
                   'No next reward tier configured'
                 )}
               </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <RankBadge state={rankState} compact />
+                <span className="rounded-full bg-[#edf6e9] px-3 py-1 text-xs font-black text-[#14532d]">
+                  Trust {rankState.trustScore}%
+                </span>
+              </div>
             </div>
 
             <div className="col-span-2 grid grid-cols-2 gap-2 lg:col-span-1 lg:grid-cols-1">
@@ -973,20 +991,21 @@ export const RewardsPage = () => {
                       Next Rank
                     </span>
                     <span className="font-medium text-slate-500">
-                      {pointsRemaining.toLocaleString()} pts to go
+                      {rankState.nextCoreRank
+                        ? `${rankState.pointsToNextRank.toLocaleString()} pts to ${rankState.nextCoreRank.title}`
+                        : 'Top core rank reached'}
                     </span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e6d6b8]">
                     <div
                       className="h-full rounded-full bg-[#2d9749]"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (currentPoints / nextRankTarget) * 100,
-                        )}%`,
-                      }}
+                      style={{ width: `${rankState.progressToNextRank}%` }}
                     />
                   </div>
+                  <TrustScoreMeter
+                    value={rankState.trustScore}
+                    className="mt-3 rounded-[14px] bg-white/70 p-3"
+                  />
                 </div>
               </div>
             ) : (

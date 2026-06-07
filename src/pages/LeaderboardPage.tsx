@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { RankBadge, TrustScoreMeter } from '../components/common/RankBadge'
 import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { useAuth } from '../hooks/useAuth'
@@ -9,6 +10,11 @@ import {
   subscribeToLeaderboard,
   subscribeToLeaderboardUser,
 } from '../lib/firestore'
+import {
+  getLeaderboardTitle,
+  getRankMetricsFromProfile,
+  getRankState,
+} from '../lib/ranks'
 import type {
   LeaderboardPeriod,
   LeaderboardProfile,
@@ -34,14 +40,6 @@ const periodOptions: Array<{
   { id: 'month', label: 'This Month', rankLabel: 'this month' },
   { id: 'allTime', label: 'All Time', rankLabel: 'all time' },
 ]
-
-const badgeStyles: Record<string, string> = {
-  'New Contributor': 'bg-[#fff8e7] text-[#7a4b10] ring-[#efd9a3]',
-  'Language Helper': 'bg-[#fff0e7] text-[#9b3d19] ring-[#efc2a6]',
-  'Community Builder': 'bg-[#edf6e9] text-[#14532d] ring-[#c7dec1]',
-  'Kasem Champion': 'bg-[#fff5d6] text-[#765107] ring-[#ecc662]',
-  'Elder Approved': 'bg-[#e9f4ef] text-[#0b4b2b] ring-[#98c7af]',
-}
 
 const topRankStyles: Record<number, string> = {
   1: 'from-[#f8d36a] to-[#d99a16] text-[#4a3100] ring-[#f4c85a]',
@@ -149,16 +147,11 @@ const getProfilePoints = (
   return profile.totalPoints
 }
 
-const BadgePill = ({ title }: { title: string }) => (
-  <span
-    className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ring-1 ${
-      badgeStyles[title] ?? badgeStyles['New Contributor']
-    }`}
-  >
-    <Icon name="shield" className="h-3.5 w-3.5 shrink-0" />
-    <span className="truncate">{title}</span>
-  </span>
-)
+const BadgePill = ({ profile }: { profile: LeaderboardProfile }) => {
+  const state = getRankState(getRankMetricsFromProfile(profile))
+
+  return <RankBadge state={state} compact />
+}
 
 const Avatar = ({
   name,
@@ -268,21 +261,21 @@ const Header = ({
   const { unreadCount } = useAnnouncementNotifications()
 
   return (
-    <header className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:gap-3">
+    <header className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:gap-3">
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#edd7b6] bg-[#fffaf0] text-[#0b4b2b] shadow-[0_10px_24px_rgba(71,44,18,0.08)] transition hover:bg-white sm:h-12 sm:w-12"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#edd7b6] bg-[#fffaf0] text-[#0b4b2b] shadow-[0_10px_24px_rgba(71,44,18,0.08)] transition hover:bg-white sm:h-12 sm:w-12"
         aria-label="Go back"
       >
         <Icon name="arrowLeft" className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
 
       <div className="min-w-0 flex-1">
-        <h1 className="text-[31px] font-black leading-none text-[#073d24] min-[380px]:text-[34px] sm:text-[42px]">
+        <h1 className="truncate text-2xl font-black leading-none text-[#073d24] min-[380px]:text-[28px] sm:text-[42px]">
           Leaderboard
         </h1>
-        <p className="mt-1 text-[13px] font-semibold leading-tight text-slate-600 min-[380px]:text-sm sm:mt-2 sm:text-lg">
+        <p className="mt-1 truncate text-xs font-semibold leading-tight text-slate-600 min-[380px]:text-sm sm:mt-2 sm:text-lg">
           Top contributors preserving Kasem
         </p>
       </div>
@@ -303,10 +296,10 @@ const Header = ({
           <Avatar
             name={currentUser.displayName}
             photoURL={currentUser.photoURL}
-            className="h-11 w-11 text-xs sm:h-12 sm:w-12 sm:text-sm"
+            className="h-10 w-10 text-xs sm:h-12 sm:w-12 sm:text-sm"
           />
         ) : (
-          <div className="h-11 w-11 rounded-full bg-[#eadfca] sm:h-12 sm:w-12" />
+          <div className="h-10 w-10 rounded-full bg-[#eadfca] sm:h-12 sm:w-12" />
         )}
       </div>
     </header>
@@ -318,6 +311,7 @@ const CurrentRankCard = ({
   currentUser,
   insight,
   isRankLoading,
+  leaderboardTitle,
   periodLabel,
   rank,
 }: {
@@ -325,93 +319,108 @@ const CurrentRankCard = ({
   currentUser: LeaderboardProfile
   insight: { message: string; progress: number }
   isRankLoading: boolean
+  leaderboardTitle: string | null
   periodLabel: string
   rank: number | null
-}) => (
-  <section className="relative overflow-hidden rounded-[28px] bg-[#0b4b2b] p-4 text-white shadow-[0_18px_40px_rgba(10,58,34,0.22)] sm:p-7">
-    <div className="absolute bottom-0 right-0 top-0 w-5 bg-[repeating-linear-gradient(135deg,#c96a2d_0_10px,#f1b52d_10px_20px,#14532d_20px_30px,#f5eddc_30px_40px)] opacity-90 sm:w-8" />
-    <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(135deg,transparent_0_44%,rgba(255,255,255,0.18)_44%_48%,transparent_48%_100%),repeating-linear-gradient(45deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
+}) => {
+  const rankState = getRankState(getRankMetricsFromProfile(currentUser))
 
-    <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 pr-5 sm:grid-cols-[auto_1fr_auto] sm:gap-5 sm:pr-8">
-      <div className="relative w-max">
-        <Avatar
-          name={currentUser.displayName}
-          photoURL={currentUser.photoURL}
-          className="h-[78px] w-[78px] text-base sm:h-28 sm:w-28 sm:text-xl"
-        />
-        <span className="absolute -bottom-1 -right-2 flex h-10 min-w-10 items-center justify-center rounded-full bg-[#0f6538] px-2 text-base font-black text-white ring-4 ring-[#f2cf74] sm:h-11 sm:min-w-11 sm:text-lg">
-          {isRankLoading ? '...' : rank ? rank : '--'}
-        </span>
-      </div>
+  return (
+    <section className="relative overflow-hidden rounded-[22px] bg-[#0b4b2b] p-3 text-white shadow-[0_18px_40px_rgba(10,58,34,0.22)] sm:rounded-[28px] sm:p-7">
+      <div className="absolute bottom-0 right-0 top-0 w-4 bg-[repeating-linear-gradient(135deg,#c96a2d_0_9px,#f1b52d_9px_18px,#14532d_18px_27px,#f5eddc_27px_36px)] opacity-90 sm:w-8 sm:bg-[repeating-linear-gradient(135deg,#c96a2d_0_10px,#f1b52d_10px_20px,#14532d_20px_30px,#f5eddc_30px_40px)]" />
+      <div className="absolute inset-0 opacity-15 [background-image:linear-gradient(135deg,transparent_0_44%,rgba(255,255,255,0.18)_44%_48%,transparent_48%_100%),repeating-linear-gradient(45deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
 
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-white/90 sm:text-base">
-          {rank ? (
-            <>
-              You are <span className="text-[#f5c84b]">#{rank}</span>{' '}
-              {periodLabel}
-            </>
-          ) : (
-            'Your rank is updating'
-          )}
-        </p>
-        <h2 className="mt-1 truncate text-[27px] font-black leading-tight sm:mt-2 sm:text-3xl">
-          {currentUser.displayName}
-        </h2>
-        <div className="mt-2 max-w-full sm:mt-3">
-          <BadgePill title={currentUser.badgeTitle} />
-        </div>
-      </div>
-
-      <div className="col-span-2 grid grid-cols-2 gap-3 sm:col-span-1 sm:min-w-[190px] sm:grid-cols-1">
-        <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-3 sm:bg-transparent sm:p-0">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f2b83b] text-[#5b3b00] shadow-sm sm:h-11 sm:w-11">
-            <Icon name="star" className="h-5 w-5 sm:h-6 sm:w-6" />
+      <div className="relative grid grid-cols-[70px_minmax(0,1fr)] items-center gap-3 pr-4 sm:grid-cols-[auto_1fr_auto] sm:gap-5 sm:pr-8">
+        <div className="relative w-max">
+          <Avatar
+            name={currentUser.displayName}
+            photoURL={currentUser.photoURL}
+            className="h-16 w-16 text-sm sm:h-28 sm:w-28 sm:text-xl"
+          />
+          <span className="absolute -bottom-1 -right-2 flex h-9 min-w-9 items-center justify-center rounded-full bg-[#0f6538] px-2 text-sm font-black text-white ring-[3px] ring-[#f2cf74] sm:h-11 sm:min-w-11 sm:text-lg sm:ring-4">
+            {isRankLoading ? '...' : rank ? rank : '--'}
           </span>
-          <div>
-            <p className="text-[22px] font-black leading-none sm:text-2xl">
-              {formatNumber(currentUser.totalPoints)}
-            </p>
-            <p className="mt-1 text-xs font-medium leading-tight text-white/85 sm:text-sm">
-              Total
-              <span className="hidden min-[380px]:inline"> Points</span>
-            </p>
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-white/90 sm:text-base">
+            {rank ? (
+              <>
+                You are <span className="text-[#f5c84b]">#{rank}</span>{' '}
+                {periodLabel}
+              </>
+            ) : (
+              'Your rank is updating'
+            )}
+          </p>
+          <h2 className="mt-1 truncate text-xl font-black leading-tight min-[380px]:text-2xl sm:mt-2 sm:text-3xl">
+            {currentUser.displayName}
+          </h2>
+          <div className="mt-1.5 flex max-w-full flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+            <BadgePill profile={currentUser} />
+            {leaderboardTitle ? (
+              <span className="rounded-full bg-[#f2bf3f] px-2.5 py-1 text-[11px] font-black text-[#4a3100] sm:px-3 sm:text-xs">
+                {leaderboardTitle}
+              </span>
+            ) : null}
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-3 sm:bg-transparent sm:p-0">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#d85b27] text-white shadow-sm sm:h-11 sm:w-11">
-            <Icon name="check" className="h-5 w-5 sm:h-6 sm:w-6" />
-          </span>
-          <div>
-            <p className="text-[22px] font-black leading-none sm:text-2xl">
-              {formatNumber(currentUser.approvedEntries)}
-            </p>
-            <p className="mt-1 text-xs font-medium leading-tight text-white/85 sm:text-sm">
-              Approved
-            </p>
+
+        <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1 sm:min-w-[190px] sm:grid-cols-1 sm:gap-3">
+          <div className="flex items-center gap-2 rounded-[16px] bg-white/10 p-2.5 sm:gap-3 sm:bg-transparent sm:p-0">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f2b83b] text-[#5b3b00] shadow-sm sm:h-11 sm:w-11">
+              <Icon name="star" className="h-5 w-5 sm:h-6 sm:w-6" />
+            </span>
+            <div>
+              <p className="text-xl font-black leading-none sm:text-2xl">
+                {formatNumber(currentUser.totalPoints)}
+              </p>
+              <p className="mt-1 text-[11px] font-medium leading-tight text-white/85 sm:text-sm">
+                Total
+                <span className="hidden min-[380px]:inline"> Points</span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-[16px] bg-white/10 p-2.5 sm:gap-3 sm:bg-transparent sm:p-0">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#d85b27] text-white shadow-sm sm:h-11 sm:w-11">
+              <Icon name="check" className="h-5 w-5 sm:h-6 sm:w-6" />
+            </span>
+            <div>
+              <p className="text-xl font-black leading-none sm:text-2xl">
+                {formatNumber(currentUser.approvedEntries)}
+              </p>
+              <p className="mt-1 text-[11px] font-medium leading-tight text-white/85 sm:text-sm">
+                Approved
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div className="relative mt-4 border-t border-white/20 pt-4 pr-5 sm:mt-6 sm:pr-8">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-bold leading-snug text-white sm:text-base">
-          {insight.message}
-        </p>
-        <p className="text-xs font-semibold text-white/80 sm:text-sm">
-          {formatNumber(activePoints)} period pts
-        </p>
+      <div className="relative mt-3 border-t border-white/20 pr-4 pt-3 sm:mt-6 sm:pr-8 sm:pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-bold leading-snug text-white sm:text-base">
+            {insight.message}
+          </p>
+          <p className="text-xs font-semibold text-white/80 sm:text-sm">
+            {formatNumber(activePoints)} period pts
+          </p>
+        </div>
+        <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/20 sm:mt-3 sm:h-3">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#e16a32] to-[#f2bf3f] transition-all duration-700"
+            style={{ width: `${insight.progress}%` }}
+          />
+        </div>
       </div>
-      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/20 sm:h-3">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-[#e16a32] to-[#f2bf3f] transition-all duration-700"
-          style={{ width: `${insight.progress}%` }}
-        />
-      </div>
-    </div>
-  </section>
-)
+
+      <TrustScoreMeter
+        value={rankState.trustScore}
+        className="relative mt-4 hidden rounded-[18px] bg-white/90 p-3 pr-5 text-[#13271d] sm:block sm:pr-8"
+      />
+    </section>
+  )
+}
 
 const PeriodTabs = ({
   selectedPeriod,
@@ -423,7 +432,7 @@ const PeriodTabs = ({
   <div
     role="tablist"
     aria-label="Leaderboard time period"
-    className="grid grid-cols-3 rounded-[22px] border border-[#ead7b7] bg-[#fffdf8] p-1 shadow-[0_12px_30px_rgba(71,44,18,0.08)]"
+    className="grid grid-cols-3 rounded-[18px] border border-[#ead7b7] bg-[#fffdf8] p-1 shadow-[0_12px_30px_rgba(71,44,18,0.08)] sm:rounded-[22px]"
   >
     {periodOptions.map((option) => {
       const isSelected = selectedPeriod === option.id
@@ -434,7 +443,7 @@ const PeriodTabs = ({
           role="tab"
           aria-selected={isSelected}
           onClick={() => onChange(option.id)}
-          className={`min-h-12 rounded-[18px] px-2 text-sm font-black transition sm:text-base ${
+          className={`min-h-10 rounded-[14px] px-2 text-xs font-black transition sm:min-h-12 sm:rounded-[18px] sm:text-base ${
             isSelected
               ? 'bg-[#d85b27] text-white shadow-[0_10px_20px_rgba(216,91,39,0.22)]'
               : 'text-[#0b4b2b] hover:bg-[#fff4e4]'
@@ -450,13 +459,16 @@ const PeriodTabs = ({
 const PodiumPlace = ({
   entry,
   isCurrentUser,
+  period,
 }: {
   entry: RankedLeaderboardProfile
   isCurrentUser: boolean
+  period: LeaderboardPeriod
 }) => {
   const rankTone = topRankStyles[entry.rank] ?? topRankStyles[3]
   const barHeight =
     entry.rank === 1 ? 'h-28 sm:h-36' : entry.rank === 2 ? 'h-20 sm:h-28' : 'h-16 sm:h-24'
+  const leaderboardTitle = getLeaderboardTitle(period, entry.rank)
 
   return (
     <article
@@ -480,8 +492,13 @@ const PodiumPlace = ({
         {entry.displayName}
       </h3>
       <div className="mt-2 max-w-full">
-        <BadgePill title={entry.badgeTitle} />
+        <BadgePill profile={entry} />
       </div>
+      {leaderboardTitle ? (
+        <p className="mt-2 rounded-full bg-[#fff0c2] px-3 py-1 text-center text-[11px] font-black text-[#765107]">
+          {leaderboardTitle}
+        </p>
+      ) : null}
       <p className="mt-3 text-center text-lg font-black text-[#d85b27]">
         {formatNumber(entry.activePoints)}{' '}
         <span className="text-sm font-semibold text-slate-600">pts</span>
@@ -498,9 +515,11 @@ const PodiumPlace = ({
 const TopThreePodium = ({
   currentUid,
   entries,
+  period,
 }: {
   currentUid?: string
   entries: RankedLeaderboardProfile[]
+  period: LeaderboardPeriod
 }) => {
   const ordered = [entries[1], entries[0], entries[2]].filter(
     Boolean,
@@ -513,20 +532,66 @@ const TopThreePodium = ({
         : 'grid-cols-3'
 
   return (
-    <section className="overflow-hidden rounded-[26px] border border-[#ead7b7] bg-[#fffdf8] shadow-[0_16px_40px_rgba(71,44,18,0.08)]">
-      <div className="flex items-center justify-between gap-3 border-b border-[#efdfc4] px-5 py-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-[#557333]">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#dce9c9]">
+    <section className="overflow-hidden rounded-[22px] border border-[#ead7b7] bg-[#fffdf8] shadow-[0_16px_40px_rgba(71,44,18,0.08)] sm:rounded-[26px]">
+      <div className="flex items-center justify-between gap-3 border-b border-[#efdfc4] px-3 py-3 sm:px-5 sm:py-4">
+        <div className="flex min-w-0 items-center gap-2 text-xs font-bold text-[#557333] sm:text-sm">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#dce9c9]">
             <span className="h-2 w-2 rounded-full bg-[#7fa451]" />
           </span>
-          Live updates from community
+          <span className="truncate">Live updates from community</span>
         </div>
-        <p className="text-sm font-semibold text-[#7a5737]">
+        <p className="shrink-0 text-xs font-semibold text-[#7a5737] sm:text-sm">
           Top 50 contributors
         </p>
       </div>
 
-      <div className="relative px-3 pt-5">
+      <div className="space-y-2 p-3 sm:hidden">
+        {entries.slice(0, 3).map((entry) => {
+          const rankTone = topRankStyles[entry.rank] ?? topRankStyles[3]
+          const leaderboardTitle = getLeaderboardTitle(period, entry.rank)
+
+          return (
+            <article
+              key={entry.uid}
+              className={`grid grid-cols-[34px_42px_minmax(0,1fr)_auto] items-center gap-2 rounded-[16px] border border-[#efdfc4] bg-white px-2.5 py-2 ${
+                entry.uid === currentUid ? 'ring-2 ring-[#14532d]' : ''
+              }`}
+            >
+              <span
+                className={`flex h-8 min-w-8 items-center justify-center rounded-full bg-gradient-to-br ${rankTone} px-2 text-sm font-black shadow-sm ring-2`}
+              >
+                {entry.rank}
+              </span>
+              <Avatar
+                name={entry.displayName}
+                photoURL={entry.photoURL}
+                className="h-10 w-10 text-xs"
+              />
+              <div className="min-w-0">
+                <h3 className="truncate text-sm font-black text-[#13271d]">
+                  {entry.displayName}
+                </h3>
+                <div className="mt-1 flex max-w-full gap-1">
+                  <BadgePill profile={entry} />
+                  {leaderboardTitle ? (
+                    <span className="truncate rounded-full bg-[#fff0c2] px-2 py-0.5 text-[10px] font-black text-[#765107]">
+                      {leaderboardTitle}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              <p className="text-right text-sm font-black text-[#d85b27]">
+                {formatNumber(entry.activePoints)}
+                <span className="block text-[10px] font-semibold text-slate-500">
+                  pts
+                </span>
+              </p>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="relative hidden px-3 pt-5 sm:block">
         <div className="absolute inset-x-0 bottom-0 h-16 bg-[repeating-linear-gradient(135deg,#0b4b2b_0_12px,#d85b27_12px_24px,#f2bf3f_24px_36px,#fff7e6_36px_48px)] opacity-80" />
         <div className={`relative grid items-end gap-1 sm:gap-4 ${gridClass}`}>
           {ordered.map((entry) => (
@@ -534,6 +599,7 @@ const TopThreePodium = ({
               key={entry.uid}
               entry={entry}
               isCurrentUser={entry.uid === currentUid}
+              period={period}
             />
           ))}
         </div>
@@ -550,12 +616,12 @@ const LeaderboardRow = ({
   isCurrentUser: boolean
 }) => (
   <article
-    className={`grid grid-cols-[48px_1fr_auto] items-center gap-3 border-b border-[#efdfc4] px-3 py-3 last:border-b-0 sm:grid-cols-[64px_minmax(0,1fr)_120px_110px_180px] sm:px-5 ${
+    className={`grid grid-cols-[40px_1fr_auto] items-center gap-2 border-b border-[#efdfc4] px-3 py-2.5 last:border-b-0 sm:grid-cols-[64px_minmax(0,1fr)_120px_110px_180px] sm:gap-3 sm:px-5 sm:py-3 ${
       isCurrentUser ? 'rounded-[18px] border border-[#9eb985] bg-[#eff5e9] shadow-[0_12px_24px_rgba(20,83,45,0.1)]' : ''
     }`}
   >
     <span
-      className={`flex h-10 min-w-10 items-center justify-center rounded-full text-sm font-black ${
+      className={`flex h-9 min-w-9 items-center justify-center rounded-full text-sm font-black sm:h-10 sm:min-w-10 ${
         isCurrentUser ? 'bg-[#0b4b2b] text-white' : 'bg-[#fff4e4] text-[#0b4b2b]'
       }`}
     >
@@ -566,10 +632,10 @@ const LeaderboardRow = ({
       <Avatar
         name={entry.displayName}
         photoURL={entry.photoURL}
-        className="h-11 w-11 text-xs"
+        className="h-10 w-10 text-xs sm:h-11 sm:w-11"
       />
       <div className="min-w-0">
-        <h3 className="truncate text-base font-black text-[#13271d]">
+        <h3 className="truncate text-sm font-black text-[#13271d] sm:text-base">
           {entry.displayName}
         </h3>
         <p className="text-xs font-semibold text-slate-500 sm:hidden">
@@ -587,7 +653,7 @@ const LeaderboardRow = ({
       {formatNumber(entry.approvedEntries)}
     </p>
     <div className="hidden justify-end sm:flex">
-      <BadgePill title={entry.badgeTitle} />
+      <BadgePill profile={entry} />
     </div>
   </article>
 )
@@ -672,8 +738,21 @@ export const LeaderboardPage = () => {
       weeklyPoints: appUser.weeklyPoints ?? 0,
       monthlyPoints: appUser.monthlyPoints ?? 0,
       approvedEntries: appUser.approvedEntries ?? 0,
+      approvedSubmissions:
+        appUser.approvedSubmissions ?? appUser.approvedEntries ?? 0,
+      reviewedSubmissions: appUser.reviewedSubmissions ?? 0,
+      approvalRate: appUser.approvalRate ?? 0,
+      trustScore: appUser.trustScore ?? 0,
+      approvedExampleSentences: appUser.approvedExampleSentences ?? 0,
+      approvedCulturalContributions:
+        appUser.approvedCulturalContributions ?? 0,
+      uniqueDialects:
+        appUser.uniqueDialects ?? appUser.dialects?.length ?? 0,
       badgeTitle:
         appUser.badgeTitle || getBadgeTitleForPoints(appUser.totalPoints ?? 0),
+      role: appUser.role,
+      staffRank: appUser.staffRank,
+      dialects: appUser.dialects,
       lastContributionAt: null,
       createdAt: appUser.createdAt,
     }
@@ -704,10 +783,19 @@ export const LeaderboardPage = () => {
         ? (leaderboard[leaderboard.length - 1]?.activePoints ?? 0) + 1
         : 0
   const pointsToTopFifty = Math.max(0, topFiftyTarget - activePoints)
+  const currentLeaderboardTitle = currentRank
+    ? getLeaderboardTitle(selectedPeriod, currentRank)
+    : null
 
   useEffect(() => {
-    setIsLoading(true)
-    setErrorMessage(null)
+    let active = true
+
+    queueMicrotask(() => {
+      if (active) {
+        setIsLoading(true)
+        setErrorMessage(null)
+      }
+    })
 
     const unsubscribe = subscribeToLeaderboard(
       selectedPeriod,
@@ -723,7 +811,10 @@ export const LeaderboardPage = () => {
       },
     )
 
-    return unsubscribe
+    return () => {
+      active = false
+      unsubscribe()
+    }
   }, [retryKey, selectedPeriod])
 
   useEffect(() => {
@@ -744,24 +835,34 @@ export const LeaderboardPage = () => {
 
   useEffect(() => {
     let active = true
+    const setRankState = (rank: number | null, loading: boolean) => {
+      queueMicrotask(() => {
+        if (active) {
+          setCurrentRank(rank)
+          setIsRankLoading(loading)
+        }
+      })
+    }
 
     if (!currentUser) {
-      setCurrentRank(null)
-      setIsRankLoading(false)
+      setRankState(null, false)
       return () => {
         active = false
       }
     }
 
     if (currentEntry) {
-      setCurrentRank(currentEntry.rank)
-      setIsRankLoading(false)
+      setRankState(currentEntry.rank, false)
       return () => {
         active = false
       }
     }
 
-    setIsRankLoading(true)
+    queueMicrotask(() => {
+      if (active) {
+        setIsRankLoading(true)
+      }
+    })
 
     getLeaderboardRank(selectedPeriod, activePoints)
       .then((rank) => {
@@ -793,7 +894,7 @@ export const LeaderboardPage = () => {
   ])
 
   return (
-    <section className="mx-auto min-h-screen max-w-[980px] space-y-4 bg-[#fffaf0] pb-28 text-[#13271d] sm:space-y-6 md:rounded-[32px] md:px-2 md:py-2">
+    <section className="mx-auto min-h-screen max-w-[980px] space-y-3 bg-[#fffaf0] pb-32 text-[#13271d] sm:space-y-6 md:rounded-[32px] md:px-2 md:py-2">
       <Header currentUser={currentUser} />
 
       {isLoading ? (
@@ -822,6 +923,7 @@ export const LeaderboardPage = () => {
             currentUser={currentUser}
             insight={insight}
             isRankLoading={isRankLoading}
+            leaderboardTitle={currentLeaderboardTitle}
             periodLabel={selectedOption.rankLabel}
             rank={currentRank}
           />
@@ -836,6 +938,7 @@ export const LeaderboardPage = () => {
               <TopThreePodium
                 currentUid={currentUser.uid}
                 entries={topThree}
+                period={selectedPeriod}
               />
 
               <section className="overflow-hidden rounded-[26px] border border-[#ead7b7] bg-[#fffdf8] shadow-[0_16px_40px_rgba(71,44,18,0.08)]">

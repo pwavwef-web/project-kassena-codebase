@@ -19,6 +19,11 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import {
+  getRankTitleForPoints,
+  getReviewCounterDeltas,
+  getTrustScore,
+} from './ranks'
 import type {
   AdminUserSummary,
   Announcement,
@@ -64,13 +69,8 @@ const leaderboardPointFieldByPeriod: Record<
   allTime: 'totalPoints',
 }
 
-export const getBadgeTitleForPoints = (points: number): string => {
-  if (points >= 2500) return 'Elder Approved'
-  if (points >= 1000) return 'Kasem Champion'
-  if (points >= 500) return 'Community Builder'
-  if (points >= 100) return 'Language Helper'
-  return 'New Contributor'
-}
+export const getBadgeTitleForPoints = (points: number): string =>
+  getRankTitleForPoints(points)
 
 const asNumber = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : 0
@@ -86,6 +86,32 @@ const normalizeLeaderboardProfile = (
   data: Record<string, unknown>,
 ): LeaderboardProfile => {
   const totalPoints = asNumber(data.totalPoints)
+  const approvedEntries = asNumber(data.approvedEntries)
+  const approvedSubmissions = asNumber(
+    data.approvedSubmissions ?? approvedEntries,
+  )
+  const reviewedSubmissions = asNumber(
+    data.reviewedSubmissions ?? approvedSubmissions,
+  )
+  const approvalRate =
+    typeof data.approvalRate === 'number' && Number.isFinite(data.approvalRate)
+      ? data.approvalRate
+      : reviewedSubmissions
+        ? Math.round((approvedSubmissions / reviewedSubmissions) * 100)
+        : 0
+  const contributedDialects = Array.isArray(data.contributedDialects)
+    ? data.contributedDialects.filter(
+        (item): item is string => typeof item === 'string' && Boolean(item),
+      )
+    : []
+  const profileDialects = Array.isArray(data.dialects)
+    ? data.dialects.filter((item): item is string => typeof item === 'string')
+    : []
+  const uniqueDialects = Math.max(
+    asNumber(data.uniqueDialects),
+    contributedDialects.length,
+    profileDialects.length,
+  )
 
   return {
     uid: typeof data.uid === 'string' && data.uid ? data.uid : id,
@@ -98,11 +124,39 @@ const normalizeLeaderboardProfile = (
     totalPoints,
     weeklyPoints: asNumber(data.weeklyPoints),
     monthlyPoints: asNumber(data.monthlyPoints),
-    approvedEntries: asNumber(data.approvedEntries),
+    approvedEntries,
+    approvedSubmissions,
+    reviewedSubmissions,
+    approvalRate,
+    trustScore:
+      typeof data.trustScore === 'number' && Number.isFinite(data.trustScore)
+        ? data.trustScore
+        : getTrustScore({
+            approvalRate,
+            approvedEntries: approvedSubmissions,
+            hasCulturalContributions:
+              asNumber(data.approvedCulturalContributions) > 0,
+            hasExampleSentences: asNumber(data.approvedExampleSentences) > 0,
+            reviewedSubmissions,
+            uniqueDialects,
+          }),
+    approvedExampleSentences: asNumber(data.approvedExampleSentences),
+    approvedCulturalContributions: asNumber(
+      data.approvedCulturalContributions,
+    ),
+    uniqueDialects,
     badgeTitle:
       typeof data.badgeTitle === 'string' && data.badgeTitle.trim()
         ? data.badgeTitle.trim()
         : getBadgeTitleForPoints(totalPoints),
+    role:
+      data.role === 'contributor' ||
+      data.role === 'validator' ||
+      data.role === 'admin'
+        ? data.role
+        : undefined,
+    staffRank: asString(data.staffRank),
+    dialects: profileDialects,
     lastContributionAt:
       data.lastContributionAt && typeof data.lastContributionAt === 'object'
         ? (data.lastContributionAt as LeaderboardProfile['lastContributionAt'])
@@ -493,12 +547,65 @@ const pointsForContributionApproval = (contribution: Contribution): number => {
   return contributionApprovalBasePoints + (hasExamples ? 10 : 0)
 }
 
+const includesAny = (value: string, needles: string[]): boolean => {
+  const normalized = value.toLowerCase()
+  return needles.some((needle) => normalized.includes(needle))
+}
+
+const contributionHasExampleSentence = (contribution: Contribution): boolean =>
+  Boolean(contribution.englishExample || contribution.kasemExample) ||
+  includesAny(contribution.category, ['sentence', 'phrase'])
+
+const contributionHasCulturalImpact = (contribution: Contribution): boolean =>
+  Boolean(contribution.culturalNote?.trim()) ||
+  includesAny(
+    [
+      contribution.contributionType,
+      contribution.category,
+      contribution.partOfSpeech,
+      contribution.notes,
+      contribution.wordUseRules,
+      contribution.culturalNote,
+    ]
+      .filter(Boolean)
+      .join(' '),
+    [
+      'culture',
+      'cultural',
+      'custom',
+      'tradition',
+      'traditional',
+      'proverb',
+      'story',
+      'folklore',
+      'heritage',
+    ],
+  )
+
+const uploadHasCulturalImpact = (upload: UploadRecord): boolean =>
+  includesAny(
+    [upload.category, upload.title, upload.description, upload.tags]
+      .filter(Boolean)
+      .join(' '),
+    [
+      'culture',
+      'cultural',
+      'custom',
+      'tradition',
+      'traditional',
+      'proverb',
+      'story',
+      'folklore',
+      'heritage',
+    ],
+  )
+
 const updateLeaderboardPoints = async (
   userId: string,
   pointDelta: number,
   entryDelta: number,
 ): Promise<void> => {
-  if (!userId || pointDelta === 0) {
+  if (!userId || (pointDelta === 0 && entryDelta === 0)) {
     return
   }
 
@@ -524,6 +631,105 @@ const updateLeaderboardPoints = async (
         approvedEntries,
         badgeTitle: getBadgeTitleForPoints(totalPoints),
         lastContributionAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    )
+  })
+}
+
+const updateReviewTrustCounters = async ({
+  approvedCulturalDelta = 0,
+  approvedExampleDelta = 0,
+  dialect,
+  nextStatus,
+  previousStatus,
+  userId,
+}: {
+  approvedCulturalDelta?: number
+  approvedExampleDelta?: number
+  dialect?: string
+  nextStatus: Extract<ReviewStatus, 'approved' | 'rejected'>
+  previousStatus: ReviewStatus
+  userId: string
+}): Promise<void> => {
+  if (!userId) {
+    return
+  }
+
+  const { approvedDelta, reviewedDelta } = getReviewCounterDeltas(
+    previousStatus,
+    nextStatus,
+  )
+
+  if (
+    approvedDelta === 0 &&
+    reviewedDelta === 0 &&
+    approvedCulturalDelta === 0 &&
+    approvedExampleDelta === 0
+  ) {
+    return
+  }
+
+  const userRef = doc(db, 'users', userId)
+
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(userRef)
+    const data = snapshot.exists() ? snapshot.data() : {}
+    const reviewedSubmissions = Math.max(
+      0,
+      asNumber(data.reviewedSubmissions) + reviewedDelta,
+    )
+    const approvedSubmissions = Math.max(
+      0,
+      asNumber(data.approvedSubmissions ?? data.approvedEntries) +
+        approvedDelta,
+    )
+    const approvedExampleSentences = Math.max(
+      0,
+      asNumber(data.approvedExampleSentences) + approvedExampleDelta,
+    )
+    const approvedCulturalContributions = Math.max(
+      0,
+      asNumber(data.approvedCulturalContributions) + approvedCulturalDelta,
+    )
+    const approvalRate = reviewedSubmissions
+      ? Math.round((approvedSubmissions / reviewedSubmissions) * 100)
+      : 0
+    const normalizedDialect = dialect?.trim()
+    const existingDialects = Array.isArray(data.contributedDialects)
+      ? data.contributedDialects.filter(
+          (item): item is string => typeof item === 'string' && Boolean(item),
+        )
+      : []
+    const contributedDialects =
+      normalizedDialect && nextStatus === 'approved'
+        ? Array.from(new Set([...existingDialects, normalizedDialect]))
+        : existingDialects
+    const uniqueDialects = Math.max(
+      asNumber(data.uniqueDialects),
+      contributedDialects.length,
+    )
+    const trustScore = getTrustScore({
+      approvalRate,
+      approvedEntries: approvedSubmissions,
+      hasCulturalContributions: approvedCulturalContributions > 0,
+      hasExampleSentences: approvedExampleSentences > 0,
+      reviewedSubmissions,
+      uniqueDialects,
+    })
+
+    transaction.set(
+      userRef,
+      {
+        approvedSubmissions,
+        reviewedSubmissions,
+        approvalRate,
+        trustScore,
+        approvedExampleSentences,
+        approvedCulturalContributions,
+        contributedDialects,
+        uniqueDialects,
         updatedAt: serverTimestamp(),
       },
       { merge: true },
@@ -758,6 +964,23 @@ export const approveContribution = async (
     )
   }
 
+  await updateReviewTrustCounters({
+    approvedCulturalDelta: contributionHasCulturalImpact(contribution)
+      ? wasAlreadyApproved
+        ? 0
+        : 1
+      : 0,
+    approvedExampleDelta: contributionHasExampleSentence(contribution)
+      ? wasAlreadyApproved
+        ? 0
+        : 1
+      : 0,
+    dialect: contribution.dialect,
+    nextStatus: 'approved',
+    previousStatus: contribution.status,
+    userId: contribution.contributorId,
+  })
+
   await createAuditLog({
     action: 'CONTRIBUTION_APPROVED',
     actorId: actor.id,
@@ -798,6 +1021,25 @@ export const rejectContribution = async (
       -pointsForContributionApproval(contribution),
       -1,
     )
+  }
+
+  if (contribution) {
+    await updateReviewTrustCounters({
+      approvedCulturalDelta: contributionHasCulturalImpact(contribution)
+        ? contribution.status === 'approved'
+          ? -1
+          : 0
+        : 0,
+      approvedExampleDelta: contributionHasExampleSentence(contribution)
+        ? contribution.status === 'approved'
+          ? -1
+          : 0
+        : 0,
+      dialect: contribution.dialect,
+      nextStatus: 'rejected',
+      previousStatus: contribution.status,
+      userId: contribution.contributorId,
+    })
   }
 
   await createAuditLog({
@@ -894,6 +1136,22 @@ export const reviewUpload = async (
 
   if (status === 'rejected' && upload && wasAlreadyApproved) {
     await updateLeaderboardPoints(upload.uploadedBy, -uploadApprovalPoints, -1)
+  }
+
+  if (upload) {
+    await updateReviewTrustCounters({
+      approvedCulturalDelta: uploadHasCulturalImpact(upload)
+        ? status === 'approved' && !wasAlreadyApproved
+          ? 1
+          : status === 'rejected' && wasAlreadyApproved
+            ? -1
+            : 0
+        : 0,
+      dialect: upload.dialect,
+      nextStatus: status,
+      previousStatus: upload.status,
+      userId: upload.uploadedBy,
+    })
   }
 
   await createAuditLog({
@@ -1505,6 +1763,23 @@ export const approveContributionWithPronunciation = async (
       1,
     )
   }
+
+  await updateReviewTrustCounters({
+    approvedCulturalDelta: contributionHasCulturalImpact(contribution)
+      ? wasAlreadyApproved
+        ? 0
+        : 1
+      : 0,
+    approvedExampleDelta: contributionHasExampleSentence(contribution)
+      ? wasAlreadyApproved
+        ? 0
+        : 1
+      : 0,
+    dialect: contribution.dialect,
+    nextStatus: 'approved',
+    previousStatus: contribution.status,
+    userId: contribution.contributorId,
+  })
 
   await createAuditLog({
     action: 'CONTRIBUTION_APPROVED',

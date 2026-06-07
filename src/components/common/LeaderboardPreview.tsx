@@ -70,7 +70,7 @@ export const LeaderboardPreview = ({
       </div>
 
       <div className="space-y-2">
-        {entries.slice(0, 5).map((entry) => (
+        {entries.slice(0, 4).map((entry) => (
           <div
             key={entry.rank}
             className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-slate-50"

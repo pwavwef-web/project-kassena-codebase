@@ -167,7 +167,7 @@ export const HomePage = () => {
       'month',
       (entries) => {
         setLeaderboard(
-          entries.slice(0, 5).map((entry) => ({
+          entries.slice(0, 4).map((entry) => ({
             rank: entry.rank,
             name: entry.displayName,
             points: entry.monthlyPoints,

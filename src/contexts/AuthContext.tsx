@@ -51,9 +51,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         weeklyPoints: 0,
         monthlyPoints: 0,
         approvedEntries: 0,
+        approvedSubmissions: 0,
+        reviewedSubmissions: 0,
+        approvalRate: 0,
+        trustScore: 0,
+        approvedExampleSentences: 0,
+        approvedCulturalContributions: 0,
+        contributedDialects: [],
+        uniqueDialects: 0,
         badgeTitle: getBadgeTitleForPoints(0),
         lastContributionAt: null,
         role: defaultRole,
+        staffRank: '',
         status: 'active',
         community: '',
         dialect: '',
@@ -87,9 +96,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         weeklyPoints: existing.weeklyPoints ?? 0,
         monthlyPoints: existing.monthlyPoints ?? 0,
         approvedEntries: existing.approvedEntries ?? 0,
+        approvedSubmissions:
+          existing.approvedSubmissions ?? existing.approvedEntries ?? 0,
+        reviewedSubmissions: existing.reviewedSubmissions ?? 0,
+        approvalRate: existing.approvalRate ?? 0,
+        trustScore: existing.trustScore ?? 0,
+        approvedExampleSentences: existing.approvedExampleSentences ?? 0,
+        approvedCulturalContributions:
+          existing.approvedCulturalContributions ?? 0,
+        contributedDialects: existing.contributedDialects ?? [],
+        uniqueDialects:
+          existing.uniqueDialects ??
+          existing.contributedDialects?.length ??
+          existing.dialects?.length ??
+          0,
         badgeTitle:
           existing.badgeTitle ??
           getBadgeTitleForPoints(existing.totalPoints ?? 0),
+        staffRank: existing.staffRank ?? '',
         lastContributionAt: existing.lastContributionAt ?? null,
         phone: existing.phone ?? '',
         bio: existing.bio ?? '',

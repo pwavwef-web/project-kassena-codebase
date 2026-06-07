@@ -13,8 +13,16 @@ export interface AppUser {
   weeklyPoints?: number
   monthlyPoints?: number
   approvedEntries?: number
+  approvedSubmissions?: number
+  reviewedSubmissions?: number
+  approvalRate?: number
+  trustScore?: number
+  approvedExampleSentences?: number
+  approvedCulturalContributions?: number
+  uniqueDialects?: number
   badgeTitle?: string
   role: UserRole
+  staffRank?: string
   community?: string
   dialect?: string
   dialects?: string[]
@@ -37,7 +45,17 @@ export interface LeaderboardProfile {
   weeklyPoints: number
   monthlyPoints: number
   approvedEntries: number
+  approvedSubmissions?: number
+  reviewedSubmissions?: number
+  approvalRate?: number
+  trustScore?: number
+  approvedExampleSentences?: number
+  approvedCulturalContributions?: number
+  uniqueDialects?: number
   badgeTitle: string
+  role?: UserRole
+  staffRank?: string
+  dialects?: string[]
   lastContributionAt: Timestamp | null
   createdAt: Timestamp | null
 }

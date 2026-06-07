@@ -11,6 +11,11 @@ import { AchievementBadgeCard } from '../components/common/AchievementBadge'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
 import { MediaPreview } from '../components/common/MediaPreview'
+import {
+  RankBadge,
+  RankRequirementList,
+  TrustScoreMeter,
+} from '../components/common/RankBadge'
 import { StatusBadge } from '../components/common/StatusBadge'
 import { useAuth } from '../hooks/useAuth'
 import {
@@ -24,7 +29,6 @@ import {
   getLeaderboardRank,
   listCommunityLeaderboardProfiles,
   listCommunityRecognitions,
-  listContributorLevels,
   listRewardBounties,
   listRewardCatalogItems,
   listUserContributions,
@@ -34,6 +38,7 @@ import {
   subscribeToLeaderboardUser,
 } from '../lib/firestore'
 import { getUserDialects } from '../lib/profile'
+import { CORE_RANKS, getRankMetricsFromActivity, getRankState } from '../lib/ranks'
 import { FavoritesTab } from '../components/profile/FavoritesTab'
 import { RecentlyViewedTab } from '../components/profile/RecentlyViewedTab'
 import { SearchHistoryTab } from '../components/profile/SearchHistoryTab'
@@ -41,7 +46,6 @@ import type {
   AppUser,
   CommunityRecognition,
   Contribution,
-  ContributorLevel,
   LeaderboardProfile,
   RankedLeaderboardProfile,
   RewardBounty,
@@ -443,10 +447,12 @@ const Icon = ({
       )
     case 'streak':
       return (
-        <svg {...common}>
-          <path d="M13 3s1 4-2 6c-2 1.4-3 3-3 5a4 4 0 0 0 8 0c0-2-1-3.2-2.2-4.4C13 8.8 13 7 14.5 5" />
-          <path d="M9.5 18.5a6.5 6.5 0 0 1-1.9-11" />
-        </svg>
+        <img
+          src="/icons/contribution-streak.png"
+          alt=""
+          className={`${className} object-contain`}
+          loading="lazy"
+        />
       )
     case 'target':
       return (
@@ -769,7 +775,6 @@ export const ProfilePage = () => {
   const [form, setForm] = useState<ProfileForm>(emptyProfileForm)
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [uploads, setUploads] = useState<UploadRecord[]>([])
-  const [levels, setLevels] = useState<ContributorLevel[]>([])
   const [bounties, setBounties] = useState<RewardBounty[]>([])
   const [rewardItems, setRewardItems] = useState<RewardCatalogItem[]>([])
   const [redemptions, setRedemptions] = useState<RewardRedemption[]>([])
@@ -818,7 +823,6 @@ export const ProfilePage = () => {
       const [
         userContributions,
         userUploads,
-        contributorLevels,
         activeBounties,
         catalogItems,
         userRedemptions,
@@ -827,7 +831,6 @@ export const ProfilePage = () => {
       ] = await Promise.all([
         listUserContributions(appUserId),
         listUserUploads(appUserId),
-        optionalFirebaseRead(listContributorLevels(), []),
         optionalFirebaseRead(listRewardBounties(), []),
         optionalFirebaseRead(listRewardCatalogItems(), []),
         optionalFirebaseRead(listUserRewardRedemptions(appUserId), []),
@@ -841,7 +844,6 @@ export const ProfilePage = () => {
       if (active) {
         setContributions(userContributions)
         setUploads(userUploads)
-        setLevels(contributorLevels)
         setBounties(activeBounties)
         setRewardItems(catalogItems)
         setRedemptions(userRedemptions)
@@ -975,34 +977,22 @@ export const ProfilePage = () => {
     }
   }, [appUserId, currentPoints])
 
-  const sortedLevels = useMemo(
+  const rankMetrics = useMemo(
     () =>
-      [...levels].sort((first, second) => first.minPoints - second.minPoints),
-    [levels],
+      getRankMetricsFromActivity({
+        contributions,
+        points: currentPoints,
+        uploads,
+        user: appUser,
+      }),
+    [appUser, contributions, currentPoints, uploads],
   )
-  const currentLevel =
-    [...sortedLevels]
-      .reverse()
-      .find((level) => currentPoints >= level.minPoints) ?? null
-  const nextLevel =
-    sortedLevels.find((level) => level.minPoints > currentPoints) ?? null
-  const levelTitle =
-    currentLevel?.title ||
-    leaderboardUser?.badgeTitle ||
-    appUser?.badgeTitle ||
-    'Contributor'
-  const levelStart = currentLevel?.minPoints ?? 0
-  const levelTarget =
-    nextLevel?.minPoints ??
-    currentLevel?.maxPoints ??
-    Math.max(currentPoints, 1)
-  const levelProgress = nextLevel
-    ? ((currentPoints - levelStart) / Math.max(1, levelTarget - levelStart)) *
-      100
-    : 100
-  const pointsToNextLevel = nextLevel
-    ? Math.max(0, nextLevel.minPoints - currentPoints)
-    : 0
+  const rankState = useMemo(() => getRankState(rankMetrics), [rankMetrics])
+  const nextLevel = rankState.nextCoreRank
+  const levelTitle = rankState.prestigeTitle ?? rankState.displayRank.title
+  const levelTarget = nextLevel?.minPoints ?? Math.max(currentPoints, 1)
+  const levelProgress = rankState.progressToNextRank
+  const pointsToNextLevel = rankState.pointsToNextRank
 
   const activityDates = useMemo(
     () => getActivityDates(contributions, uploads),
@@ -1124,7 +1114,7 @@ export const ProfilePage = () => {
 
     activityPoints.forEach((item) => {
       runningPoints += item.points
-      sortedLevels.forEach((level) => {
+      CORE_RANKS.forEach((level) => {
         if (
           level.minPoints > 0 &&
           runningPoints >= level.minPoints &&
@@ -1144,7 +1134,7 @@ export const ProfilePage = () => {
     return events
       .sort((first, second) => first.date.getTime() - second.date.getTime())
       .slice(-6)
-  }, [activityPoints, appUser?.createdAt, contributions, sortedLevels, uploads])
+  }, [activityPoints, appUser?.createdAt, contributions, uploads])
 
   const culturalStats = useMemo(() => {
     const submittedText = [
@@ -1340,9 +1330,11 @@ export const ProfilePage = () => {
     }
   }
 
-  const shareText = `${appUser.displayName} has contributed ${formatNumber(
+  const shareText = `${appUser.displayName} is a ${levelTitle} with ${formatNumber(
+    currentPoints,
+  )} points, ${formatNumber(
     calculatedStats.wordsAdded,
-  )} words, earned ${formatNumber(currentPoints)} points, and helped preserve the Kasem language with TribeStudio.`
+  )} words contributed, and a ${rankState.trustScore}% Trust Score on Project Kasena.`
 
   const handleShare = async () => {
     setShareFeedback('')
@@ -1489,55 +1481,51 @@ export const ProfilePage = () => {
                 </p>
               </div>
               <div className="rounded-[14px] bg-white/10 px-3 py-2.5 sm:rounded-[16px] sm:p-3">
-                <p className="truncate text-sm font-black leading-tight sm:text-base">
-                  {appUser.community || '-'}
+                <p className="text-xl font-black leading-tight sm:text-2xl">
+                  {rankState.trustScore}%
                 </p>
                 <p className="text-[11px] font-semibold text-white/82 sm:text-xs">
-                  Community
+                  Trust Score
                 </p>
               </div>
             </div>
           </div>
 
           <div className="rounded-[18px] border border-white/20 bg-white/10 p-3 backdrop-blur-sm sm:rounded-[22px] sm:p-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#f8d56f] text-[#0b4b2b] sm:h-14 sm:w-14 sm:rounded-[18px]">
-                <Icon name="medal" className="h-6 w-6 sm:h-8 sm:w-8" />
-              </span>
-              <div className="min-w-0 flex-1">
+            <RankBadge state={rankState} />
+            <div className="mt-4">
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-bold text-white/82 sm:text-sm">
-                  Level Progress
+                  Rank Progress
                 </p>
-                <h3 className="truncate text-lg font-black sm:mt-1 sm:text-2xl">
-                  {levelTitle}
-                </h3>
-                <p className="text-xs font-semibold text-white/86 sm:mt-1 sm:text-sm">
-                  {formatNumber(currentPoints)} /{' '}
-                  {nextLevel
-                    ? formatNumber(nextLevel.minPoints)
-                    : formatNumber(levelTarget)}{' '}
-                  XP
+                <p className="text-xs font-semibold text-white/86 sm:text-sm">
+                  {formatNumber(currentPoints)} / {formatNumber(levelTarget)} XP
                 </p>
               </div>
+              <ProgressBar
+                value={levelProgress}
+                className="mt-2 bg-white/20"
+              />
             </div>
-            <ProgressBar
-              value={levelProgress}
-              className="mt-3 bg-white/20 sm:mt-4"
-            />
             <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-white/88 sm:mt-3 sm:text-sm">
               <span>
                 {nextLevel
                   ? `${formatNumber(pointsToNextLevel)} XP to ${nextLevel.title}`
-                  : 'Top configured level reached'}
+                  : rankState.prestigeTitle
+                    ? `${rankState.prestigeTitle} prestige active`
+                    : 'Top core rank reached'}
               </span>
               <Icon name="chevronRight" className="h-5 w-5 shrink-0" />
             </div>
-            {!levels.length && !isLoading ? (
-              <p className="mt-3 text-xs font-semibold text-white/70">
-                Contributor levels are ready to display once configured in
-                Firebase.
+            <div className="mt-4 rounded-[16px] bg-white/90 p-3 text-[#13271d]">
+              <TrustScoreMeter value={rankState.trustScore} />
+            </div>
+            <div className="mt-3 rounded-[16px] bg-white/90 p-3 text-[#13271d]">
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                Next gate
               </p>
-            ) : null}
+              <RankRequirementList requirements={rankState.requirements} />
+            </div>
           </div>
         </div>
       </section>
@@ -1806,10 +1794,13 @@ export const ProfilePage = () => {
         <div className="grid gap-4">
           <Panel>
             <SectionHeader title="Contribution Streak" icon="streak" />
-            <div className="grid grid-cols-[90px_minmax(0,1fr)] items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full border-[10px] border-[#f4bd45] bg-[#fff7e7] text-kassena-orange">
-                <Icon name="streak" className="h-8 w-8" />
-              </div>
+            <div className="grid grid-cols-[104px_minmax(0,1fr)] items-center gap-4">
+              <img
+                src="/icons/contribution-streak.png"
+                alt=""
+                className="h-24 w-24 object-contain drop-shadow-[0_10px_18px_rgba(202,165,74,0.28)]"
+                loading="lazy"
+              />
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-3xl font-black text-[#101f1a]">
