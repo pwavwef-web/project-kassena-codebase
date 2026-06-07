@@ -121,8 +121,6 @@ export const HomePage = () => {
         }))
         setActivities(recentActivities)
 
-        setLeaderboard([])
-
         // Mock cultural items (would come from Firestore in production)
         setCulturalItems([
           {
@@ -381,11 +379,11 @@ export const HomePage = () => {
       {/* Community Activity Feed */}
       <CommunityActivityFeed activities={activities} isLoading={isLoading} />
 
-      {/* Cultural Spotlight */}
-      <CulturalSpotlight items={culturalItems} isLoading={isLoading} />
-
       {/* Mission Carousel */}
       <MissionCarousel />
+
+      {/* Cultural Spotlight */}
+      <CulturalSpotlight items={culturalItems} isLoading={isLoading} />
 
       {/* App Name Footer */}
       <div className="text-center pt-4">
