@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth'
 import {
   ACHIEVEMENT_PROGRESS_EVENT,
   getAchievementStates,
+  recordAchievementShare,
   readAchievementProgress,
 } from '../lib/achievements'
 import { DIALECT_OPTIONS } from '../lib/constants'
@@ -38,7 +39,13 @@ import {
   subscribeToLeaderboardUser,
 } from '../lib/firestore'
 import { getUserDialects } from '../lib/profile'
+import { getRankBadgeImageId } from '../lib/rankAssets'
 import { CORE_RANKS, getRankMetricsFromActivity, getRankState } from '../lib/ranks'
+import {
+  generateContributorShareCard,
+  getContributorShareFileName,
+  shareOrDownloadContributorCard,
+} from '../lib/profileShareCard'
 import { FavoritesTab } from '../components/profile/FavoritesTab'
 import { RecentlyViewedTab } from '../components/profile/RecentlyViewedTab'
 import { SearchHistoryTab } from '../components/profile/SearchHistoryTab'
@@ -419,13 +426,12 @@ const Icon = ({
       )
     case 'share':
       return (
-        <svg {...common}>
-          <path d="M18 8a3 3 0 1 0-2.8-4" />
-          <path d="M6 14a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
-          <path d="M18 16a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
-          <path d="m8.6 14.8 6.8-4.1" />
-          <path d="m8.6 19.2 6.8 4.1" />
-        </svg>
+        <img
+          src="/icons/share-impact.png"
+          alt=""
+          className={`${className} object-contain`}
+          loading="lazy"
+        />
       )
     case 'song':
       return (
@@ -772,6 +778,7 @@ export const ProfilePage = () => {
   } | null>(null)
   const [dataError, setDataError] = useState('')
   const [shareFeedback, setShareFeedback] = useState('')
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false)
   const [form, setForm] = useState<ProfileForm>(emptyProfileForm)
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [uploads, setUploads] = useState<UploadRecord[]>([])
@@ -1338,21 +1345,41 @@ export const ProfilePage = () => {
 
   const handleShare = async () => {
     setShareFeedback('')
+    setIsGeneratingShare(true)
 
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'TribeStudio contributor impact',
-          text: shareText,
-        })
-        setShareFeedback('Share card ready.')
-        return
-      }
+      const blob = await generateContributorShareCard({
+        activeDays: streakSummary.activeDays,
+        approvedEntries,
+        community: appUser.community,
+        currentRank,
+        currentStreak: streakSummary.currentStreak,
+        displayName: appUser.displayName,
+        longestStreak: streakSummary.longestStreak,
+        photoURL: appUser.photoURL,
+        points: currentPoints,
+        rankBadgeId: getRankBadgeImageId(rankState),
+        rankTitle: levelTitle,
+        totalAchievements: achievementStates.length,
+        trustScore: rankState.trustScore,
+        unlockedAchievements,
+      })
+      const result = await shareOrDownloadContributorCard(
+        blob,
+        getContributorShareFileName(appUser.displayName),
+        shareText,
+      )
 
-      await navigator.clipboard?.writeText(shareText)
-      setShareFeedback('Share text copied.')
+      recordAchievementShare(appUserId)
+      setShareFeedback(
+        result === 'shared'
+          ? 'PNG share card ready.'
+          : 'PNG share card downloaded.',
+      )
     } catch {
-      setShareFeedback('Share could not be opened.')
+      setShareFeedback('PNG share card could not be created.')
+    } finally {
+      setIsGeneratingShare(false)
     }
   }
 
@@ -1542,10 +1569,11 @@ export const ProfilePage = () => {
         <button
           type="button"
           onClick={handleShare}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-[16px] border border-[#efd4bd] bg-white px-3 py-2.5 text-xs font-black text-kassena-orange shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:min-h-14 sm:rounded-[18px] sm:px-4 sm:py-3 sm:text-sm"
+          disabled={isGeneratingShare}
+          className="flex min-h-12 items-center justify-center gap-2 rounded-[16px] border border-[#efd4bd] bg-white px-3 py-2.5 text-xs font-black text-kassena-orange shadow-[0_10px_24px_rgba(71,44,18,0.08)] disabled:opacity-60 sm:min-h-14 sm:rounded-[18px] sm:px-4 sm:py-3 sm:text-sm"
         >
           <Icon name="share" className="h-5 w-5" />
-          Share Profile
+          {isGeneratingShare ? 'Creating PNG' : 'Share Profile'}
         </button>
         <a
           href="#achievements"
@@ -2169,9 +2197,10 @@ export const ProfilePage = () => {
               <button
                 type="button"
                 onClick={handleShare}
-                className="mt-4 rounded-full bg-kassena-orange px-5 py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(201,106,45,0.22)]"
+                disabled={isGeneratingShare}
+                className="mt-4 rounded-full bg-kassena-orange px-5 py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(201,106,45,0.22)] disabled:opacity-60"
               >
-                Create Card
+                {isGeneratingShare ? 'Creating PNG...' : 'Create Card'}
               </button>
             </div>
             <div className="overflow-hidden rounded-[18px] bg-[#0b4b2b] p-2 text-white shadow-[0_12px_24px_rgba(10,58,34,0.22)]">

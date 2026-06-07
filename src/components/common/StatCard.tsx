@@ -33,27 +33,36 @@ const useCountUp = (end: number, duration: number = 1000) => {
       return
     }
 
+    let cancelled = false
+
+    const runAnimation = () => {
+      if (cancelled || hasAnimated.current) return
+      hasAnimated.current = true
+      const startTime = Date.now()
+      const startValue = 0
+
+      const animate = () => {
+        if (cancelled) return
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        const current = Math.round(startValue + (end - startValue) * eased)
+        setCount(current)
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        }
+      }
+
+      requestAnimationFrame(animate)
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasAnimated.current) {
-            hasAnimated.current = true
-            const startTime = Date.now()
-            const startValue = 0
-
-            const animate = () => {
-              const elapsed = Date.now() - startTime
-              const progress = Math.min(elapsed / duration, 1)
-              const eased = 1 - Math.pow(1 - progress, 3)
-              const current = Math.round(startValue + (end - startValue) * eased)
-              setCount(current)
-
-              if (progress < 1) {
-                requestAnimationFrame(animate)
-              }
-            }
-
-            requestAnimationFrame(animate)
+          if (entry.isIntersecting) {
+            observer.disconnect()
+            runAnimation()
           }
         })
       },
@@ -64,7 +73,16 @@ const useCountUp = (end: number, duration: number = 1000) => {
       observer.observe(ref.current)
     }
 
-    return () => observer.disconnect()
+    const fallbackTimer = setTimeout(() => {
+      observer.disconnect()
+      runAnimation()
+    }, 200)
+
+    return () => {
+      cancelled = true
+      observer.disconnect()
+      clearTimeout(fallbackTimer)
+    }
   }, [end, duration])
 
   return { count, ref }
