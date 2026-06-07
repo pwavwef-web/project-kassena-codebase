@@ -214,7 +214,7 @@ export const AdminAnnouncementsPage = () => {
         <header className="rounded-lg border border-[#eadcc7] bg-white p-4 shadow-sm">
           <div className="flex items-start gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-kassena-green">
-              <Icon name="bell" className="h-6 w-6" />
+              <Icon name="bell" className="h-full w-full" />
             </span>
             <div className="min-w-0">
               <h1 className="text-2xl font-bold text-[#13231a] sm:text-3xl">

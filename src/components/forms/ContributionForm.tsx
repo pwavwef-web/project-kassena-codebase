@@ -281,7 +281,7 @@ const VoiceIcon = () => <AppIcon name="microphone" className="h-5 w-5" />
 
 const UploadIcon = () => <AppIcon name="upload" className="h-5 w-5" />
 
-const CheckIcon = () => <AppIcon name="check" className="h-9 w-9" />
+const CheckIcon = () => <AppIcon name="check" className="h-full w-full" />
 
 export const ContributionForm = ({
   onSubmit,

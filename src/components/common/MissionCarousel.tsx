@@ -118,7 +118,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm transition hover:border-kassena-green/30 hover:bg-kassena-cream/60 focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2"
             aria-label="Show previous mission slide"
           >
-            <AppIcon name="arrow-left" className="h-6 w-6" />
+            <AppIcon name="arrow-left" className="h-full w-full" />
           </button>
           <button
             type="button"
@@ -126,7 +126,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm transition hover:border-kassena-green/30 hover:bg-kassena-cream/60 focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2"
             aria-label="Show next mission slide"
           >
-            <AppIcon name="chevron-right" className="h-6 w-6" />
+            <AppIcon name="chevron-right" className="h-full w-full" />
           </button>
         </div>
       </div>
@@ -205,7 +205,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
             aria-label="Show previous mission slide"
           >
-            <AppIcon name="arrow-left" className="h-6 w-6" />
+            <AppIcon name="arrow-left" className="h-full w-full" />
           </button>
           <button
             type="button"
@@ -213,7 +213,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
             aria-label="Show next mission slide"
           >
-            <AppIcon name="chevron-right" className="h-6 w-6" />
+            <AppIcon name="chevron-right" className="h-full w-full" />
           </button>
         </div>
         <p className="hidden text-sm font-semibold text-slate-500 sm:block">

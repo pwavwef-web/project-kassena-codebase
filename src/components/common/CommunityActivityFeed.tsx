@@ -15,24 +15,24 @@ interface CommunityActivityFeedProps {
 
 const activityIcons: Record<ActivityItem['type'], { bg: string; icon: React.ReactNode }> = {
   contribution: {
-    bg: 'bg-green-100 text-green-600',
-    icon: <AppIcon name="check" className="h-4 w-4" />,
+    bg: '',
+    icon: <AppIcon name="check" className="h-full w-full" />,
   },
   proverb: {
-    bg: 'bg-purple-100 text-purple-600',
-    icon: <AppIcon name="proverb" className="h-4 w-4" />,
+    bg: '',
+    icon: <AppIcon name="proverb" className="h-full w-full" />,
   },
   points: {
-    bg: 'bg-yellow-100 text-yellow-600',
-    icon: <AppIcon name="points" className="h-4 w-4" />,
+    bg: '',
+    icon: <AppIcon name="points" className="h-full w-full" />,
   },
   dialect: {
-    bg: 'bg-blue-100 text-blue-600',
-    icon: <AppIcon name="globe" className="h-4 w-4" />,
+    bg: '',
+    icon: <AppIcon name="globe" className="h-full w-full" />,
   },
   upload: {
-    bg: 'bg-orange-100 text-orange-600',
-    icon: <AppIcon name="upload" className="h-4 w-4" />,
+    bg: '',
+    icon: <AppIcon name="upload" className="h-full w-full" />,
   },
 }
 
@@ -84,7 +84,7 @@ export const CommunityActivityFeed = ({
               key={activity.id}
               className="flex items-start gap-3 rounded-xl p-2 transition-colors hover:bg-slate-50"
             >
-              <div className={`flex-shrink-0 rounded-full p-1.5 ${iconStyle.bg}`}>
+              <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center ${iconStyle.bg}`}>
                 {iconStyle.icon}
               </div>
               <div className="flex-1 min-w-0">

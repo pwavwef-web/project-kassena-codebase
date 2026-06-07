@@ -581,7 +581,7 @@ const MetricCard = ({
       <span
         className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${toneStyles[tone].icon}`}
       >
-        <DashboardIcon name={icon} className="h-7 w-7" />
+        <DashboardIcon name={icon} className="h-full w-full" />
       </span>
       <div className="min-w-0">
         <p className="line-clamp-2 text-xs font-semibold text-slate-500">

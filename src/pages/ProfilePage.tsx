@@ -551,7 +551,7 @@ const SectionHeader = ({
   <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
     <h2 className="flex min-w-0 items-center gap-2 text-base font-black text-[#073d24] sm:text-lg">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#edf6e9] text-kassena-green ring-1 ring-[#cfe2c9]">
-        <Icon name={icon} className="h-4.5 w-4.5" />
+        <Icon name={icon} className="h-full w-full" />
       </span>
       <span className="truncate">{title}</span>
     </h2>
@@ -615,7 +615,7 @@ const MetricTile = ({ item }: { item: ImpactMetric }) => (
   <article className={`min-w-0 rounded-[18px] border p-3 ${item.tone}`}>
     <div className="flex items-center gap-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70">
-        <Icon name={item.icon} className="h-5 w-5" />
+        <Icon name={item.icon} className="h-full w-full" />
       </span>
       <div className="min-w-0">
         <p className="truncate text-2xl font-black leading-none text-[#101f1a]">
@@ -1406,7 +1406,7 @@ export const ProfilePage = () => {
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border border-[#edd7b6] bg-white text-[#0b4b2b] shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:h-12 sm:w-12 sm:rounded-[16px]"
           aria-label="Go back"
         >
-          <Icon name="arrowLeft" className="h-5 w-5" />
+          <Icon name="arrowLeft" className="h-10 w-10 sm:h-12 sm:w-12" />
         </button>
 
         <div className="min-w-0">
@@ -1425,7 +1425,7 @@ export const ProfilePage = () => {
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-kassena-green text-white shadow-[0_10px_24px_rgba(20,83,45,0.2)] sm:h-12 sm:w-auto sm:gap-2 sm:rounded-[16px] sm:px-4 sm:text-sm"
               aria-label="Open admin panel"
             >
-              <Icon name="admin" className="h-4.5 w-4.5" />
+              <Icon name="admin" className="h-9 w-9 sm:h-7 sm:w-7" />
               <span className="sr-only sm:not-sr-only">Admin Panel</span>
             </Link>
           ) : null}
@@ -1460,7 +1460,7 @@ export const ProfilePage = () => {
                   className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-[#0d6b3c] text-white ring-[3px] ring-[#f8d56f] sm:h-11 sm:w-11 sm:ring-4"
                   aria-label="Edit profile photo"
                 >
-                  <Icon name="camera" className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                  <Icon name="camera" className="h-full w-full" />
                 </button>
               </div>
 
@@ -2056,7 +2056,7 @@ export const ProfilePage = () => {
                 >
                   <div className="relative flex justify-center">
                     <span className="z-10 flex h-7 w-7 items-center justify-center rounded-full bg-[#5c9b35] text-white ring-4 ring-[#edf6e9]">
-                      <Icon name={event.icon} className="h-3.5 w-3.5" />
+                      <Icon name={event.icon} className="h-full w-full" />
                     </span>
                     {index < journeyEvents.length - 1 ? (
                       <span className="absolute top-7 h-full border-l-2 border-[#9bc37f]" />
@@ -2136,7 +2136,7 @@ export const ProfilePage = () => {
                     className="grid grid-cols-[54px_minmax(0,1fr)_28px] items-center gap-3 rounded-[18px] border border-[#ead9bd] bg-[#fffaf2] p-3"
                   >
                     <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#edf6e9] text-kassena-green">
-                      <Icon name="target" className="h-6 w-6" />
+                      <Icon name="target" className="h-full w-full" />
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-black text-[#13271d]">
@@ -2357,7 +2357,7 @@ export const ProfilePage = () => {
                 className="rounded-[18px] border border-[#ead9bd] bg-[#fffaf2] p-4"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#edf6e9] text-kassena-green">
-                  <Icon name="medal" className="h-6 w-6" />
+                  <Icon name="medal" className="h-full w-full" />
                 </span>
                 <h3 className="mt-3 text-base font-black text-[#13271d]">
                   {recognition.title}

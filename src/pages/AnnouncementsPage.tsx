@@ -136,7 +136,7 @@ export const AnnouncementsPage = () => {
         </div>
         <div className="mt-5 flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#edf6e9] text-kassena-green ring-1 ring-[#cfe2c9]">
-            <Icon name="bell" className="h-6 w-6" />
+            <Icon name="bell" className="h-full w-full" />
           </span>
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-[#13231a] sm:text-3xl">

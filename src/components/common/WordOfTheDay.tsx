@@ -144,7 +144,7 @@ export const WordOfTheDay = ({
       <div className="relative z-10" ref={cardRef}>
         <div className="flex items-center justify-between mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-kassena-gold/20 px-3 py-1 text-xs font-semibold text-kassena-gold">
-            <AppIcon name="star" className="h-4 w-4" />
+            <AppIcon name="star" className="h-6 w-6" />
             Word of the Day
           </span>
           <div className="flex items-center gap-1">
@@ -152,25 +152,25 @@ export const WordOfTheDay = ({
               type="button"
               onClick={handleShareImage}
               disabled={isGeneratingImage}
-              className="rounded-full bg-white/10 p-2 text-white/80 transition-all hover:bg-white/20 hover:text-white active:scale-95 disabled:opacity-60"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white active:scale-95 disabled:opacity-60"
               aria-label="Share as image"
             >
               {isGeneratingImage ? (
-                <AppIcon name="refresh" className="h-5 w-5 animate-spin" />
+                <AppIcon name="refresh" className="h-full w-full animate-spin" />
               ) : (
-                <AppIcon name="download" className="h-5 w-5" />
+                <AppIcon name="download" className="h-full w-full" />
               )}
             </button>
             <button
               type="button"
               onClick={handleShare}
-              className="rounded-full bg-white/10 p-2 text-white/80 transition-all hover:bg-white/20 hover:text-white active:scale-95"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white active:scale-95"
               aria-label="Share word of the day"
             >
               {copied ? (
-                <AppIcon name="check" className="h-5 w-5" />
+                <AppIcon name="check" className="h-full w-full" />
               ) : (
-                <AppIcon name="share" className="h-5 w-5" />
+                <AppIcon name="share" className="h-full w-full" />
               )}
             </button>
           </div>

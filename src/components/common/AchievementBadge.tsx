@@ -57,7 +57,7 @@ export const AchievementBadgeCard = ({
         />
         {locked ? (
           <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200">
-            <AppIcon name="lock" className="h-6 w-6" />
+            <AppIcon name="lock" className="h-full w-full" />
           </span>
         ) : null}
       </div>

@@ -273,7 +273,7 @@ const Header = ({
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#edd7b6] bg-[#fffaf0] text-[#0b4b2b] shadow-[0_10px_24px_rgba(71,44,18,0.08)] transition hover:bg-white sm:h-12 sm:w-12"
         aria-label="Go back"
       >
-        <Icon name="arrowLeft" className="h-5 w-5 sm:h-6 sm:w-6" />
+        <Icon name="arrowLeft" className="h-10 w-10 sm:h-12 sm:w-12" />
       </button>
 
       <div className="min-w-0 flex-1">
@@ -291,7 +291,7 @@ const Header = ({
           className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#0b4b2b] sm:h-11 sm:w-11"
           aria-label="Notifications"
         >
-          <Icon name="bell" className="h-6 w-6 sm:h-7 sm:w-7" />
+          <Icon name="bell" className="h-10 w-10 sm:h-11 sm:w-11" />
           <UnreadAnnouncementBadge
             count={unreadCount}
             className="absolute -right-1 -top-1 ring-[#fffaf0]"
@@ -374,7 +374,7 @@ const CurrentRankCard = ({
         <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1 sm:min-w-[190px] sm:grid-cols-1 sm:gap-3">
           <div className="flex items-center gap-2 rounded-[16px] bg-white/10 p-2.5 sm:gap-3 sm:bg-transparent sm:p-0">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f2b83b] text-[#5b3b00] shadow-sm sm:h-11 sm:w-11">
-              <Icon name="star" className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Icon name="star" className="h-full w-full" />
             </span>
             <div>
               <p className="text-xl font-black leading-none sm:text-2xl">
@@ -388,7 +388,7 @@ const CurrentRankCard = ({
           </div>
           <div className="flex items-center gap-2 rounded-[16px] bg-white/10 p-2.5 sm:gap-3 sm:bg-transparent sm:p-0">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#d85b27] text-white shadow-sm sm:h-11 sm:w-11">
-              <Icon name="check" className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Icon name="check" className="h-full w-full" />
             </span>
             <div>
               <p className="text-xl font-black leading-none sm:text-2xl">

@@ -354,16 +354,16 @@ const EmptyMessage = ({ message }: { message: string }) => (
 
 const Coin = ({ className = 'h-5 w-5' }: { className?: string }) => (
   <span
-    className={`inline-flex items-center justify-center rounded-full bg-[#d99418] text-white ring-2 ring-[#f7d987] ${className}`}
+    className={`inline-flex items-center justify-center ${className}`}
   >
-    <Icon name="star" className="h-3 w-3" />
+    <Icon name="star" className="h-full w-full" />
   </span>
 )
 
 const Emblem = () => (
   <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#0b4b2b] shadow-[inset_0_0_0_3px_rgba(251,214,120,0.35),0_10px_20px_rgba(20,83,45,0.16)] ring-[3px] ring-[#f9d77c] sm:h-20 sm:w-20 sm:ring-4">
     <div className="absolute inset-[-6px] rounded-full border border-dashed border-[#e9b943] sm:inset-[-7px]" />
-    <Icon name="reward" className="h-10 w-10 sm:h-14 sm:w-14" />
+    <Icon name="reward" className="relative z-10 h-full w-full" />
   </div>
 )
 
@@ -693,7 +693,7 @@ export const RewardsPage = () => {
             className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white sm:h-11 sm:w-11"
             aria-label="Notifications"
           >
-            <Icon name="bell" className="h-6 w-6 sm:h-7 sm:w-7" />
+            <Icon name="bell" className="h-10 w-10 sm:h-11 sm:w-11" />
             <UnreadAnnouncementBadge
               count={unreadCount}
               className="absolute -right-1 -top-1 ring-[#0b4b2b]"
@@ -786,10 +786,10 @@ export const RewardsPage = () => {
                     rewardToneClasses[index % rewardToneClasses.length]
                   } p-3 text-center shadow-sm sm:w-[156px]`}
                 >
-                  <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gradient-to-b from-[#f6cd62] to-[#0b4b2b] text-white shadow-[inset_0_-12px_20px_rgba(0,0,0,0.18)] sm:h-[82px] sm:w-[82px]">
+                  <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center sm:h-[82px] sm:w-[82px]">
                     <Icon
                       name={normalizeIcon(reward.icon, 'gift')}
-                      className="h-9 w-9"
+                      className="h-full w-full"
                     />
                   </div>
                   <h3 className="mt-3 text-base font-black leading-5 text-[#101f1a]">
@@ -845,7 +845,7 @@ export const RewardsPage = () => {
                   className={`flex min-h-[76px] items-center gap-2.5 rounded-[14px] p-3 ring-1 sm:rounded-[16px] ${item.tone}`}
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/65 sm:h-10 sm:w-10">
-                    <Icon name={item.icon} className="h-5 w-5 sm:h-6 sm:w-6" />
+                    <Icon name={item.icon} className="h-full w-full" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-lg font-black leading-tight text-[#101f1a] sm:text-xl">
@@ -881,7 +881,7 @@ export const RewardsPage = () => {
                       <div className="flex h-14 w-14 items-center justify-center rounded-[16px] border border-[#f6cd62]">
                         <Icon
                           name={normalizeIcon(bounty.icon, 'medical')}
-                          className="h-8 w-8"
+                          className="h-full w-full"
                         />
                       </div>
                     </div>
@@ -1033,7 +1033,7 @@ export const RewardsPage = () => {
                             : 'bg-[#8660a1]'
                         }`}
                       >
-                        <Icon name={item.icon} className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <Icon name={item.icon} className="h-full w-full" />
                       </span>
                       {index < activityItems.length - 1 ? (
                         <span className="absolute top-8 h-6 border-l border-dashed border-[#b79f7b] sm:top-9" />

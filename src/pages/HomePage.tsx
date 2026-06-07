@@ -250,7 +250,7 @@ export const HomePage = () => {
             className="relative flex h-10 w-10 items-center justify-center rounded-[14px] border border-[#ead9bd] bg-white text-kassena-green shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
             aria-label="Open notifications"
           >
-            <AppIcon name="bell" className="h-6 w-6" />
+            <AppIcon name="bell" className="h-10 w-10" />
             <UnreadAnnouncementBadge
               count={unreadCount}
               className="absolute -right-1 -top-1 ring-white"
@@ -315,7 +315,7 @@ export const HomePage = () => {
               to="/announcements"
               className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-[15px] border border-white/18 bg-white/10 px-3 py-2.5 text-center text-xs font-black text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 sm:min-h-12 sm:rounded-full sm:px-6 sm:text-sm"
             >
-              <AppIcon name="bell" className="h-5 w-5" />
+              <AppIcon name="bell" className="h-7 w-7" />
               Notifications
               <UnreadAnnouncementBadge
                 count={unreadCount}

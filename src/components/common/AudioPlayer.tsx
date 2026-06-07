@@ -38,7 +38,7 @@ export const AudioPlayer = ({
       >
         <AppIcon
           name={isPlaying ? 'pause' : 'play'}
-          className={compact ? 'h-5 w-5' : 'h-6 w-6'}
+          className="h-full w-full"
         />
       </button>
       <audio

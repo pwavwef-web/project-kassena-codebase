@@ -96,14 +96,14 @@ export const ExpandableDictionaryCard = ({
             <button
               type="button"
               onClick={handleToggleFavorite}
-              className={`rounded-full p-2 transition-all hover:scale-110 ${
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 ${
                 favorited
                   ? ''
                   : 'grayscale opacity-65 hover:grayscale-0 hover:opacity-100'
               }`}
               aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
             >
-              <AppIcon name="heart" className="h-6 w-6" />
+              <AppIcon name="heart" className="h-full w-full" />
             </button>
             <AppIcon
               name="chevron-right"

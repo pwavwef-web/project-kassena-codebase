@@ -3,9 +3,9 @@ import { AppIcon } from '../components/common/AppIcon'
 
 const ArrowIcon = () => <AppIcon name="chevron-right" className="h-6 w-6" />
 
-const UploadIcon = () => <AppIcon name="upload" className="h-9 w-9" />
+const UploadIcon = () => <AppIcon name="upload" className="h-full w-full" />
 
-const DictionaryIcon = () => <AppIcon name="book" className="h-9 w-9" />
+const DictionaryIcon = () => <AppIcon name="book" className="h-full w-full" />
 
 export const ContributionsPage = () => {
   return (

@@ -39,8 +39,8 @@ export const ContributorRewards = ({ data, isLoading = false }: ContributorRewar
     <article className="group relative overflow-hidden rounded-[18px] bg-gradient-to-br from-kassena-gold/20 via-white to-kassena-orange/10 p-4 shadow-sm ring-1 ring-kassena-gold/20 transition-all hover:shadow-md sm:rounded-2xl sm:p-8">
       <div className="relative z-10">
         <div className="mb-3 flex items-center gap-2 sm:mb-4">
-          <div className="rounded-xl bg-kassena-gold/10 p-2">
-            <AppIcon name="star" className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-kassena-gold/10">
+            <AppIcon name="star" className="h-full w-full" />
           </div>
           <h2 className="text-base font-black text-kassena-green sm:text-lg">
             Earn Rewards

@@ -39,27 +39,27 @@ const mobileNavItems = [
   {
     label: 'Home',
     to: '/',
-    icon: navIcon('home', 'h-8 w-8'),
+    icon: navIcon('home', 'h-11 w-11'),
   },
   {
     label: 'Contribute',
     to: '/contributions',
-    icon: navIcon('upload', 'h-8 w-8'),
+    icon: navIcon('upload', 'h-11 w-11'),
   },
   {
     label: 'Learn',
     to: '/dictionary',
-    icon: navIcon('book', 'h-8 w-8'),
+    icon: navIcon('book', 'h-11 w-11'),
   },
   {
     label: 'Community',
     to: '/culture',
-    icon: navIcon('community', 'h-8 w-8'),
+    icon: navIcon('community', 'h-11 w-11'),
   },
   {
     label: 'Rewards',
     to: '/rewards',
-    icon: navIcon('gift', 'h-8 w-8'),
+    icon: navIcon('gift', 'h-11 w-11'),
   },
 ]
 
@@ -179,7 +179,7 @@ export const MainLayout = () => {
             to={item.to}
             aria-label={item.label}
             className={({ isActive }) =>
-              `flex h-14 w-12 items-center justify-center rounded-[18px] px-2 py-2 transition-all sm:w-14 ${
+              `flex h-14 w-12 items-center justify-center rounded-[18px] px-0 py-1 transition-all sm:w-14 ${
                 isActive
                   ? 'bg-[#fff8ee] text-kassena-green shadow-[0_8px_20px_rgba(20,83,45,0.12)]'
                   : 'text-slate-500 hover:text-kassena-green hover:bg-slate-50'

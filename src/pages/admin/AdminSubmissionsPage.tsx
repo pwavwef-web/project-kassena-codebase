@@ -119,6 +119,7 @@ export const AdminSubmissionsPage = () => {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search by status, dialect, category or contributor"
+          aria-label="Search submissions"
           className="rounded-lg border border-kassena-cream px-3 py-2"
         />
         <select

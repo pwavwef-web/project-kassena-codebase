@@ -74,6 +74,7 @@ export const CulturePage = () => {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search title, description, dialect or tags"
+            aria-label="Search culture items"
             className="rounded-lg border border-kassena-cream px-3 py-2"
           />
           <select

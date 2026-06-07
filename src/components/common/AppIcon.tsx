@@ -108,13 +108,14 @@ export const AppIcon = ({
   <img
     src={getAppIconPath(name)}
     alt={alt}
-    className={`${className} object-contain`}
+    className={`${className} shrink-0 object-contain align-middle`}
     onError={(event) => {
       if (event.currentTarget.src.endsWith('/icons/ui/spark.png')) {
         return
       }
       event.currentTarget.src = '/icons/ui/spark.png'
     }}
+    draggable={false}
     loading="lazy"
   />
 )

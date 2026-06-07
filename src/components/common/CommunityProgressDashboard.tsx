@@ -30,26 +30,26 @@ export const CommunityProgressDashboard = ({
           label="Approved Entries"
           value={approvedEntries}
           color="green"
-          icon={<AppIcon name="check" className="h-5 w-5" />}
+          icon={<AppIcon name="check" className="h-full w-full" />}
         />
         <StatCard
           label="Pending Review"
           value={pendingReview}
           color="orange"
-          icon={<AppIcon name="timeline" className="h-5 w-5" />}
+          icon={<AppIcon name="timeline" className="h-full w-full" />}
         />
         <StatCard
           label="Contributors"
           value={contributors}
           color="gold"
-          icon={<AppIcon name="users" className="h-5 w-5" />}
+          icon={<AppIcon name="users" className="h-full w-full" />}
         />
         <StatCard
           label="Validation Rate"
           value={Math.round(validationRate)}
           suffix="%"
           color="blue"
-          icon={<AppIcon name="analytics" className="h-5 w-5" />}
+          icon={<AppIcon name="analytics" className="h-full w-full" />}
         />
       </div>
 

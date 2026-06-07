@@ -115,7 +115,7 @@ export const StatCard = ({
           </p>
         </div>
         <div
-          className={`shrink-0 rounded-xl p-2 transition-transform group-hover:scale-110 sm:p-2.5 ${iconColorMap[color]}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-110 sm:h-12 sm:w-12 ${iconColorMap[color]}`}
         >
           {icon}
         </div>
