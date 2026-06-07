@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { listSearchHistory, deleteSearchHistoryEntry } from '../../lib/firestore'
 import { LoadingState } from '../common/LoadingState'
 import { EmptyState } from '../common/EmptyState'
+import { AppIcon } from '../common/AppIcon'
 import type { SearchHistoryEntry } from '../../types'
 
 export const SearchHistoryTab = () => {
@@ -39,12 +40,10 @@ export const SearchHistoryTab = () => {
           <button
             type="button"
             onClick={() => handleDelete(item.id)}
-            className="text-slate-400 hover:text-red-500 transition-colors"
+            className="transition-transform hover:scale-110"
             aria-label={`Delete search "${item.query}"`}
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <AppIcon name="close" className="h-5 w-5" />
           </button>
         </div>
       ))}

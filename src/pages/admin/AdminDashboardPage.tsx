@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AppIcon } from '../../components/common/AppIcon'
 import { LoadingState } from '../../components/common/LoadingState'
 import { useAuth } from '../../hooks/useAuth'
 import { DATA_COLLECTION_TARGET } from '../../lib/constants'
@@ -119,6 +120,10 @@ const DashboardIcon = ({
   name: DashboardIconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const commonProps = {
     className,
     fill: 'none',

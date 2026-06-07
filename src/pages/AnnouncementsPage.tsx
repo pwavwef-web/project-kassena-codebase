@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AppIcon } from '../components/common/AppIcon'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
@@ -24,6 +25,10 @@ const Icon = ({
   name: IconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const common = {
     className,
     fill: 'none',

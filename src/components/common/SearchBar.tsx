@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { listSearchHistory, deleteSearchHistoryEntry, addSearchHistory } from '../../lib/firestore'
 import { POPULAR_SEARCHES } from '../../lib/constants'
 import type { SearchHistoryEntry } from '../../types'
+import { AppIcon } from './AppIcon'
 
 interface SearchBarProps {
   onSearch?: (query: string) => void
@@ -86,19 +87,7 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
       <form onSubmit={handleSubmit} className="w-full">
         <div className="relative">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-            <svg
-              className="h-5 w-5 text-slate-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <AppIcon name="search" className="h-5 w-5" />
           </div>
           <input
             ref={inputRef}
@@ -118,12 +107,10 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
             <button
               type="button"
               onClick={handleClear}
-              className="absolute inset-y-0 right-14 flex items-center pr-2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute inset-y-0 right-14 flex items-center pr-2 transition-transform hover:scale-110"
               aria-label="Clear search"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <AppIcon name="close" className="h-5 w-5" />
             </button>
           )}
           <button
@@ -131,14 +118,7 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
             className="absolute inset-y-0 right-0 flex items-center rounded-r-[16px] bg-kassena-orange px-4 text-white transition-all hover:bg-[#e67e22] active:scale-95 sm:rounded-r-2xl sm:px-5"
             aria-label="Search"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <AppIcon name="search" className="h-5 w-5" />
           </button>
         </div>
       </form>
@@ -157,20 +137,16 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-kassena-bg transition-colors"
                   >
                     <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <AppIcon name="timeline" className="h-4 w-4" />
                       {item.query}
                     </span>
                     <button
                       type="button"
                       onClick={(e) => handleDeleteHistory(e, item.id)}
-                      className="text-slate-400 hover:text-red-500 transition-colors"
+                      className="transition-transform hover:scale-110"
                       aria-label={`Delete search "${item.query}"`}
                     >
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <AppIcon name="close" className="h-5 w-5" />
                     </button>
                   </button>
                 ))}

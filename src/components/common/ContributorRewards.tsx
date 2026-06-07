@@ -1,4 +1,5 @@
 import { EmptyState } from './EmptyState'
+import { AppIcon } from './AppIcon'
 
 interface RewardsData {
   currentPoints: number
@@ -39,9 +40,7 @@ export const ContributorRewards = ({ data, isLoading = false }: ContributorRewar
       <div className="relative z-10">
         <div className="mb-3 flex items-center gap-2 sm:mb-4">
           <div className="rounded-xl bg-kassena-gold/10 p-2">
-            <svg className="h-5 w-5 text-kassena-gold" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
+            <AppIcon name="star" className="h-5 w-5" />
           </div>
           <h2 className="text-base font-black text-kassena-green sm:text-lg">
             Earn Rewards
@@ -76,9 +75,7 @@ export const ContributorRewards = ({ data, isLoading = false }: ContributorRewar
         </div>
 
         <div className="flex items-start gap-2 text-xs leading-5 text-slate-500">
-          <svg className="h-4 w-4 mt-0.5 text-kassena-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <AppIcon name="info" className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <p>
             Earn points by contributing words, phrases, and cultural content. Rewards include airtime, data, and community recognition.
           </p>

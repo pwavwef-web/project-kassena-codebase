@@ -1,52 +1,11 @@
 import { Link } from 'react-router-dom'
+import { AppIcon } from '../components/common/AppIcon'
 
-const ArrowIcon = () => (
-  <svg
-    className="h-5 w-5"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={1.8}
-    viewBox="0 0 24 24"
-  >
-    <path d="M5 12h14" />
-    <path d="m13 6 6 6-6 6" />
-  </svg>
-)
+const ArrowIcon = () => <AppIcon name="chevron-right" className="h-6 w-6" />
 
-const UploadIcon = () => (
-  <svg
-    className="h-7 w-7"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={1.8}
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 16V4" />
-    <path d="m7 9 5-5 5 5" />
-    <path d="M5 20h14" />
-  </svg>
-)
+const UploadIcon = () => <AppIcon name="upload" className="h-9 w-9" />
 
-const DictionaryIcon = () => (
-  <svg
-    className="h-7 w-7"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={1.8}
-    viewBox="0 0 24 24"
-  >
-    <path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5v-17Z" />
-    <path d="M5 18.5A2.5 2.5 0 0 1 7.5 16H20" />
-    <path d="M9 6h7" />
-    <path d="M9 9h5" />
-  </svg>
-)
+const DictionaryIcon = () => <AppIcon name="book" className="h-9 w-9" />
 
 export const ContributionsPage = () => {
   return (

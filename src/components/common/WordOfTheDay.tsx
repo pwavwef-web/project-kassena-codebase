@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { EmptyState } from './EmptyState'
 import { AudioPlayer } from './AudioPlayer'
+import { AppIcon } from './AppIcon'
 import {
   recordAchievementShare,
   recordWordOfTheDayView,
@@ -143,9 +144,7 @@ export const WordOfTheDay = ({
       <div className="relative z-10" ref={cardRef}>
         <div className="flex items-center justify-between mb-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-kassena-gold/20 px-3 py-1 text-xs font-semibold text-kassena-gold">
-            <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
+            <AppIcon name="star" className="h-4 w-4" />
             Word of the Day
           </span>
           <div className="flex items-center gap-1">
@@ -157,14 +156,9 @@ export const WordOfTheDay = ({
               aria-label="Share as image"
             >
               {isGeneratingImage ? (
-                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
+                <AppIcon name="refresh" className="h-5 w-5 animate-spin" />
               ) : (
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
+                <AppIcon name="download" className="h-5 w-5" />
               )}
             </button>
             <button
@@ -174,16 +168,9 @@ export const WordOfTheDay = ({
               aria-label="Share word of the day"
             >
               {copied ? (
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <AppIcon name="check" className="h-5 w-5" />
               ) : (
-                <img
-                  src="/icons/share-impact.png"
-                  alt=""
-                  className="h-5 w-5 object-contain"
-                  loading="lazy"
-                />
+                <AppIcon name="share" className="h-5 w-5" />
               )}
             </button>
           </div>

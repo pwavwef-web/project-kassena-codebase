@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AudioPlayer } from './AudioPlayer'
 import { WordShareCard } from './WordShareCard'
+import { AppIcon } from './AppIcon'
 import { useAuth } from '../../hooks/useAuth'
 import {
   toggleFavorite,
@@ -95,27 +96,21 @@ export const ExpandableDictionaryCard = ({
             <button
               type="button"
               onClick={handleToggleFavorite}
-              className={`rounded-full p-2 transition-all ${
+              className={`rounded-full p-2 transition-all hover:scale-110 ${
                 favorited
-                  ? 'text-red-500 hover:text-red-600'
-                  : 'text-slate-400 hover:text-red-400'
+                  ? ''
+                  : 'grayscale opacity-65 hover:grayscale-0 hover:opacity-100'
               }`}
               aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
             >
-              <svg className="h-5 w-5" fill={favorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+              <AppIcon name="heart" className="h-6 w-6" />
             </button>
-            <svg
-              className={`h-5 w-5 text-slate-400 transition-transform ${
-                isExpanded ? 'rotate-180' : ''
+            <AppIcon
+              name="chevron-right"
+              className={`h-6 w-6 transition-transform ${
+                isExpanded ? '-rotate-90' : 'rotate-90'
               }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            />
           </div>
         </div>
 
@@ -243,9 +238,7 @@ export const ExpandableDictionaryCard = ({
               onClick={() => setShowShareCard(!showShareCard)}
               className="inline-flex items-center gap-1.5 rounded-full bg-kassena-green px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-kassena-dark"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
+              <AppIcon name="share" className="h-4 w-4" />
               Share
             </button>
             <Link
@@ -253,9 +246,7 @@ export const ExpandableDictionaryCard = ({
               onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-1.5 rounded-full border border-kassena-orange px-3 py-1.5 text-xs font-semibold text-kassena-orange transition-all hover:bg-kassena-orange/5"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+              <AppIcon name="edit" className="h-4 w-4" />
               Suggest Correction
             </Link>
           </div>

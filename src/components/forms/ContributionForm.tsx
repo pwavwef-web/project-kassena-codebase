@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertMessage } from '../common/AlertMessage'
+import { AppIcon } from '../common/AppIcon'
 import {
   CATEGORY_OPTIONS,
   DIALECT_OPTIONS,
@@ -276,52 +277,11 @@ const FieldLabel = ({
   </label>
 )
 
-const VoiceIcon = () => (
-  <svg
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={2}
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" />
-    <path d="M19 11a7 7 0 0 1-14 0" />
-    <path d="M12 18v3" />
-    <path d="M8 21h8" />
-  </svg>
-)
+const VoiceIcon = () => <AppIcon name="microphone" className="h-5 w-5" />
 
-const UploadIcon = () => (
-  <svg
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={2}
-    viewBox="0 0 24 24"
-  >
-    <path d="M12 16V4" />
-    <path d="m7 9 5-5 5 5" />
-    <path d="M5 20h14" />
-  </svg>
-)
+const UploadIcon = () => <AppIcon name="upload" className="h-5 w-5" />
 
-const CheckIcon = () => (
-  <svg
-    className="h-4 w-4"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={2}
-    viewBox="0 0 24 24"
-  >
-    <path d="m5 12 4 4L19 6" />
-  </svg>
-)
+const CheckIcon = () => <AppIcon name="check" className="h-9 w-9" />
 
 export const ContributionForm = ({
   onSubmit,

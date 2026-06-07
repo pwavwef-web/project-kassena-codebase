@@ -21,6 +21,7 @@ import { CulturalSpotlight } from '../components/common/CulturalSpotlight'
 import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { MissionCarousel } from '../components/common/MissionCarousel'
+import { AppIcon } from '../components/common/AppIcon'
 // Types defined locally for homepage data
 
 interface ActivityItem {
@@ -249,19 +250,7 @@ export const HomePage = () => {
             className="relative flex h-10 w-10 items-center justify-center rounded-[14px] border border-[#ead9bd] bg-white text-kassena-green shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
             aria-label="Open notifications"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M15.5 17h4l-1.2-1.5a2.5 2.5 0 0 1-.5-1.5v-3a5.8 5.8 0 0 0-11.6 0v3a2.5 2.5 0 0 1-.5 1.5L4.5 17h4" />
-              <path d="M9.7 19a2.7 2.7 0 0 0 4.6 0" />
-            </svg>
+            <AppIcon name="bell" className="h-6 w-6" />
             <UnreadAnnouncementBadge
               count={unreadCount}
               className="absolute -right-1 -top-1 ring-white"
@@ -326,19 +315,7 @@ export const HomePage = () => {
               to="/announcements"
               className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-[15px] border border-white/18 bg-white/10 px-3 py-2.5 text-center text-xs font-black text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 sm:min-h-12 sm:rounded-full sm:px-6 sm:text-sm"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M15.5 17h4l-1.2-1.5a2.5 2.5 0 0 1-.5-1.5v-3a5.8 5.8 0 0 0-11.6 0v3a2.5 2.5 0 0 1-.5 1.5L4.5 17h4" />
-                <path d="M9.7 19a2.7 2.7 0 0 0 4.6 0" />
-              </svg>
+              <AppIcon name="bell" className="h-5 w-5" />
               Notifications
               <UnreadAnnouncementBadge
                 count={unreadCount}

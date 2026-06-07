@@ -5,6 +5,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from 'react'
+import { AppIcon } from '../../components/common/AppIcon'
 import { AlertMessage } from '../../components/common/AlertMessage'
 import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
@@ -44,6 +45,10 @@ const Icon = ({
   name: IconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const common = {
     className,
     fill: 'none',

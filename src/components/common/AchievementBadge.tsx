@@ -1,4 +1,5 @@
 import type { AchievementId, AchievementState } from '../../lib/achievements'
+import { AppIcon } from './AppIcon'
 
 interface AchievementBadgeArtworkProps {
   id: AchievementId
@@ -15,25 +16,6 @@ interface AchievementBadgeCardProps {
 
 const getAchievementBadgeSrc = (id: AchievementId): string =>
   `/achievements/${id}.png`
-
-const LockIcon = () => (
-  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24">
-    <path
-      d="M7 11V8a5 5 0 0 1 10 0v3"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-    />
-    <path
-      d="M6 11h12v9H6z"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-    />
-  </svg>
-)
 
 export const AchievementBadgeArtwork = ({
   id,
@@ -74,8 +56,8 @@ export const AchievementBadgeCard = ({
           className={`h-20 w-20 ${locked ? 'opacity-45' : ''}`}
         />
         {locked ? (
-          <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
-            <LockIcon />
+          <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200">
+            <AppIcon name="lock" className="h-6 w-6" />
           </span>
         ) : null}
       </div>

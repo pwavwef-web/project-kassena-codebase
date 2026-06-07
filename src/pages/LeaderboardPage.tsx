@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AppIcon } from '../components/common/AppIcon'
 import { RankBadge, TrustScoreMeter } from '../components/common/RankBadge'
 import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
@@ -54,6 +55,10 @@ const Icon = ({
   name: IconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const common = {
     className,
     fill: 'none',

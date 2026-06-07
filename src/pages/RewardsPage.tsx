@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AchievementBadgeCard } from '../components/common/AchievementBadge'
+import { AppIcon } from '../components/common/AppIcon'
 import { LoadingState } from '../components/common/LoadingState'
 import { RankBadge, TrustScoreMeter } from '../components/common/RankBadge'
 import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
@@ -44,6 +45,7 @@ type IconName =
   | 'medical'
   | 'merch'
   | 'proverb'
+  | 'reward'
   | 'shield'
   | 'sentence'
   | 'star'
@@ -79,6 +81,7 @@ const knownIcons: IconName[] = [
   'medical',
   'merch',
   'proverb',
+  'reward',
   'shield',
   'sentence',
   'star',
@@ -102,6 +105,10 @@ const Icon = ({
   name: IconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const common = {
     className,
     fill: 'none',
@@ -356,15 +363,7 @@ const Coin = ({ className = 'h-5 w-5' }: { className?: string }) => (
 const Emblem = () => (
   <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#0b4b2b] shadow-[inset_0_0_0_3px_rgba(251,214,120,0.35),0_10px_20px_rgba(20,83,45,0.16)] ring-[3px] ring-[#f9d77c] sm:h-20 sm:w-20 sm:ring-4">
     <div className="absolute inset-[-6px] rounded-full border border-dashed border-[#e9b943] sm:inset-[-7px]" />
-    <svg className="h-8 w-8 text-[#f3bd3c] sm:h-12 sm:w-12" fill="none" viewBox="0 0 80 80">
-      <path
-        d="M40 12v56M24 20c11 11 21 18 32 40M56 20C45 31 35 38 24 60M24 28c0-8 10-8 16 0 6-8 16-8 16 0 0 10-16 17-16 17S24 38 24 28Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="5"
-      />
-    </svg>
+    <Icon name="reward" className="h-10 w-10 sm:h-14 sm:w-14" />
   </div>
 )
 

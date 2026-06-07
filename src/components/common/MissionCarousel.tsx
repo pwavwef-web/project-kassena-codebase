@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AppIcon } from './AppIcon'
 
 const AUTO_SCROLL_INTERVAL_MS = 3000
 
@@ -117,9 +118,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm transition hover:border-kassena-green/30 hover:bg-kassena-cream/60 focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2"
             aria-label="Show previous mission slide"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <AppIcon name="arrow-left" className="h-6 w-6" />
           </button>
           <button
             type="button"
@@ -127,9 +126,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm transition hover:border-kassena-green/30 hover:bg-kassena-cream/60 focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2"
             aria-label="Show next mission slide"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <AppIcon name="chevron-right" className="h-6 w-6" />
           </button>
         </div>
       </div>
@@ -208,9 +205,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
             aria-label="Show previous mission slide"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <AppIcon name="arrow-left" className="h-6 w-6" />
           </button>
           <button
             type="button"
@@ -218,9 +213,7 @@ export const MissionCarousel = () => {
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
             aria-label="Show next mission slide"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <AppIcon name="chevron-right" className="h-6 w-6" />
           </button>
         </div>
         <p className="hidden text-sm font-semibold text-slate-500 sm:block">

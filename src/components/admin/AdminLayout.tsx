@@ -2,6 +2,7 @@ import { type ReactNode, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { isFirebaseConfigured } from '../../config/firebase'
 import { useAuth } from '../../hooks/useAuth'
+import { AppIcon } from '../common/AppIcon'
 
 type AdminIconName =
   | 'bell'
@@ -46,6 +47,10 @@ const AdminIcon = ({
   name: AdminIconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const commonProps = {
     className,
     fill: 'none',

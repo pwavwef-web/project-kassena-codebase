@@ -1,84 +1,65 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { isFirebaseConfigured } from '../../config/firebase'
 import { useAuth } from '../../hooks/useAuth'
+import { AppIcon } from '../common/AppIcon'
+
+const navIcon = (name: string, className = 'h-5 w-5') => (
+  <AppIcon name={name} className={className} />
+)
 
 const navItems = [
   {
     label: 'Home',
     to: '/',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
+    icon: navIcon('home'),
   },
   {
     label: 'Dictionary',
     to: '/dictionary',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
+    icon: navIcon('book'),
   },
   {
     label: 'Rewards',
     to: '/rewards',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
+    icon: navIcon('reward'),
   },
   {
     label: 'Contribute',
     to: '/contributions',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-      </svg>
-    ),
+    icon: navIcon('upload'),
   },
   {
     label: 'Profile',
     to: '/profile',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
+    icon: navIcon('user'),
   },
 ]
 
 const mobileNavItems = [
-  navItems[0]!,
-  navItems[3]!,
+  {
+    label: 'Home',
+    to: '/',
+    icon: navIcon('home', 'h-8 w-8'),
+  },
+  {
+    label: 'Contribute',
+    to: '/contributions',
+    icon: navIcon('upload', 'h-8 w-8'),
+  },
   {
     label: 'Learn',
     to: '/dictionary',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-      </svg>
-    ),
+    icon: navIcon('book', 'h-8 w-8'),
   },
   {
     label: 'Community',
     to: '/culture',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m10-5.13a4 4 0 11-8 0 4 4 0 018 0zm-8 0a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
+    icon: navIcon('community', 'h-8 w-8'),
   },
   {
     label: 'Rewards',
     to: '/rewards',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12v8H4v-8m18-5H2v5h20V7zM12 7v13m0-13H8.5A2.5 2.5 0 1111 4.5L12 7zm0 0h3.5A2.5 2.5 0 1013 4.5L12 7z" />
-      </svg>
-    ),
+    icon: navIcon('gift', 'h-8 w-8'),
   },
 ]
 
@@ -196,8 +177,9 @@ export const MainLayout = () => {
           <NavLink
             key={item.to}
             to={item.to}
+            aria-label={item.label}
             className={({ isActive }) =>
-              `flex min-w-[3.7rem] flex-col items-center gap-1 rounded-[18px] px-2 py-2 transition-all ${
+              `flex h-14 w-12 items-center justify-center rounded-[18px] px-2 py-2 transition-all sm:w-14 ${
                 isActive
                   ? 'bg-[#fff8ee] text-kassena-green shadow-[0_8px_20px_rgba(20,83,45,0.12)]'
                   : 'text-slate-500 hover:text-kassena-green hover:bg-slate-50'
@@ -205,7 +187,7 @@ export const MainLayout = () => {
             }
           >
             {item.icon}
-            <span className="text-[10px] font-medium">{item.label}</span>
+            <span className="sr-only">{item.label}</span>
           </NavLink>
         ))}
       </nav>

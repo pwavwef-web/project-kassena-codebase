@@ -8,6 +8,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../components/common/AlertMessage'
 import { AchievementBadgeCard } from '../components/common/AchievementBadge'
+import { AppIcon } from '../components/common/AppIcon'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
 import { MediaPreview } from '../components/common/MediaPreview'
@@ -241,6 +242,10 @@ const Icon = ({
   name: IconName
   className?: string
 }) => {
+  if (name) {
+    return <AppIcon name={name} className={className} />
+  }
+
   const common = {
     className,
     fill: 'none',
