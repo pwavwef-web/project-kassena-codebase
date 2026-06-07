@@ -28,6 +28,7 @@ import type {
   CommunityRecognition,
   ContributorLevel,
   Contribution,
+  ContributionVoiceRecording,
   DashboardMetrics,
   DictionaryEntry,
   FileMetadata,
@@ -224,6 +225,23 @@ export const createAnnouncement = async (
   })
 
   return announcementRef.id
+}
+
+export const deleteAnnouncement = async (
+  announcementId: string,
+  actor: { id: string; email: string },
+): Promise<void> => {
+  await deleteDoc(doc(db, 'announcements', announcementId))
+
+  await createAuditLog({
+    action: 'ANNOUNCEMENT_DELETED',
+    actorId: actor.id,
+    actorEmail: actor.email,
+    targetCollection: 'announcements',
+    targetId: announcementId,
+    details: {},
+    createdAt: null,
+  })
 }
 
 export const listRewardCatalogItems = async (): Promise<
@@ -601,6 +619,20 @@ export const setContributionAttachedFiles = async (
 ): Promise<void> => {
   await updateDoc(doc(db, 'contributions', contributionId), {
     attachedFiles,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export const setContributionVoiceData = async (
+  contributionId: string,
+  payload: {
+    audioUrl?: string
+    voiceRecordings: ContributionVoiceRecording[]
+  },
+): Promise<void> => {
+  await updateDoc(doc(db, 'contributions', contributionId), {
+    audioUrl: payload.audioUrl ?? '',
+    voiceRecordings: payload.voiceRecordings,
     updatedAt: serverTimestamp(),
   })
 }

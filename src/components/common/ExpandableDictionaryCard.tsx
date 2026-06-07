@@ -22,16 +22,21 @@ export const ExpandableDictionaryCard = ({
   isExpanded,
   onToggleExpand,
 }: ExpandableDictionaryCardProps) => {
-  const { appUser } = useAuth()
+  const { appUser, firebaseUser } = useAuth()
   const [favorited, setFavorited] = useState(false)
   const [relatedWords, setRelatedWords] = useState<DictionaryEntry[]>([])
   const [showShareCard, setShowShareCard] = useState(false)
+  const userId = firebaseUser?.uid
 
   useEffect(() => {
-    if (!appUser || !isExpanded) return
-    isFavorited(appUser.uid, entry.id).then(setFavorited)
-    addRecentlyViewed(appUser.uid, entry.id).catch(() => {})
-  }, [appUser, entry.id, isExpanded])
+    if (!userId || !isExpanded) return
+    let cancelled = false
+    isFavorited(userId, entry.id).then((result) => {
+      if (!cancelled) setFavorited(result)
+    }).catch(() => {})
+    addRecentlyViewed(userId, entry.id).catch(() => {})
+    return () => { cancelled = true }
+  }, [entry.id, isExpanded, userId])
 
   useEffect(() => {
     if (!isExpanded) return
@@ -42,9 +47,14 @@ export const ExpandableDictionaryCard = ({
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!appUser) return
-    const newState = await toggleFavorite(appUser.uid, entry.id)
-    setFavorited(newState)
+    if (!appUser || !userId) return
+
+    try {
+      const newState = await toggleFavorite(userId, entry.id)
+      setFavorited(newState)
+    } catch (error) {
+      console.error('Failed to update favorite', error)
+    }
   }
 
   return (
@@ -222,6 +232,7 @@ export const ExpandableDictionaryCard = ({
                   dialect: entry.dialect,
                 }}
                 onShareComplete={() => setShowShareCard(false)}
+                viewerId={userId}
               />
             </div>
           )}

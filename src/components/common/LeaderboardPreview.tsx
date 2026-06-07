@@ -25,7 +25,7 @@ export const LeaderboardPreview = ({
 }: LeaderboardPreviewProps) => {
   if (isLoading) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 animate-pulse">
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 animate-pulse sm:rounded-2xl sm:p-6">
         <div className="h-4 w-40 rounded bg-slate-200 mb-4" />
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex items-center gap-3 mb-3">
@@ -42,8 +42,8 @@ export const LeaderboardPreview = ({
 
   if (!entries.length) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-        <h3 className="text-lg font-bold text-kassena-green mb-4">Top Contributors This Month</h3>
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-6">
+        <h3 className="mb-3 text-base font-black text-kassena-green sm:mb-4 sm:text-lg">Top Contributors This Month</h3>
         <EmptyState message="No contributions yet. Be the first!" />
         <Link
           to="/leaderboard"
@@ -59,9 +59,9 @@ export const LeaderboardPreview = ({
   }
 
   return (
-    <article className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-kassena-green">Top Contributors This Month</h3>
+    <article className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-6">
+      <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
+        <h3 className="text-base font-black text-kassena-green sm:text-lg">Top Contributors This Month</h3>
         <div className="flex items-center gap-1 text-kassena-gold">
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />

@@ -75,6 +75,7 @@ export const ALLOWED_FILE_TYPES = [
   'image/png',
   'image/webp',
   'audio/mpeg',
+  'audio/webm',
   'audio/wav',
   'audio/x-wav',
   'audio/mp4',

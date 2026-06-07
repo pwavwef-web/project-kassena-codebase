@@ -10,7 +10,11 @@ import { EmptyState } from '../../components/common/EmptyState'
 import { LoadingState } from '../../components/common/LoadingState'
 import { useAuth } from '../../hooks/useAuth'
 import { toDateLabel } from '../../lib/date'
-import { createAnnouncement, listAdminAnnouncements } from '../../lib/firestore'
+import {
+  createAnnouncement,
+  deleteAnnouncement,
+  listAdminAnnouncements,
+} from '../../lib/firestore'
 import type { Announcement } from '../../types'
 
 type AnnouncementForm = {
@@ -179,6 +183,26 @@ export const AdminAnnouncementsPage = () => {
     }
   }
 
+  const handleDelete = async (announcementId: string) => {
+    if (appUser?.role !== 'admin') return
+    if (!window.confirm('Delete this announcement?')) return
+
+    setFeedback('')
+    setErrorMessage('')
+
+    try {
+      await deleteAnnouncement(announcementId, {
+        id: appUser.uid,
+        email: appUser.email,
+      })
+      setFeedback('Announcement deleted.')
+      await loadAnnouncements()
+    } catch (error) {
+      console.error('Announcement delete failed:', error)
+      setErrorMessage('Announcement could not be deleted.')
+    }
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden px-4 py-4 sm:px-5 lg:px-6">
       <div className="mx-auto max-w-[1200px] space-y-4">
@@ -293,9 +317,19 @@ export const AdminAnnouncementsPage = () => {
                       <h3 className="min-w-0 truncate text-sm font-bold text-[#13231a]">
                         {announcement.title}
                       </h3>
-                      <span className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-[#eadcc7]">
-                        {announcement.category || 'General'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-[#eadcc7]">
+                          {announcement.category || 'General'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(announcement.id)}
+                          disabled={appUser?.role !== 'admin'}
+                          className="rounded-lg bg-rose-600 px-3 py-1 text-sm font-bold text-white transition hover:bg-rose-700 disabled:opacity-60"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                     <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
                       {announcement.body}

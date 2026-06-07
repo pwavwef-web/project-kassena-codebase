@@ -13,6 +13,7 @@ import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminSubmissionsPage } from '../pages/admin/AdminSubmissionsPage'
 import { AdminUploadsPage } from '../pages/admin/AdminUploadsPage'
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage'
+import { AchievementsPage } from '../pages/AchievementsPage'
 import { AnnouncementsPage } from '../pages/AnnouncementsPage'
 import { CompleteProfilePage } from '../pages/CompleteProfilePage'
 import { ContributionsPage } from '../pages/ContributionsPage'
@@ -44,6 +45,8 @@ export const router = createBrowserRouter([
           { path: '/contributions', element: <ContributionsPage /> },
           { path: '/leaderboard', element: <LeaderboardPage /> },
           { path: '/announcements', element: <AnnouncementsPage /> },
+          { path: '/achievements', element: <AchievementsPage /> },
+          { path: '/achiements', element: <AchievementsPage /> },
           { path: '/rewards', element: <RewardsPage /> },
           { path: '/submit', element: <SubmitContributionPage /> },
           { path: '/uploads', element: <UploadsPage /> },

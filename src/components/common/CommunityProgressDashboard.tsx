@@ -17,14 +17,14 @@ export const CommunityProgressDashboard = ({
   const goalProgress = Math.min(100, (approvedEntries / DATA_COLLECTION_TARGET) * 100)
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-kassena-green sm:text-2xl">
+        <h2 className="text-base font-black text-kassena-green sm:text-2xl">
           Language Preservation Progress
         </h2>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
         <StatCard
           label="Approved Entries"
           value={approvedEntries}
@@ -68,12 +68,12 @@ export const CommunityProgressDashboard = ({
         />
       </div>
 
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-700">
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="text-xs font-bold text-slate-700 sm:text-sm">
             Progress toward {DATA_COLLECTION_TARGET.toLocaleString()} phrase goal
           </h3>
-          <span className="text-sm font-bold text-kassena-orange">
+          <span className="shrink-0 text-xs font-black text-kassena-orange sm:text-sm">
             {goalProgress.toFixed(2)}%
           </span>
         </div>
@@ -83,7 +83,7 @@ export const CommunityProgressDashboard = ({
             style={{ width: `${goalProgress}%` }}
           />
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-[11px] font-medium text-slate-500 sm:text-xs">
           {approvedEntries.toLocaleString()} of {DATA_COLLECTION_TARGET.toLocaleString()} phrases collected
         </p>
       </div>

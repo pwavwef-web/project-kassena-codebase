@@ -75,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       const existing = snapshot.data()
       await updateDoc(userRef, {
+        uid: user.uid,
         displayName: existing.displayName || user.displayName || 'Contributor',
         email: user.email ?? existing.email ?? '',
         photoURL: existing.photoURL || user.photoURL || '',
@@ -99,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const refreshed = await getDoc(userRef)
     if (refreshed.exists()) {
-      setAppUser(refreshed.data() as AppUser)
+      setAppUser({ ...refreshed.data(), uid: user.uid } as AppUser)
     }
   }, [])
 

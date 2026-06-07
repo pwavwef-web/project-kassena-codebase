@@ -5,10 +5,12 @@ import { LoadingState } from '../components/common/LoadingState'
 import { SearchBar } from '../components/common/SearchBar'
 import { WordOfTheDay } from '../components/common/WordOfTheDay'
 import { ExpandableDictionaryCard } from '../components/common/ExpandableDictionaryCard'
+import { useAuth } from '../hooks/useAuth'
 import { listApprovedDictionaryEntries } from '../lib/firestore'
 import type { DictionaryEntry } from '../types'
 
 export const DictionaryPage = () => {
+  const { appUser } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [entries, setEntries] = useState<DictionaryEntry[]>([])
@@ -40,6 +42,7 @@ export const DictionaryPage = () => {
     const dayIndex = today.getDate() % entries.length
     const selected = entries[dayIndex]
     return {
+      wordKey: selected.id,
       kasemWord: selected.kasemText,
       pronunciation: selected.pronunciation || `/${selected.kasemText.toLowerCase()}/`,
       englishMeaning: selected.englishText,
@@ -75,7 +78,11 @@ export const DictionaryPage = () => {
 
   return (
     <section className="space-y-6">
-      <WordOfTheDay data={wordOfDay} isLoading={isLoading} />
+      <WordOfTheDay
+        data={wordOfDay}
+        isLoading={isLoading}
+        viewerId={appUser?.uid}
+      />
 
       <div className="space-y-3">
         <SearchBar

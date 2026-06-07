@@ -169,8 +169,25 @@ export interface FileMetadata {
   uploadedAt: Timestamp | null
 }
 
+export type ContributionVoiceRecordingType =
+  | 'pronunciation'
+  | 'exampleSentence'
+  | 'culturalExplanation'
+
+export interface ContributionVoiceRecording {
+  type: ContributionVoiceRecordingType
+  label: string
+  url: string
+  storagePath: string
+  fileName: string
+  contentType: string
+  size: number
+  uploadedAt: Timestamp | null
+}
+
 export interface Contribution {
   id: string
+  contributionType?: string
   englishText: string
   kasemText: string
   alternateKasemTerms: string
@@ -183,7 +200,10 @@ export interface Contribution {
   wordUseRules?: string
   pronunciation?: string
   audioUrl?: string
+  voiceRecordings?: ContributionVoiceRecording[]
   culturalNote?: string
+  selectedBountyId?: string
+  selectedBountyTitle?: string
   contributorId: string
   contributorName: string
   contributorEmail: string
@@ -263,6 +283,7 @@ export interface AuditLog {
     | 'DICTIONARY_ENTRY_UPDATED'
     | 'DICTIONARY_ENTRY_UNPUBLISHED'
     | 'ANNOUNCEMENT_SENT'
+    | 'ANNOUNCEMENT_DELETED'
   actorId: string
   actorEmail: string
   targetCollection: string

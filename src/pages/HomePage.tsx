@@ -162,7 +162,6 @@ export const HomePage = () => {
 
   useEffect(() => {
     if (!appUser) {
-      setLeaderboard([])
       return () => undefined
     }
 
@@ -227,36 +226,107 @@ export const HomePage = () => {
     }
   }, [leaderboardUser, appUser, rewardItems])
 
+  const visibleLeaderboard = appUser ? leaderboard : []
+
+  const initials =
+    appUser?.displayName
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'PK'
+
   return (
-    <section className="space-y-8 animate-fade-in pb-8">
+    <section className="space-y-4 animate-fade-in pb-32 text-[#13271d] sm:space-y-6 md:space-y-8 md:pb-8">
+      <div className="flex items-center justify-between md:hidden">
+        <Link to="/" className="text-xl font-black text-kassena-green">
+          <span className="bg-gradient-to-r from-kassena-green to-kassena-orange bg-clip-text text-transparent">
+            TribeStudio
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to="/announcements"
+            className="relative flex h-10 w-10 items-center justify-center rounded-[14px] border border-[#ead9bd] bg-white text-kassena-green shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
+            aria-label="Open notifications"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M15.5 17h4l-1.2-1.5a2.5 2.5 0 0 1-.5-1.5v-3a5.8 5.8 0 0 0-11.6 0v3a2.5 2.5 0 0 1-.5 1.5L4.5 17h4" />
+              <path d="M9.7 19a2.7 2.7 0 0 0 4.6 0" />
+            </svg>
+            <UnreadAnnouncementBadge
+              count={unreadCount}
+              className="absolute -right-1 -top-1 ring-white"
+            />
+          </Link>
+
+          <Link
+            to={appUser ? '/profile' : '/login'}
+            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-kassena-green text-xs font-black text-white shadow-[0_10px_24px_rgba(71,44,18,0.12)] ring-2 ring-[#ead9bd]"
+            aria-label={appUser ? 'Open profile' : 'Sign in'}
+          >
+            {appUser?.photoURL ? (
+              <img
+                src={appUser.photoURL}
+                alt=""
+                className="h-full w-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              initials
+            )}
+          </Link>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-kassena-green via-kassena-dark to-[#104022] p-8 text-white shadow-xl sm:p-12">
-        <div className="relative z-10 space-y-6">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-white to-kassena-cream animate-slide-up">
-            The Digital Home of the Kasem Language
-          </h1>
-          <p className="max-w-2xl text-lg font-medium text-kassena-cream/90 sm:text-xl animate-slide-up-delayed">
-            Translate. Learn. Preserve.
-          </p>
-          <p className="max-w-2xl text-sm text-kassena-cream/70 animate-slide-up-delayed-2">
-            Help build the world's first AI-ready Kasem language platform.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-4 animate-slide-up-delayed-3">
+      <div className="relative overflow-hidden rounded-[24px] bg-[#0b4b2b] p-4 text-white shadow-[0_18px_42px_rgba(10,58,34,0.22)] sm:rounded-3xl sm:p-8 lg:p-12">
+        <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(135deg,transparent_0_42%,rgba(255,255,255,0.16)_42%_46%,transparent_46%_100%),repeating-linear-gradient(45deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
+        <div className="relative z-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+          <div className="min-w-0">
+            <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-[#f5c84b] sm:text-sm">
+              Kasem language platform
+            </p>
+            <h1 className="max-w-3xl text-[2rem] font-black leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">
+              <span className="sm:hidden">Kasem Language Hub</span>
+              <span className="hidden sm:inline">
+                The Digital Home of the Kasem Language
+              </span>
+            </h1>
+            <p className="mt-3 text-base font-black text-kassena-cream sm:text-xl">
+              Translate. Learn. Preserve.
+            </p>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-kassena-cream/78 sm:text-base">
+              Help build the world's first AI-ready Kasem language platform.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:justify-end">
             <Link
               to="/submit"
-              className="rounded-full bg-gradient-to-r from-kassena-orange to-[#e67e22] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+              className="col-span-2 inline-flex min-h-12 items-center justify-center rounded-[16px] bg-gradient-to-r from-kassena-orange to-[#e67e22] px-4 py-3 text-sm font-black text-white shadow-lg transition-all hover:shadow-xl active:scale-95 sm:col-span-1 sm:rounded-full sm:px-6"
             >
               Submit Contribution
             </Link>
             <Link
               to="/dictionary"
-              className="rounded-full bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-105 active:scale-95"
+              className="inline-flex min-h-11 items-center justify-center rounded-[15px] border border-white/18 bg-white/10 px-3 py-2.5 text-center text-xs font-black text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 sm:min-h-12 sm:rounded-full sm:px-6 sm:text-sm"
             >
               Browse Dictionary
             </Link>
             <Link
               to="/announcements"
-              className="relative inline-flex items-center gap-2 rounded-full bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 transition-all hover:bg-white/20 hover:scale-105 active:scale-95"
+              className="relative inline-flex min-h-11 items-center justify-center gap-2 rounded-[15px] border border-white/18 bg-white/10 px-3 py-2.5 text-center text-xs font-black text-white backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 sm:min-h-12 sm:rounded-full sm:px-6 sm:text-sm"
             >
               <svg
                 className="h-4 w-4"
@@ -281,22 +351,16 @@ export const HomePage = () => {
               href="https://kassena.azlearner.me"
               target="_blank"
               rel="noreferrer noopener"
-              className="rounded-full bg-white/5 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/10 transition-all hover:bg-white/10 hover:scale-105 active:scale-95"
+              className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-[15px] border border-white/12 bg-white/5 px-3 py-2.5 text-xs font-black text-white backdrop-blur-md transition-all hover:bg-white/10 active:scale-95 sm:col-span-1 sm:min-h-12 sm:rounded-full sm:px-6 sm:text-sm"
             >
               Our Mission
             </a>
           </div>
         </div>
-        {/* Decorative background elements */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-kassena-orange/20 blur-3xl pointer-events-none"></div>
       </div>
 
-      {/* Mission Carousel */}
-      <MissionCarousel />
-
       {/* Search Bar - Primary CTA */}
-      <div className="animate-slide-up-delayed-3">
+      <div className="relative z-20">
         <SearchBar autoFocus={false} />
       </div>
 
@@ -309,9 +373,9 @@ export const HomePage = () => {
       />
 
       {/* Two-column layout for Rewards and Leaderboard */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
         <ContributorRewards data={rewards} isLoading={isLoading} />
-        <LeaderboardPreview entries={leaderboard} isLoading={isLoading} />
+        <LeaderboardPreview entries={visibleLeaderboard} isLoading={isLoading} />
       </div>
 
       {/* Community Activity Feed */}
@@ -319,6 +383,9 @@ export const HomePage = () => {
 
       {/* Cultural Spotlight */}
       <CulturalSpotlight items={culturalItems} isLoading={isLoading} />
+
+      {/* Mission Carousel */}
+      <MissionCarousel />
 
       {/* App Name Footer */}
       <div className="text-center pt-4">

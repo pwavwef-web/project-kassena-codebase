@@ -7,11 +7,17 @@ import {
 } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../components/common/AlertMessage'
+import { AchievementBadgeCard } from '../components/common/AchievementBadge'
 import { EmptyState } from '../components/common/EmptyState'
 import { LoadingState } from '../components/common/LoadingState'
 import { MediaPreview } from '../components/common/MediaPreview'
 import { StatusBadge } from '../components/common/StatusBadge'
 import { useAuth } from '../hooks/useAuth'
+import {
+  ACHIEVEMENT_PROGRESS_EVENT,
+  getAchievementStates,
+  readAchievementProgress,
+} from '../lib/achievements'
 import { DIALECT_OPTIONS } from '../lib/constants'
 import { toDateLabel } from '../lib/date'
 import {
@@ -19,7 +25,6 @@ import {
   listCommunityLeaderboardProfiles,
   listCommunityRecognitions,
   listContributorLevels,
-  listRewardAchievements,
   listRewardBounties,
   listRewardCatalogItems,
   listUserContributions,
@@ -39,7 +44,6 @@ import type {
   ContributorLevel,
   LeaderboardProfile,
   RankedLeaderboardProfile,
-  RewardAchievement,
   RewardBounty,
   RewardCatalogItem,
   RewardRedemption,
@@ -712,33 +716,6 @@ const getProfileCompletion = (user: AppUser, uploads: UploadRecord[]) => {
   }
 }
 
-const getAchievementValue = ({
-  achievement,
-  approvedEntries,
-  currentPoints,
-  totalUploads,
-  totalContributions,
-}: {
-  achievement: RewardAchievement
-  approvedEntries: number
-  currentPoints: number
-  totalUploads: number
-  totalContributions: number
-}) => {
-  switch (achievement.requirementType) {
-    case 'firstContribution':
-      return totalContributions + totalUploads > 0 ? 1 : 0
-    case 'approvedEntries':
-    case 'elderApproved':
-      return approvedEntries
-    case 'uploads':
-      return totalUploads
-    case 'totalPoints':
-    default:
-      return currentPoints
-  }
-}
-
 const optionalFirebaseRead = async <T,>(
   loader: Promise<T>,
   fallback: T,
@@ -793,7 +770,6 @@ export const ProfilePage = () => {
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [uploads, setUploads] = useState<UploadRecord[]>([])
   const [levels, setLevels] = useState<ContributorLevel[]>([])
-  const [achievements, setAchievements] = useState<RewardAchievement[]>([])
   const [bounties, setBounties] = useState<RewardBounty[]>([])
   const [rewardItems, setRewardItems] = useState<RewardCatalogItem[]>([])
   const [redemptions, setRedemptions] = useState<RewardRedemption[]>([])
@@ -805,9 +781,28 @@ export const ProfilePage = () => {
   const [leaderboardUser, setLeaderboardUser] =
     useState<LeaderboardProfile | null>(null)
   const [currentRank, setCurrentRank] = useState<number | null>(null)
+  const [, setClientProgressVersion] = useState(0)
   const [dictionaryTab, setDictionaryTab] = useState<'favorites' | 'recent' | 'history'>('favorites')
   const appUserId = appUser?.uid ?? ''
   const appUserCommunity = appUser?.community ?? ''
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return () => undefined
+    }
+
+    const handleProgressUpdate = () =>
+      setClientProgressVersion((version) => version + 1)
+
+    window.addEventListener(ACHIEVEMENT_PROGRESS_EVENT, handleProgressUpdate)
+
+    return () => {
+      window.removeEventListener(
+        ACHIEVEMENT_PROGRESS_EVENT,
+        handleProgressUpdate,
+      )
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -824,7 +819,6 @@ export const ProfilePage = () => {
         userContributions,
         userUploads,
         contributorLevels,
-        rewardAchievements,
         activeBounties,
         catalogItems,
         userRedemptions,
@@ -834,7 +828,6 @@ export const ProfilePage = () => {
         listUserContributions(appUserId),
         listUserUploads(appUserId),
         optionalFirebaseRead(listContributorLevels(), []),
-        optionalFirebaseRead(listRewardAchievements(), []),
         optionalFirebaseRead(listRewardBounties(), []),
         optionalFirebaseRead(listRewardCatalogItems(), []),
         optionalFirebaseRead(listUserRewardRedemptions(appUserId), []),
@@ -849,7 +842,6 @@ export const ProfilePage = () => {
         setContributions(userContributions)
         setUploads(userUploads)
         setLevels(contributorLevels)
-        setAchievements(rewardAchievements)
         setBounties(activeBounties)
         setRewardItems(catalogItems)
         setRedemptions(userRedemptions)
@@ -1212,26 +1204,28 @@ export const ProfilePage = () => {
         ? Math.max(0, topTenProfile.activePoints - currentPoints + 1)
         : null
 
-  const achievementStates = achievements.map((achievement) => {
-    const target = Math.max(achievement.target, 1)
-    const value = getAchievementValue({
-      achievement,
-      approvedEntries,
-      currentPoints,
-      totalContributions: contributions.length,
-      totalUploads: uploads.length,
-    })
-
-    return {
-      achievement,
-      earned: value >= target,
-      progress: Math.min(100, (value / target) * 100),
-      value,
-      target,
-    }
-  })
+  const clientProgress = readAchievementProgress(appUserId)
+  const achievementStates = useMemo(
+    () =>
+      getAchievementStates({
+        clientProgress,
+        communityRank: currentRegionRank,
+        contributions,
+        currentRank,
+        uploads,
+        user: appUser,
+      }),
+    [
+      appUser,
+      clientProgress,
+      contributions,
+      currentRank,
+      currentRegionRank,
+      uploads,
+    ],
+  )
   const unlockedAchievements = achievementStates.filter(
-    (item) => item.earned,
+    (item) => item.unlocked,
   ).length
 
   const profileCompletion = appUser
@@ -1380,40 +1374,41 @@ export const ProfilePage = () => {
   }
 
   return (
-    <section className="mx-auto max-w-[1120px] space-y-4 pb-24 text-[#13271d] sm:space-y-5 md:pb-8">
-      <header className="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[52px_minmax(0,1fr)_auto]">
+    <section className="mx-auto max-w-[1120px] space-y-3 pb-32 text-[#13271d] sm:space-y-5 md:pb-8">
+      <header className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:gap-3">
         <button
           type="button"
           onClick={handleBack}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-[#edd7b6] bg-white text-[#0b4b2b] shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:h-12 sm:w-12"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border border-[#edd7b6] bg-white text-[#0b4b2b] shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:h-12 sm:w-12 sm:rounded-[16px]"
           aria-label="Go back"
         >
           <Icon name="arrowLeft" className="h-5 w-5" />
         </button>
 
         <div className="min-w-0">
-          <h1 className="truncate text-3xl font-black leading-tight text-[#073d24] sm:text-4xl">
+          <h1 className="truncate text-2xl font-black leading-tight text-[#073d24] sm:text-4xl">
             My Profile
           </h1>
-          <p className="truncate text-sm font-semibold text-slate-600 sm:text-base">
+          <p className="truncate text-xs font-semibold text-slate-600 sm:text-base">
             Your journey in preserving Kasem
           </p>
         </div>
 
-        <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-span-1 sm:justify-end">
+        <div className="flex min-w-0 items-center justify-end gap-2">
           {appUser.role === 'admin' ? (
             <Link
               to="/admin"
-              className="inline-flex min-h-11 items-center gap-2 rounded-[16px] bg-kassena-green px-4 py-2 text-sm font-black text-white shadow-[0_10px_24px_rgba(20,83,45,0.2)]"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-kassena-green text-white shadow-[0_10px_24px_rgba(20,83,45,0.2)] sm:h-12 sm:w-auto sm:gap-2 sm:rounded-[16px] sm:px-4 sm:text-sm"
+              aria-label="Open admin panel"
             >
               <Icon name="admin" className="h-4.5 w-4.5" />
-              Admin Panel
+              <span className="sr-only sm:not-sr-only">Admin Panel</span>
             </Link>
           ) : null}
           <button
             type="button"
             onClick={logout}
-            className="inline-flex min-h-11 items-center justify-center rounded-[16px] border border-[#ead9bd] bg-white px-4 py-2 text-sm font-black text-kassena-green"
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-[14px] border border-[#ead9bd] bg-white px-3 text-xs font-black text-kassena-green sm:h-12 sm:rounded-[16px] sm:px-4 sm:text-sm"
           >
             Logout
           </button>
@@ -1422,95 +1417,101 @@ export const ProfilePage = () => {
 
       {dataError ? <AlertMessage type="error" message={dataError} /> : null}
 
-      <section className="relative overflow-hidden rounded-[28px] bg-[#0b4b2b] p-4 text-white shadow-[0_20px_48px_rgba(10,58,34,0.24)] sm:p-6">
+      <section className="relative overflow-hidden rounded-[22px] bg-[#0b4b2b] p-3 text-white shadow-[0_20px_48px_rgba(10,58,34,0.24)] sm:rounded-[28px] sm:p-6">
         <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(135deg,transparent_0_42%,rgba(255,255,255,0.16)_42%_46%,transparent_46%_100%),repeating-linear-gradient(45deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
         <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
-          <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)] sm:items-center">
-            <div className="relative mx-auto w-max sm:mx-0">
-              <div className="rounded-full bg-[#f8d56f] p-1.5 shadow-[0_12px_28px_rgba(0,0,0,0.22)]">
-                <Avatar
-                  photoURL={appUser.photoURL}
-                  name={appUser.displayName}
-                  className="h-24 w-24 text-2xl sm:h-28 sm:w-28"
-                />
+          <div className="grid gap-4">
+            <div className="grid grid-cols-[84px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-4">
+              <div className="relative w-max">
+                <div className="rounded-full bg-[#f8d56f] p-1 shadow-[0_12px_28px_rgba(0,0,0,0.22)] sm:p-1.5">
+                  <Avatar
+                    photoURL={appUser.photoURL}
+                    name={appUser.displayName}
+                    className="h-20 w-20 text-xl sm:h-28 sm:w-28 sm:text-2xl"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={openEditor}
+                  className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-[#0d6b3c] text-white ring-[3px] ring-[#f8d56f] sm:h-11 sm:w-11 sm:ring-4"
+                  aria-label="Edit profile photo"
+                >
+                  <Icon name="camera" className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={openEditor}
-                className="absolute -bottom-1 -right-1 flex h-11 w-11 items-center justify-center rounded-full bg-[#0d6b3c] text-white ring-4 ring-[#f8d56f]"
-                aria-label="Edit profile photo"
-              >
-                <Icon name="camera" className="h-5 w-5" />
-              </button>
+
+              <div className="min-w-0 text-left">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-[#f5c84b]/50 bg-white/10 px-2.5 py-1 text-[11px] font-black uppercase text-[#f9dc78] sm:px-3 sm:text-xs">
+                    <Icon name="admin" className="h-3.5 w-3.5" />
+                    <span className="truncate">{appUser.role}</span>
+                  </span>
+                  {appUser.community ? (
+                    <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white sm:px-3 sm:text-xs">
+                      <Icon name="community" className="h-3.5 w-3.5" />
+                      <span className="truncate">{appUser.community}</span>
+                    </span>
+                  ) : null}
+                </div>
+
+                <h2 className="mt-2 break-words text-2xl font-black leading-[1.08] sm:mt-3 sm:text-4xl sm:leading-tight">
+                  {appUser.displayName}
+                </h2>
+                <p className="mt-1 text-base font-black text-[#f5c84b] sm:text-lg">
+                  {levelTitle}
+                </p>
+              </div>
             </div>
 
-            <div className="min-w-0 text-center sm:text-left">
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-[#f5c84b]/50 bg-white/10 px-3 py-1 text-xs font-black uppercase text-[#f9dc78]">
-                  <Icon name="admin" className="h-3.5 w-3.5" />
-                  <span className="truncate">{appUser.role}</span>
-                </span>
-                {appUser.community ? (
-                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white">
-                    <Icon name="community" className="h-3.5 w-3.5" />
-                    <span className="truncate">{appUser.community}</span>
-                  </span>
-                ) : null}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+              <div className="rounded-[14px] bg-white/10 px-3 py-2.5 sm:rounded-[16px] sm:p-3">
+                <p className="text-xl font-black leading-tight sm:text-2xl">
+                  {formatNumber(currentPoints)}
+                </p>
+                <p className="text-[11px] font-semibold text-white/82 sm:text-xs">
+                  Points
+                </p>
               </div>
-
-              <h2 className="mt-3 truncate text-3xl font-black leading-tight sm:text-4xl">
-                {appUser.displayName}
-              </h2>
-              <p className="mt-1 text-lg font-black text-[#f5c84b]">
-                {levelTitle}
-              </p>
-
-              <div className="mt-4 grid grid-cols-2 gap-3 min-[520px]:grid-cols-4">
-                <div className="rounded-[16px] bg-white/10 p-3">
-                  <p className="text-2xl font-black">
-                    {formatNumber(currentPoints)}
-                  </p>
-                  <p className="text-xs font-semibold text-white/82">Points</p>
-                </div>
-                <div className="rounded-[16px] bg-white/10 p-3">
-                  <p className="text-2xl font-black">
-                    {currentRank ? `#${formatNumber(currentRank)}` : '-'}
-                  </p>
-                  <p className="text-xs font-semibold text-white/82">Rank</p>
-                </div>
-                <div className="rounded-[16px] bg-white/10 p-3">
-                  <p className="text-base font-black leading-tight">
-                    {toMonthYearLabel(appUser.createdAt)}
-                  </p>
-                  <p className="text-xs font-semibold text-white/82">
-                    Member Since
-                  </p>
-                </div>
-                <div className="rounded-[16px] bg-white/10 p-3">
-                  <p className="truncate text-base font-black leading-tight">
-                    {appUser.community || '-'}
-                  </p>
-                  <p className="text-xs font-semibold text-white/82">
-                    Community
-                  </p>
-                </div>
+              <div className="rounded-[14px] bg-white/10 px-3 py-2.5 sm:rounded-[16px] sm:p-3">
+                <p className="text-xl font-black leading-tight sm:text-2xl">
+                  {currentRank ? `#${formatNumber(currentRank)}` : '-'}
+                </p>
+                <p className="text-[11px] font-semibold text-white/82 sm:text-xs">
+                  Rank
+                </p>
+              </div>
+              <div className="rounded-[14px] bg-white/10 px-3 py-2.5 sm:rounded-[16px] sm:p-3">
+                <p className="text-sm font-black leading-tight sm:text-base">
+                  {toMonthYearLabel(appUser.createdAt)}
+                </p>
+                <p className="text-[11px] font-semibold text-white/82 sm:text-xs">
+                  Member Since
+                </p>
+              </div>
+              <div className="rounded-[14px] bg-white/10 px-3 py-2.5 sm:rounded-[16px] sm:p-3">
+                <p className="truncate text-sm font-black leading-tight sm:text-base">
+                  {appUser.community || '-'}
+                </p>
+                <p className="text-[11px] font-semibold text-white/82 sm:text-xs">
+                  Community
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[22px] border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] bg-[#f8d56f] text-[#0b4b2b]">
-                <Icon name="medal" className="h-8 w-8" />
+          <div className="rounded-[18px] border border-white/20 bg-white/10 p-3 backdrop-blur-sm sm:rounded-[22px] sm:p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[#f8d56f] text-[#0b4b2b] sm:h-14 sm:w-14 sm:rounded-[18px]">
+                <Icon name="medal" className="h-6 w-6 sm:h-8 sm:w-8" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-white/82">
+                <p className="text-xs font-bold text-white/82 sm:text-sm">
                   Level Progress
                 </p>
-                <h3 className="mt-1 truncate text-2xl font-black">
+                <h3 className="truncate text-lg font-black sm:mt-1 sm:text-2xl">
                   {levelTitle}
                 </h3>
-                <p className="mt-1 text-sm font-semibold text-white/86">
+                <p className="text-xs font-semibold text-white/86 sm:mt-1 sm:text-sm">
                   {formatNumber(currentPoints)} /{' '}
                   {nextLevel
                     ? formatNumber(nextLevel.minPoints)
@@ -1519,8 +1520,11 @@ export const ProfilePage = () => {
                 </p>
               </div>
             </div>
-            <ProgressBar value={levelProgress} className="mt-4 bg-white/20" />
-            <div className="mt-3 flex items-center justify-between gap-3 text-sm font-semibold text-white/88">
+            <ProgressBar
+              value={levelProgress}
+              className="mt-3 bg-white/20 sm:mt-4"
+            />
+            <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-white/88 sm:mt-3 sm:text-sm">
               <span>
                 {nextLevel
                   ? `${formatNumber(pointsToNextLevel)} XP to ${nextLevel.title}`
@@ -1538,11 +1542,11 @@ export const ProfilePage = () => {
         </div>
       </section>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <button
           type="button"
           onClick={openEditor}
-          className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#ead9bd] bg-white px-4 py-3 text-sm font-black text-kassena-green shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-[16px] border border-[#ead9bd] bg-white px-3 py-2.5 text-xs font-black text-kassena-green shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:min-h-14 sm:rounded-[18px] sm:px-4 sm:py-3 sm:text-sm"
         >
           <Icon name="edit" className="h-5 w-5" />
           {isEditing ? 'Cancel Edit' : 'Edit Profile'}
@@ -1550,14 +1554,14 @@ export const ProfilePage = () => {
         <button
           type="button"
           onClick={handleShare}
-          className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#efd4bd] bg-white px-4 py-3 text-sm font-black text-kassena-orange shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-[16px] border border-[#efd4bd] bg-white px-3 py-2.5 text-xs font-black text-kassena-orange shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:min-h-14 sm:rounded-[18px] sm:px-4 sm:py-3 sm:text-sm"
         >
           <Icon name="share" className="h-5 w-5" />
           Share Profile
         </button>
         <a
           href="#achievements"
-          className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#ead9bd] bg-white px-4 py-3 text-sm font-black text-[#9a6b08] shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-[16px] border border-[#ead9bd] bg-white px-3 py-2.5 text-xs font-black text-[#9a6b08] shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:min-h-14 sm:rounded-[18px] sm:px-4 sm:py-3 sm:text-sm"
         >
           <Icon name="badge" className="h-5 w-5" />
           My Badges
@@ -1565,7 +1569,7 @@ export const ProfilePage = () => {
         <button
           type="button"
           onClick={openEditor}
-          className="flex min-h-14 items-center justify-center gap-2 rounded-[18px] border border-[#ead9bd] bg-white px-4 py-3 text-sm font-black text-[#71428d] shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-[16px] border border-[#ead9bd] bg-white px-3 py-2.5 text-xs font-black text-[#71428d] shadow-[0_10px_24px_rgba(71,44,18,0.08)] sm:min-h-14 sm:rounded-[18px] sm:px-4 sm:py-3 sm:text-sm"
         >
           <Icon name="settings" className="h-5 w-5" />
           Settings
@@ -1882,50 +1886,33 @@ export const ProfilePage = () => {
             title="Achievements"
             icon="badge"
             action={
-              <p className="text-xs font-black text-slate-600">
-                {unlockedAchievements} / {achievements.length} Unlocked
-              </p>
+              <div className="flex items-center gap-3">
+                <p className="hidden text-xs font-black text-slate-600 sm:block">
+                  {unlockedAchievements} / {achievementStates.length} Unlocked
+                </p>
+                <Link
+                  to="/achievements"
+                  className="rounded-full bg-kassena-green px-3 py-1.5 text-xs font-black text-white"
+                >
+                  View all achievements
+                </Link>
+              </div>
             }
           />
           {isLoading ? (
             <LoadingState />
           ) : achievementStates.length ? (
             <div className="grid grid-cols-2 gap-3 min-[420px]:grid-cols-3 sm:grid-cols-4 xl:grid-cols-5">
-              {achievementStates.map(({ achievement, earned, progress }) => (
-                <article
-                  key={achievement.id}
-                  className={`relative min-w-0 rounded-[18px] border p-3 text-center ${
-                    earned
-                      ? 'border-[#e2bd5a] bg-[#fff8e7]'
-                      : 'border-[#d9d9d9] bg-[#f7f7f7] text-slate-500'
-                  }`}
-                >
-                  <div
-                    className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${
-                      earned
-                        ? 'bg-[#d99418] text-white ring-4 ring-[#f6dc92]'
-                        : 'bg-slate-200 text-slate-500 ring-4 ring-slate-100'
-                    }`}
-                  >
-                    <Icon
-                      name={earned ? 'medal' : 'lock'}
-                      className="h-7 w-7"
-                    />
-                  </div>
-                  <h3 className="mt-3 text-xs font-black leading-4 text-[#13271d]">
-                    {achievement.title}
-                  </h3>
-                  <p className="mt-1 text-[11px] font-semibold">
-                    {earned ? 'Unlocked' : `${Math.round(progress)}%`}
-                  </p>
-                  {!earned ? (
-                    <ProgressBar value={progress} className="mt-2 h-1.5" />
-                  ) : null}
-                </article>
+              {achievementStates.map((state) => (
+                <AchievementBadgeCard
+                  key={state.id}
+                  compact
+                  state={state}
+                />
               ))}
             </div>
           ) : (
-            <EmptyPanelMessage message="Achievement badges have not been configured in Firebase yet." />
+            <EmptyPanelMessage message="Achievement badges are being prepared." />
           )}
         </Panel>
 

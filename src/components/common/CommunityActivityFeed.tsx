@@ -61,7 +61,7 @@ export const CommunityActivityFeed = ({
 }: CommunityActivityFeedProps) => {
   if (isLoading) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 animate-pulse">
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 animate-pulse sm:rounded-2xl sm:p-6">
         <div className="h-4 w-32 rounded bg-slate-200 mb-4" />
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex items-center gap-3 mb-3">
@@ -78,24 +78,24 @@ export const CommunityActivityFeed = ({
 
   if (!activities.length) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-        <h3 className="text-lg font-bold text-kassena-green mb-4">Community Activity</h3>
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-6">
+        <h3 className="mb-3 text-base font-black text-kassena-green sm:mb-4 sm:text-lg">Community Activity</h3>
         <EmptyState message="No recent activity. Be the first to contribute!" />
       </div>
     )
   }
 
   return (
-    <article className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-kassena-green">Community Activity</h3>
+    <article className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-6">
+      <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
+        <h3 className="text-base font-black text-kassena-green sm:text-lg">Community Activity</h3>
         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
           <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse-soft" />
           Live
         </span>
       </div>
 
-      <div className="max-h-80 space-y-3 overflow-y-auto scrollbar-hide">
+      <div className="max-h-64 space-y-2 overflow-y-auto scrollbar-hide sm:max-h-80 sm:space-y-3">
         {activities.map((activity) => {
           const iconStyle = activityIcons[activity.type]
           return (
@@ -107,7 +107,7 @@ export const CommunityActivityFeed = ({
                 {iconStyle.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-700 leading-snug">{activity.message}</p>
+                <p className="text-xs leading-snug text-slate-700 sm:text-sm">{activity.message}</p>
                 <p className="mt-0.5 text-xs text-slate-400">{activity.timestamp}</p>
               </div>
             </div>

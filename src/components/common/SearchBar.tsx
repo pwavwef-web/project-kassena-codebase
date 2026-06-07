@@ -111,7 +111,7 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             placeholder="Search English or Kasem..."
-            className="w-full rounded-2xl border-2 border-kassena-cream bg-white py-4 pl-12 pr-12 text-base text-slate-800 shadow-lg transition-all placeholder:text-slate-400 focus:border-kassena-orange focus:outline-none focus:ring-4 focus:ring-kassena-orange/10"
+            className="w-full rounded-[16px] border border-kassena-cream bg-white py-3 pl-11 pr-12 text-sm text-slate-800 shadow-[0_10px_24px_rgba(71,44,18,0.08)] transition-all placeholder:text-slate-400 focus:border-kassena-orange focus:outline-none focus:ring-4 focus:ring-kassena-orange/10 sm:rounded-2xl sm:border-2 sm:py-4 sm:pl-12 sm:text-base sm:shadow-lg"
             aria-label="Search dictionary"
           />
           {query && (
@@ -128,7 +128,7 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
           )}
           <button
             type="submit"
-            className="absolute inset-y-0 right-0 flex items-center rounded-r-2xl bg-kassena-orange px-5 text-white transition-all hover:bg-[#e67e22] active:scale-95"
+            className="absolute inset-y-0 right-0 flex items-center rounded-r-[16px] bg-kassena-orange px-4 text-white transition-all hover:bg-[#e67e22] active:scale-95 sm:rounded-r-2xl sm:px-5"
             aria-label="Search"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

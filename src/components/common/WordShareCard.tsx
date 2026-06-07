@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
+import { recordAchievementShare } from '../../lib/achievements'
 
 interface WordShareCardData {
   kasemWord: string
@@ -12,9 +13,14 @@ interface WordShareCardData {
 interface WordShareCardProps {
   data: WordShareCardData
   onShareComplete?: () => void
+  viewerId?: string | null
 }
 
-export const WordShareCard = ({ data, onShareComplete }: WordShareCardProps) => {
+export const WordShareCard = ({
+  data,
+  onShareComplete,
+  viewerId,
+}: WordShareCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -51,11 +57,14 @@ export const WordShareCard = ({ data, onShareComplete }: WordShareCardProps) => 
               text: `${data.kasemWord} (${data.englishMeaning}) - Learn Kasem on TribeStudio!`,
               files: [file],
             })
+            recordAchievementShare(viewerId)
           } catch {
             downloadImage(canvas)
+            recordAchievementShare(viewerId)
           }
         } else {
           downloadImage(canvas)
+          recordAchievementShare(viewerId)
         }
 
         onShareComplete?.()
@@ -65,7 +74,7 @@ export const WordShareCard = ({ data, onShareComplete }: WordShareCardProps) => 
     } finally {
       setIsGenerating(false)
     }
-  }, [data, onShareComplete])
+  }, [data, onShareComplete, viewerId])
 
   return (
     <div>

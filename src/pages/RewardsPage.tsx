@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AchievementBadgeCard } from '../components/common/AchievementBadge'
 import { LoadingState } from '../components/common/LoadingState'
 import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncementBadge'
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { useAuth } from '../hooks/useAuth'
 import {
+  ACHIEVEMENT_PROGRESS_EVENT,
+  getAchievementStates,
+  readAchievementProgress,
+} from '../lib/achievements'
+import {
   getLeaderboardRank,
-  listRewardAchievements,
   listRewardBounties,
   listRewardCatalogItems,
   listUserContributions,
@@ -18,7 +23,6 @@ import type {
   Contribution,
   LeaderboardProfile,
   RankedLeaderboardProfile,
-  RewardAchievement,
   RewardBounty,
   RewardCatalogItem,
   UploadRecord,
@@ -84,14 +88,6 @@ const rewardToneClasses = [
   'from-[#edf7ed] to-[#f9fcf5] text-kassena-green ring-[#c9dfc7]',
   'from-[#fff0e7] to-[#fff8f1] text-kassena-orange ring-[#efb28f]',
   'from-[#f6edf8] to-[#fffbf8] text-[#69407d] ring-[#dfc6e9]',
-]
-
-const badgeToneClasses = [
-  'from-[#2d8b45] to-[#0b4b2b]',
-  'from-[#bc682c] to-[#7a3417]',
-  'from-[#e2a51d] to-[#a76000]',
-  'from-[#8f56a8] to-[#4b2866]',
-  'from-[#4e789f] to-[#203c5f]',
 ]
 
 const normalizeIcon = (icon: string, fallback: IconName): IconName =>
@@ -298,8 +294,10 @@ const SectionHeader = ({
   action?: string
   actionTo?: string
 }) => (
-  <div className="mb-3 flex items-center justify-between gap-3">
-    <h2 className="min-w-0 text-lg font-black text-[#073d24]">{title}</h2>
+  <div className="mb-2.5 flex items-center justify-between gap-3 sm:mb-3">
+    <h2 className="min-w-0 text-base font-black text-[#073d24] sm:text-lg">
+      {title}
+    </h2>
     {action ? (
       <Link
         to={actionTo ?? '#'}
@@ -327,20 +325,20 @@ const Panel = ({
 }) => (
   <section
     id={id}
-    className={`rounded-[22px] border border-[#ead9bd] bg-[#fffdf8]/95 p-4 shadow-[0_14px_34px_rgba(71,44,18,0.09)] ${className}`}
+    className={`rounded-[18px] border border-[#ead9bd] bg-[#fffdf8]/95 p-3 shadow-[0_12px_28px_rgba(71,44,18,0.08)] sm:rounded-[22px] sm:p-4 ${className}`}
   >
     {children}
   </section>
 )
 
 const ScrollRow = ({ children }: { children: ReactNode }) => (
-  <div className="-mx-4 overflow-x-auto px-4 pb-1 scrollbar-hide">
+  <div className="-mx-3 overflow-x-auto px-3 pb-1 scrollbar-hide sm:-mx-4 sm:px-4">
     <div className="flex min-w-max snap-x gap-3">{children}</div>
   </div>
 )
 
 const EmptyMessage = ({ message }: { message: string }) => (
-  <div className="rounded-[18px] border border-dashed border-[#e3cfad] bg-[#fff8ed] px-4 py-5 text-center text-sm font-semibold text-slate-500">
+  <div className="rounded-[16px] border border-dashed border-[#e3cfad] bg-[#fff8ed] px-3 py-4 text-center text-xs font-semibold leading-5 text-slate-500 sm:rounded-[18px] sm:px-4 sm:py-5 sm:text-sm">
     {message}
   </div>
 )
@@ -354,9 +352,9 @@ const Coin = ({ className = 'h-5 w-5' }: { className?: string }) => (
 )
 
 const Emblem = () => (
-  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#0b4b2b] shadow-[inset_0_0_0_3px_rgba(251,214,120,0.35),0_10px_20px_rgba(20,83,45,0.16)] ring-4 ring-[#f9d77c] sm:h-20 sm:w-20">
-    <div className="absolute inset-[-7px] rounded-full border border-dashed border-[#e9b943]" />
-    <svg className="h-10 w-10 text-[#f3bd3c] sm:h-12 sm:w-12" fill="none" viewBox="0 0 80 80">
+  <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#0b4b2b] shadow-[inset_0_0_0_3px_rgba(251,214,120,0.35),0_10px_20px_rgba(20,83,45,0.16)] ring-[3px] ring-[#f9d77c] sm:h-20 sm:w-20 sm:ring-4">
+    <div className="absolute inset-[-6px] rounded-full border border-dashed border-[#e9b943] sm:inset-[-7px]" />
+    <svg className="h-8 w-8 text-[#f3bd3c] sm:h-12 sm:w-12" fill="none" viewBox="0 0 80 80">
       <path
         d="M40 12v56M24 20c11 11 21 18 32 40M56 20C45 31 35 38 24 60M24 28c0-8 10-8 16 0 6-8 16-8 16 0 0 10-16 17-16 17S24 38 24 28Z"
         stroke="currentColor"
@@ -375,7 +373,6 @@ export const RewardsPage = () => {
   const [contributions, setContributions] = useState<Contribution[]>([])
   const [uploads, setUploads] = useState<UploadRecord[]>([])
   const [rewardItems, setRewardItems] = useState<RewardCatalogItem[]>([])
-  const [achievementDefs, setAchievementDefs] = useState<RewardAchievement[]>([])
   const [bounties, setBounties] = useState<RewardBounty[]>([])
   const [leaderboard, setLeaderboard] = useState<RankedLeaderboardProfile[]>([])
   const [leaderboardUser, setLeaderboardUser] =
@@ -383,6 +380,25 @@ export const RewardsPage = () => {
   const [userRank, setUserRank] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [dataError, setDataError] = useState('')
+  const [, setClientProgressVersion] = useState(0)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return () => undefined
+    }
+
+    const handleProgressUpdate = () =>
+      setClientProgressVersion((version) => version + 1)
+
+    window.addEventListener(ACHIEVEMENT_PROGRESS_EVENT, handleProgressUpdate)
+
+    return () => {
+      window.removeEventListener(
+        ACHIEVEMENT_PROGRESS_EVENT,
+        handleProgressUpdate,
+      )
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -392,25 +408,18 @@ export const RewardsPage = () => {
         return
       }
 
-      const [
-        userContributions,
-        userUploads,
-        catalogItems,
-        achievements,
-        activeBounties,
-      ] = await Promise.all([
-        listUserContributions(appUser.uid),
-        listUserUploads(appUser.uid),
-        listRewardCatalogItems(),
-        listRewardAchievements(),
-        listRewardBounties(),
-      ])
+      const [userContributions, userUploads, catalogItems, activeBounties] =
+        await Promise.all([
+          listUserContributions(appUser.uid),
+          listUserUploads(appUser.uid),
+          listRewardCatalogItems(),
+          listRewardBounties(),
+        ])
 
       if (active) {
         setContributions(userContributions)
         setUploads(userUploads)
         setRewardItems(catalogItems)
-        setAchievementDefs(achievements)
         setBounties(activeBounties)
         setIsLoading(false)
       }
@@ -607,20 +616,18 @@ export const RewardsPage = () => {
       .slice(0, 4)
   }, [contributions, uploads])
 
-  const getAchievementValue = (achievement: RewardAchievement) => {
-    switch (achievement.requirementType) {
-      case 'firstContribution':
-        return contributions.length > 0 ? 1 : 0
-      case 'approvedEntries':
-      case 'elderApproved':
-        return approvedEntries
-      case 'uploads':
-        return calculatedStats.uploads
-      case 'totalPoints':
-      default:
-        return currentPoints
-    }
-  }
+  const clientProgress = readAchievementProgress(appUser?.uid)
+  const achievementStates = useMemo(
+    () =>
+      getAchievementStates({
+        clientProgress,
+        contributions,
+        currentRank: userRank,
+        uploads,
+        user: appUser,
+      }),
+    [appUser, clientProgress, contributions, uploads, userRank],
+  )
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -636,8 +643,8 @@ export const RewardsPage = () => {
   }
 
   return (
-    <section className="relative mx-auto min-h-screen w-full max-w-[430px] overflow-hidden bg-[#fff8ea] pb-28 text-[#143829] shadow-[0_24px_70px_rgba(55,35,15,0.16)] md:max-w-6xl md:rounded-[32px]">
-      <div className="relative rounded-b-[28px] bg-[#0b4b2b] px-4 pb-20 pt-5 text-white shadow-[0_18px_40px_rgba(10,58,34,0.25)] sm:px-6 sm:pt-7">
+    <section className="relative mx-auto min-h-screen w-full max-w-[480px] overflow-hidden bg-[#fff8ea] pb-32 text-[#143829] shadow-[0_24px_70px_rgba(55,35,15,0.12)] md:max-w-6xl md:rounded-[32px] md:pb-10">
+      <div className="relative rounded-b-[24px] bg-[#0b4b2b] px-3 pb-14 pt-4 text-white shadow-[0_18px_40px_rgba(10,58,34,0.22)] sm:px-6 sm:pb-20 sm:pt-7 sm:rounded-b-[28px]">
         <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(135deg,transparent_0_42%,rgba(255,255,255,0.16)_42%_46%,transparent_46%_100%),repeating-linear-gradient(45deg,rgba(255,255,255,0.08)_0_2px,transparent_2px_18px)]" />
         <div className="relative flex items-center justify-between gap-3">
           <button
@@ -653,29 +660,29 @@ export const RewardsPage = () => {
               <img
                 src={appUser.photoURL}
                 alt=""
-                className="h-14 w-14 shrink-0 rounded-full object-cover ring-[3px] ring-[#f1bf55] sm:h-[68px] sm:w-[68px]"
+                className="h-12 w-12 shrink-0 rounded-full object-cover ring-[3px] ring-[#f1bf55] sm:h-[68px] sm:w-[68px]"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7d681] text-base font-black text-[#0b4b2b] ring-[3px] ring-[#f1bf55] sm:h-[68px] sm:w-[68px]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f7d681] text-sm font-black text-[#0b4b2b] ring-[3px] ring-[#f1bf55] sm:h-[68px] sm:w-[68px] sm:text-base">
                 {initials}
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="text-3xl font-black leading-none tracking-normal sm:text-[40px]">
+              <h1 className="text-2xl font-black leading-none tracking-normal sm:text-[40px]">
                 Rewards
               </h1>
-              <p className="mt-1 truncate text-sm font-medium text-white/88 sm:text-base">
+              <p className="mt-1 truncate text-xs font-semibold text-white/88 sm:text-base">
                 Thank you for preserving Kasem
               </p>
             </div>
           </div>
           <Link
             to="/announcements"
-            className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white"
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white sm:h-11 sm:w-11"
             aria-label="Notifications"
           >
-            <Icon name="bell" className="h-7 w-7" />
+            <Icon name="bell" className="h-6 w-6 sm:h-7 sm:w-7" />
             <UnreadAnnouncementBadge
               count={unreadCount}
               className="absolute -right-1 -top-1 ring-[#0b4b2b]"
@@ -684,7 +691,7 @@ export const RewardsPage = () => {
         </div>
       </div>
 
-      <div className="-mt-14 space-y-4 px-3 sm:px-4 md:px-7">
+      <div className="-mt-10 space-y-3 px-3 sm:-mt-14 sm:space-y-4 sm:px-4 md:px-7">
         {dataError ? (
           <div className="relative z-20 rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
             {dataError}
@@ -692,33 +699,33 @@ export const RewardsPage = () => {
         ) : null}
 
         <Panel className="relative z-10">
-          <div className="grid grid-cols-[74px_minmax(0,1fr)] gap-3 lg:grid-cols-[110px_1fr_230px] lg:items-center">
-            <div className="pt-2">
+          <div className="grid grid-cols-[62px_minmax(0,1fr)] gap-3 sm:grid-cols-[82px_minmax(0,1fr)] lg:grid-cols-[110px_1fr_230px] lg:items-center">
+            <div className="pt-1 sm:pt-2">
               <Emblem />
             </div>
 
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.13em] text-[#0b4b2b] sm:text-xs">
+              <p className="text-[9px] font-black uppercase tracking-[0.12em] text-[#0b4b2b] sm:text-xs sm:tracking-[0.13em]">
                 Your contribution points
               </p>
               <div className="mt-1 flex min-w-0 items-end gap-1">
-                <span className="min-w-0 truncate text-[42px] font-black leading-none text-[#0b4b2b] sm:text-[58px]">
+                <span className="min-w-0 truncate text-[36px] font-black leading-none text-[#0b4b2b] sm:text-[58px]">
                   {currentPoints.toLocaleString()}
                 </span>
-                <span className="pb-1 text-base font-black text-[#0b4b2b]">
+                <span className="pb-1 text-sm font-black text-[#0b4b2b] sm:text-base">
                   pts
                 </span>
               </div>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#eadcc4]">
+              <div className="mt-2 flex items-center gap-2 sm:mt-3">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#eadcc4] sm:h-2.5">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-[#2d9749] to-[#0b4b2b]"
                     style={{ width: `${rewardProgress}%` }}
                   />
                 </div>
-                <Coin className="h-7 w-7" />
+                <Coin className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
-              <p className="mt-2 text-sm font-medium text-slate-600">
+              <p className="mt-1.5 text-xs font-semibold text-slate-600 sm:mt-2 sm:text-sm">
                 {nextRewardCost ? (
                   <>
                     <span className="font-black text-[#cf4f23]">
@@ -732,20 +739,20 @@ export const RewardsPage = () => {
               </p>
             </div>
 
-            <div className="col-span-2 grid gap-2 min-[390px]:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
+            <div className="col-span-2 grid grid-cols-2 gap-2 lg:col-span-1 lg:grid-cols-1">
               <a
                 href="#marketplace"
-                className="flex items-center justify-center gap-2 rounded-[16px] bg-gradient-to-r from-[#d45d28] to-[#cf4f23] px-3 py-3 text-sm font-black text-white shadow-[0_10px_18px_rgba(207,79,35,0.22)]"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-[#d45d28] to-[#cf4f23] px-3 py-2.5 text-xs font-black text-white shadow-[0_10px_18px_rgba(207,79,35,0.22)] sm:rounded-[16px] sm:py-3 sm:text-sm"
               >
                 <Icon name="gift" className="h-5 w-5" />
-                Redeem Rewards
+                Redeem
               </a>
               <a
                 href="#activity"
-                className="flex items-center justify-center gap-2 rounded-[16px] border border-[#e6cda7] bg-white px-3 py-3 text-sm font-black text-[#0b4b2b]"
+                className="flex min-h-11 items-center justify-center gap-2 rounded-[14px] border border-[#e6cda7] bg-white px-3 py-2.5 text-xs font-black text-[#0b4b2b] sm:rounded-[16px] sm:py-3 sm:text-sm"
               >
                 <Icon name="calendar" className="h-5 w-5" />
-                Points History
+                History
               </a>
             </div>
           </div>
@@ -793,77 +800,47 @@ export const RewardsPage = () => {
         </Panel>
 
         <Panel>
-          <SectionHeader title="Achievements" />
-          {achievementDefs.length ? (
+          <SectionHeader title="Achievements" action="View all" actionTo="/achievements" />
+          {achievementStates.length ? (
             <ScrollRow>
-              {achievementDefs.map((achievement, index) => {
-                const target = Math.max(achievement.target, 1)
-                const value = getAchievementValue(achievement)
-                const progress = Math.min(100, (value / target) * 100)
-                const earned = value >= target
-
-                return (
-                  <article
-                    key={achievement.id}
-                    className="w-[124px] shrink-0 snap-start rounded-[18px] border border-[#ead7b7] bg-gradient-to-b from-white to-[#fff8eb] p-3 text-center shadow-[0_10px_24px_rgba(71,44,18,0.08)]"
-                  >
-                    <div
-                      className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${
-                        badgeToneClasses[index % badgeToneClasses.length]
-                      } text-white shadow-[inset_0_-8px_14px_rgba(0,0,0,0.16),0_10px_18px_rgba(72,44,18,0.16)] ring-4 ring-[#f3dfbb]`}
-                    >
-                      <Icon
-                        name={normalizeIcon(achievement.icon, 'badge')}
-                        className="h-8 w-8"
-                      />
-                    </div>
-                    <h3 className="mt-3 min-h-10 text-xs font-black leading-4 text-[#143829]">
-                      {achievement.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {earned ? 'Earned' : `${Math.round(progress)}%`}
-                    </p>
-                    {!earned ? (
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#e4dccd]">
-                        <div
-                          className="h-full rounded-full bg-[#8a4aa4]"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    ) : null}
-                  </article>
-                )
-              })}
+              {achievementStates.map((state) => (
+                <AchievementBadgeCard
+                  key={state.id}
+                  className="w-[138px] shrink-0 snap-start"
+                  compact
+                  state={state}
+                />
+              ))}
             </ScrollRow>
           ) : (
-            <EmptyMessage message="No achievement badges have been configured in Firebase yet." />
+            <EmptyMessage message="Achievement badges are being prepared." />
           )}
         </Panel>
 
         <Panel className="relative overflow-hidden">
-          <div className="absolute bottom-0 left-0 top-0 w-6 bg-[repeating-linear-gradient(135deg,#d35f2f_0_10px,#efb63b_10px_20px,#0b4b2b_20px_30px)]" />
-          <div className="pl-5">
+          <div className="absolute bottom-0 left-0 top-0 w-4 bg-[repeating-linear-gradient(135deg,#d35f2f_0_9px,#efb63b_9px_18px,#0b4b2b_18px_27px)] sm:w-6 sm:bg-[repeating-linear-gradient(135deg,#d35f2f_0_10px,#efb63b_10px_20px,#0b4b2b_20px_30px)]" />
+          <div className="pl-4 sm:pl-5">
             <SectionHeader title="Your Impact" />
-            <ScrollRow>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
               {impact.map((item) => (
                 <article
                   key={item.label}
-                  className={`flex w-[148px] shrink-0 snap-start items-center gap-2.5 rounded-[16px] p-3 ring-1 ${item.tone}`}
+                  className={`flex min-h-[76px] items-center gap-2.5 rounded-[14px] p-3 ring-1 sm:rounded-[16px] ${item.tone}`}
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/65">
-                    <Icon name={item.icon} className="h-6 w-6" />
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/65 sm:h-10 sm:w-10">
+                    <Icon name={item.icon} className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xl font-black text-[#101f1a]">
+                    <p className="text-lg font-black leading-tight text-[#101f1a] sm:text-xl">
                       {item.value}
                     </p>
-                    <p className="text-xs font-semibold leading-4 text-[#101f1a]">
+                    <p className="text-[11px] font-semibold leading-4 text-[#101f1a] sm:text-xs">
                       {item.label}
                     </p>
                   </div>
                 </article>
               ))}
-            </ScrollRow>
+            </div>
           </div>
         </Panel>
 
@@ -934,32 +911,32 @@ export const RewardsPage = () => {
           )}
         </Panel>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
           <Panel>
             <SectionHeader title="Leaderboard" />
             {leaderboard.length ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 {leaderboard.slice(0, 3).map((entry) => (
                   <div
                     key={entry.uid}
-                    className="grid grid-cols-[28px_36px_minmax(0,1fr)_auto] items-center gap-2"
+                    className="grid grid-cols-[26px_34px_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[28px_36px_minmax(0,1fr)_auto]"
                   >
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f2b31b] text-xs font-black text-white shadow-sm">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f2b31b] text-[11px] font-black text-white shadow-sm sm:h-7 sm:w-7 sm:text-xs">
                       {entry.rank}
                     </span>
                     {entry.photoURL ? (
                       <img
                         src={entry.photoURL}
                         alt=""
-                        className="h-9 w-9 rounded-full object-cover ring-2 ring-[#f2cf74]"
+                        className="h-8 w-8 rounded-full object-cover ring-2 ring-[#f2cf74] sm:h-9 sm:w-9"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0b4b2b] text-[10px] font-black text-white ring-2 ring-[#f2cf74]">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0b4b2b] text-[10px] font-black text-white ring-2 ring-[#f2cf74] sm:h-9 sm:w-9">
                         {entry.displayName.slice(0, 2).toUpperCase()}
                       </div>
                     )}
-                    <p className="truncate text-sm font-black text-[#143829]">
+                    <p className="truncate text-xs font-black text-[#143829] sm:text-sm">
                       {entry.displayName}
                     </p>
                     <p className="text-xs font-black text-[#101f1a]">
@@ -967,7 +944,7 @@ export const RewardsPage = () => {
                     </p>
                   </div>
                 ))}
-                <div className="grid grid-cols-[36px_36px_minmax(0,1fr)_auto] items-center gap-2 rounded-[14px] bg-[#eff3df] px-3 py-2">
+                <div className="grid grid-cols-[34px_34px_minmax(0,1fr)_auto] items-center gap-2 rounded-[14px] bg-[#eff3df] px-3 py-2 sm:grid-cols-[36px_36px_minmax(0,1fr)_auto]">
                   <span className="flex h-7 items-center justify-center rounded-full bg-[#0b4b2b] px-2 text-xs font-black text-white">
                     {userRank ?? '-'}
                   </span>
@@ -975,15 +952,15 @@ export const RewardsPage = () => {
                     <img
                       src={appUser.photoURL}
                       alt=""
-                      className="h-9 w-9 rounded-full object-cover ring-2 ring-white"
+                      className="h-8 w-8 rounded-full object-cover ring-2 ring-white sm:h-9 sm:w-9"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f1c870] text-[10px] font-black text-[#0b4b2b] ring-2 ring-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f1c870] text-[10px] font-black text-[#0b4b2b] ring-2 ring-white sm:h-9 sm:w-9">
                       {initials}
                     </div>
                   )}
-                  <p className="truncate text-sm font-black text-[#143829]">
+                  <p className="truncate text-xs font-black text-[#143829] sm:text-sm">
                     You
                   </p>
                   <p className="text-xs font-black text-[#101f1a]">
@@ -1020,32 +997,32 @@ export const RewardsPage = () => {
           <Panel id="activity">
             <SectionHeader title="Recent Activity" />
             {activityItems.length ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 {activityItems.map((item, index) => (
                   <div
                     key={item.id}
-                    className="grid grid-cols-[34px_minmax(0,1fr)_auto] gap-2"
+                    className="grid grid-cols-[32px_minmax(0,1fr)_auto] gap-2 sm:grid-cols-[34px_minmax(0,1fr)_auto]"
                   >
                     <div className="relative flex justify-center">
                       <span
-                        className={`flex h-9 w-9 items-center justify-center rounded-full text-white ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-white sm:h-9 sm:w-9 ${
                           index === 0
                             ? 'bg-[#2d9749]'
                             : index === 1
                               ? 'bg-[#d45d28]'
                               : index === 2
                                 ? 'bg-[#d99418]'
-                                : 'bg-[#8660a1]'
+                            : 'bg-[#8660a1]'
                         }`}
                       >
-                        <Icon name={item.icon} className="h-5 w-5" />
+                        <Icon name={item.icon} className="h-4 w-4 sm:h-5 sm:w-5" />
                       </span>
                       {index < activityItems.length - 1 ? (
-                        <span className="absolute top-9 h-6 border-l border-dashed border-[#b79f7b]" />
+                        <span className="absolute top-8 h-6 border-l border-dashed border-[#b79f7b] sm:top-9" />
                       ) : null}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-[#0b4b2b]">
+                      <p className="truncate text-xs font-black text-[#0b4b2b] sm:text-sm">
                         +{item.points} pts
                       </p>
                       <p className="truncate text-xs font-semibold text-slate-600">
@@ -1055,7 +1032,7 @@ export const RewardsPage = () => {
                         {item.detail}
                       </p>
                     </div>
-                    <p className="pt-1 text-[11px] font-medium text-slate-500">
+                    <p className="pt-1 text-[10px] font-medium text-slate-500 sm:text-[11px]">
                       {item.timeLabel}
                     </p>
                   </div>
@@ -1066,7 +1043,7 @@ export const RewardsPage = () => {
             )}
             <Link
               to="/contributions"
-              className="mt-4 flex items-center justify-center rounded-[16px] bg-[#0b4b2b] px-4 py-3 text-sm font-black text-white"
+              className="mt-3 flex items-center justify-center rounded-[14px] bg-[#0b4b2b] px-4 py-3 text-sm font-black text-white sm:mt-4 sm:rounded-[16px]"
             >
               Earn more points
             </Link>

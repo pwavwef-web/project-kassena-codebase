@@ -81,21 +81,23 @@ export const StatCard = ({
 
   return (
     <article
-      className={`group rounded-2xl bg-gradient-to-br p-5 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md ${colorMap[color]}`}
+      className={`group rounded-[18px] bg-gradient-to-br p-3 shadow-sm ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-md sm:rounded-2xl sm:p-5 ${colorMap[color]}`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold leading-tight text-slate-500 sm:text-sm">
+            {label}
+          </p>
           <p
             ref={ref}
-            className="mt-2 text-3xl font-bold text-kassena-green transition-colors group-hover:text-kassena-orange"
+            className="mt-1 text-2xl font-black leading-tight text-kassena-green transition-colors group-hover:text-kassena-orange sm:mt-2 sm:text-3xl"
           >
             {count.toLocaleString()}
             {suffix}
           </p>
         </div>
         <div
-          className={`rounded-xl p-2.5 transition-transform group-hover:scale-110 ${iconColorMap[color]}`}
+          className={`shrink-0 rounded-xl p-2 transition-transform group-hover:scale-110 sm:p-2.5 ${iconColorMap[color]}`}
         >
           {icon}
         </div>

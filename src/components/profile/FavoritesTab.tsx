@@ -6,17 +6,18 @@ import { EmptyState } from '../common/EmptyState'
 import type { DictionaryEntry } from '../../types'
 
 export const FavoritesTab = () => {
-  const { appUser } = useAuth()
+  const { appUser, firebaseUser } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [entries, setEntries] = useState<DictionaryEntry[]>([])
+  const userId = firebaseUser?.uid
 
   useEffect(() => {
-    if (!appUser) return
+    if (!appUser || !userId) return
 
     const load = async () => {
       try {
         const [favs, allEntries] = await Promise.all([
-          listUserFavorites(appUser.uid),
+          listUserFavorites(userId),
           listApprovedDictionaryEntries(),
         ])
         const entryMap = new Map(allEntries.map((e) => [e.id, e]))
@@ -29,7 +30,7 @@ export const FavoritesTab = () => {
     }
 
     load()
-  }, [appUser])
+  }, [appUser, userId])
 
   if (isLoading) return <LoadingState />
   if (entries.length === 0) return <EmptyState message="No favorite words yet. Tap the heart on any dictionary word to save it here." />

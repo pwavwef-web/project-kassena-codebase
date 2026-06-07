@@ -1,9 +1,14 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { EmptyState } from './EmptyState'
 import { AudioPlayer } from './AudioPlayer'
+import {
+  recordAchievementShare,
+  recordWordOfTheDayView,
+} from '../../lib/achievements'
 
 interface WordOfTheDayData {
+  wordKey?: string
   kasemWord: string
   pronunciation: string
   englishMeaning: string
@@ -15,12 +20,28 @@ interface WordOfTheDayData {
 interface WordOfTheDayProps {
   data: WordOfTheDayData | null
   isLoading?: boolean
+  viewerId?: string | null
 }
 
-export const WordOfTheDay = ({ data, isLoading = false }: WordOfTheDayProps) => {
+export const WordOfTheDay = ({
+  data,
+  isLoading = false,
+  viewerId,
+}: WordOfTheDayProps) => {
   const [copied, setCopied] = useState(false)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+
+    recordWordOfTheDayView(
+      viewerId,
+      data.wordKey ?? `${data.kasemWord}-${data.englishMeaning}`,
+    )
+  }, [data, viewerId])
 
   const handleShare = async () => {
     if (!data) return
@@ -33,12 +54,14 @@ export const WordOfTheDay = ({ data, isLoading = false }: WordOfTheDayProps) => 
           title: `Word of the Day: ${data.kasemWord}`,
           text: shareText,
         })
+        recordAchievementShare(viewerId)
       } catch {
         // User cancelled or error occurred
       }
     } else {
       await navigator.clipboard.writeText(shareText)
       setCopied(true)
+      recordAchievementShare(viewerId)
       setTimeout(() => setCopied(false), 2000)
     }
   }
@@ -69,11 +92,14 @@ export const WordOfTheDay = ({ data, isLoading = false }: WordOfTheDayProps) => 
               text: `${data?.kasemWord} - ${data?.englishMeaning} | Learn Kasem on TribeStudio!`,
               files: [file],
             })
+            recordAchievementShare(viewerId)
           } catch {
             downloadImage(canvas)
+            recordAchievementShare(viewerId)
           }
         } else {
           downloadImage(canvas)
+          recordAchievementShare(viewerId)
         }
       }, 'image/png')
     } catch {

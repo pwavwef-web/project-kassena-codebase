@@ -81,7 +81,7 @@ export const CulturalSpotlight = ({ items, isLoading = false }: CulturalSpotligh
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 animate-pulse">
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 animate-pulse sm:rounded-2xl sm:p-6">
         <div className="h-4 w-32 rounded bg-slate-200 mb-4" />
         <div className="h-6 w-48 rounded bg-slate-200 mb-2" />
         <div className="h-20 w-full rounded bg-slate-200" />
@@ -91,8 +91,8 @@ export const CulturalSpotlight = ({ items, isLoading = false }: CulturalSpotligh
 
   if (!items.length) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-        <h3 className="text-lg font-bold text-kassena-green mb-4">Cultural Spotlight</h3>
+      <div className="rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-6">
+        <h3 className="mb-3 text-base font-black text-kassena-green sm:mb-4 sm:text-lg">Cultural Spotlight</h3>
         <EmptyState message="Cultural content coming soon. Stay tuned!" />
       </div>
     )
@@ -102,36 +102,34 @@ export const CulturalSpotlight = ({ items, isLoading = false }: CulturalSpotligh
   const config = typeConfig[activeItem.type]
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-kassena-green sm:text-2xl">
+    <section className="space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-base font-black text-kassena-green sm:text-2xl">
           Cultural Spotlight
         </h2>
-        <span className="text-xs font-medium text-kassena-gold bg-kassena-gold/10 px-2 py-1 rounded-full">
+        <span className="shrink-0 rounded-full bg-kassena-gold/10 px-2 py-1 text-[10px] font-bold text-kassena-gold sm:text-xs">
           Powered by Indigen World
         </span>
       </div>
 
       <div
-        className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8"
+        className="relative overflow-hidden rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:rounded-2xl sm:p-8"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-kassena-green/5 blur-2xl pointer-events-none" />
-
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-3 flex items-center gap-2 sm:mb-4">
             <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${config.bg} ${config.text}`}>
               {config.icon}
               {config.label}
             </span>
           </div>
 
-          <h3 className="text-xl font-bold text-kassena-green mb-3">
+          <h3 className="mb-2 text-lg font-black text-kassena-green sm:mb-3 sm:text-xl">
             {activeItem.title}
           </h3>
 
-          <blockquote className="border-l-4 border-kassena-gold/40 pl-4 text-slate-700 italic leading-relaxed">
+          <blockquote className="border-l-4 border-kassena-gold/40 pl-3 text-sm italic leading-6 text-slate-700 sm:pl-4 sm:text-base sm:leading-relaxed">
             {activeItem.content}
           </blockquote>
 

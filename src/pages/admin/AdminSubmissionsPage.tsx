@@ -70,6 +70,13 @@ export const AdminSubmissionsPage = () => {
           submission.dialect.toLowerCase().includes(keyword) ||
           submission.category.toLowerCase().includes(keyword) ||
           submission.contributorName.toLowerCase().includes(keyword) ||
+          submission.contributionType?.toLowerCase().includes(keyword) ||
+          submission.selectedBountyTitle?.toLowerCase().includes(keyword) ||
+          submission.voiceRecordings?.some(
+            (recording) =>
+              recording.label.toLowerCase().includes(keyword) ||
+              recording.fileName.toLowerCase().includes(keyword),
+          ) ||
           submission.attachedFiles?.some(
             (file) =>
               file.name.toLowerCase().includes(keyword) ||
@@ -148,6 +155,16 @@ export const AdminSubmissionsPage = () => {
                 {submission.dialect} • {submission.category} •{' '}
                 {submission.contributorName}
               </p>
+              {submission.contributionType ? (
+                <p className="mt-2 inline-flex rounded-full bg-kassena-bg px-3 py-1 text-xs font-bold text-kassena-green ring-1 ring-kassena-cream">
+                  Type: {submission.contributionType}
+                </p>
+              ) : null}
+              {submission.selectedBountyTitle ? (
+                <p className="ml-2 mt-2 inline-flex rounded-full bg-[#fff8ed] px-3 py-1 text-xs font-bold text-kassena-orange ring-1 ring-kassena-cream">
+                  Campaign: {submission.selectedBountyTitle}
+                </p>
+              ) : null}
               {submission.alternateKasemTerms ? (
                 <p className="mt-2 text-sm text-slate-700">
                   Other Kasem forms: {submission.alternateKasemTerms}
@@ -156,6 +173,25 @@ export const AdminSubmissionsPage = () => {
               <p className="mt-2 text-sm text-slate-700">
                 {submission.notes || 'No notes provided'}
               </p>
+              {submission.voiceRecordings?.length ? (
+                <div className="mt-3 space-y-3">
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                    Voice recordings
+                  </p>
+                  {submission.voiceRecordings.map((recording) => (
+                    <MediaPreview
+                      key={recording.storagePath || recording.url}
+                      compact
+                      file={{
+                        name: recording.fileName,
+                        url: recording.url,
+                        contentType: recording.contentType,
+                      }}
+                      title={recording.label}
+                    />
+                  ))}
+                </div>
+              ) : null}
               {submission.attachedFiles?.length ? (
                 <div className="mt-3 space-y-3">
                   {submission.attachedFiles.map((file) => (

@@ -94,19 +94,19 @@ export const MissionCarousel = () => {
 
   return (
     <section
-      className="space-y-4"
+      className="space-y-3 sm:space-y-4"
       aria-label="Project Kassena mission carousel"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
       onBlur={() => setIsPaused(false)}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-kassena-orange">
+          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-kassena-orange sm:text-xs sm:tracking-[0.18em]">
             Mission carousel
           </p>
-          <h2 className="mt-1 text-2xl font-extrabold text-kassena-green sm:text-3xl">
+          <h2 className="mt-1 text-xl font-black text-kassena-green sm:text-3xl">
             What Project Kassena is building
           </h2>
         </div>
@@ -134,7 +134,7 @@ export const MissionCarousel = () => {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl bg-kassena-dark shadow-xl ring-1 ring-kassena-green/10">
+      <div className="overflow-hidden rounded-[22px] bg-kassena-dark shadow-xl ring-1 ring-kassena-green/10 sm:rounded-3xl">
         <div
           className="flex transition-transform duration-700 ease-out"
           style={{ transform: `translateX(-${activeIndex * 100}%)` }}
@@ -148,31 +148,31 @@ export const MissionCarousel = () => {
               <img
                 src={slide.image}
                 alt={slide.alt}
-                className="h-[30rem] w-full object-cover sm:h-[34rem] lg:h-[36rem]"
+                className="h-[22rem] w-full object-cover sm:h-[34rem] lg:h-[36rem]"
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-kassena-dark via-kassena-dark/45 to-transparent sm:bg-gradient-to-r sm:from-kassena-dark/95 sm:via-kassena-dark/55 sm:to-kassena-dark/10" />
               <div className="absolute inset-0 flex items-end sm:items-center">
-                <div className="max-w-2xl p-6 text-white sm:p-10 lg:p-12">
-                  <p className="inline-flex rounded-full bg-white/12 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-kassena-gold ring-1 ring-white/15 backdrop-blur">
+                <div className="max-w-2xl p-4 text-white sm:p-10 lg:p-12">
+                  <p className="inline-flex rounded-full bg-white/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-kassena-gold ring-1 ring-white/15 backdrop-blur sm:px-3 sm:text-xs sm:tracking-[0.16em]">
                     {slide.eyebrow}
                   </p>
-                  <h3 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
+                  <h3 className="mt-3 text-2xl font-black tracking-tight sm:mt-4 sm:text-4xl lg:text-5xl">
                     {slide.title}
                   </h3>
-                  <p className="mt-4 max-w-xl text-base font-medium leading-7 text-kassena-cream/90 sm:text-lg">
+                  <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-kassena-cream/90 sm:mt-4 sm:text-lg sm:leading-7">
                     {slide.body}
                   </p>
-                  <div className="mt-6 flex flex-wrap gap-3">
+                  <div className="mt-4 flex flex-wrap gap-2 sm:mt-6 sm:gap-3">
                     <Link
                       to="/submit"
-                      className="rounded-full bg-kassena-orange px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-[#e67e22] focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2 focus:ring-offset-kassena-dark"
+                      className="rounded-full bg-kassena-orange px-4 py-2 text-xs font-black text-white shadow-lg transition hover:bg-[#e67e22] focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2 focus:ring-offset-kassena-dark sm:px-5 sm:py-2.5 sm:text-sm"
                     >
                       Add a Contribution
                     </Link>
                     <Link
                       to="/culture"
-                      className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold text-white ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2 focus:ring-offset-kassena-dark"
+                      className="rounded-full bg-white/10 px-4 py-2 text-xs font-black text-white ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-kassena-gold focus:ring-offset-2 focus:ring-offset-kassena-dark sm:px-5 sm:py-2.5 sm:text-sm"
                     >
                       Explore Culture
                     </Link>
@@ -205,7 +205,7 @@ export const MissionCarousel = () => {
           <button
             type="button"
             onClick={showPreviousSlide}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
             aria-label="Show previous mission slide"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -215,7 +215,7 @@ export const MissionCarousel = () => {
           <button
             type="button"
             onClick={showNextSlide}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-kassena-green/15 bg-white text-kassena-green shadow-sm"
             aria-label="Show next mission slide"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

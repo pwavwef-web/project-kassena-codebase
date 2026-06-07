@@ -85,17 +85,21 @@ const mobileNavItems = [
 export const MainLayout = () => {
   const { appUser } = useAuth()
   const location = useLocation()
+  const isHomeRoute = location.pathname === '/'
   const isRewardsRoute = location.pathname === '/rewards'
   const isLeaderboardRoute = location.pathname === '/leaderboard'
+  const isProfileRoute = location.pathname === '/profile'
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isImmersiveMobileRoute = isRewardsRoute || isLeaderboardRoute
   const mainClassName = isAdminRoute
     ? 'max-w-none px-0 py-0 animate-fade-in'
     : isRewardsRoute
-    ? 'mx-auto max-w-none px-0 py-0 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
-    : isLeaderboardRoute
-      ? 'mx-auto max-w-none px-4 py-5 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
-      : 'mx-auto max-w-6xl px-4 py-6 animate-fade-in'
+      ? 'mx-auto max-w-none px-0 py-0 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
+      : isLeaderboardRoute
+        ? 'mx-auto max-w-none px-4 py-5 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
+        : isHomeRoute || isProfileRoute
+          ? 'mx-auto max-w-6xl px-3 py-3 animate-fade-in sm:px-4 sm:py-5 md:px-4 md:py-6'
+          : 'mx-auto max-w-6xl px-4 py-6 animate-fade-in'
   const initials =
     appUser?.displayName
       .split(' ')
@@ -107,7 +111,7 @@ export const MainLayout = () => {
   return (
     <div className="min-h-screen bg-kassena-bg text-slate-800 pb-20 md:pb-0">
       {/* Top Header */}
-      <header className={`${isImmersiveMobileRoute || isAdminRoute ? 'hidden' : ''} sticky top-0 z-50 border-b border-kassena-cream bg-white/80 backdrop-blur-md shadow-sm`}>
+      <header className={`${isAdminRoute ? 'hidden' : isImmersiveMobileRoute || isHomeRoute || isProfileRoute ? 'hidden md:block' : ''} sticky top-0 z-50 border-b border-kassena-cream bg-white/80 backdrop-blur-md shadow-sm`}>
         {!isFirebaseConfigured ? (
           <div className="bg-amber-100 px-4 py-2 text-center text-xs text-amber-800">
             Firebase is not configured. Add values in .env.local to enable
@@ -120,7 +124,7 @@ export const MainLayout = () => {
               TribeStudio
             </span>
           </Link>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-6 md:flex">
             {navItems.map((item) => (
@@ -145,7 +149,7 @@ export const MainLayout = () => {
               </NavLink>
             ) : null}
           </nav>
-          
+
           <div className="flex items-center gap-3">
             {appUser ? (
               <Link
@@ -194,8 +198,8 @@ export const MainLayout = () => {
             to={item.to}
             className={({ isActive }) =>
               `flex min-w-[3.7rem] flex-col items-center gap-1 rounded-[18px] px-2 py-2 transition-all ${
-                isActive 
-                  ? 'bg-[#fff8ee] text-kassena-green shadow-[0_8px_20px_rgba(20,83,45,0.12)]' 
+                isActive
+                  ? 'bg-[#fff8ee] text-kassena-green shadow-[0_8px_20px_rgba(20,83,45,0.12)]'
                   : 'text-slate-500 hover:text-kassena-green hover:bg-slate-50'
               }`
             }
