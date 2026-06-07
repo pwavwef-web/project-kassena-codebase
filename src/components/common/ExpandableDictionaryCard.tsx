@@ -30,12 +30,14 @@ export const ExpandableDictionaryCard = ({
   const userId = firebaseUser?.uid
 
   useEffect(() => {
-    if (!userId || !isExpanded) return
+    if (!userId) return
     let cancelled = false
     isFavorited(userId, entry.id).then((result) => {
       if (!cancelled) setFavorited(result)
     }).catch(() => {})
-    addRecentlyViewed(userId, entry.id).catch(() => {})
+    if (isExpanded) {
+      addRecentlyViewed(userId, entry.id).catch(() => {})
+    }
     return () => { cancelled = true }
   }, [entry.id, isExpanded, userId])
 

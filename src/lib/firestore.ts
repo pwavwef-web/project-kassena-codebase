@@ -1549,6 +1549,27 @@ export const getDictionaryEntry = async (
   return { id: snapshot.id, ...snapshot.data() } as DictionaryEntry
 }
 
+export const listDictionaryEntriesByIds = async (
+  entryIds: string[],
+): Promise<DictionaryEntry[]> => {
+  const uniqueEntryIds = Array.from(
+    new Set(entryIds.map((entryId) => entryId.trim()).filter(Boolean)),
+  )
+
+  const entries = await Promise.all(
+    uniqueEntryIds.map(async (entryId) => {
+      try {
+        const entry = await getDictionaryEntry(entryId)
+        return entry?.isPublished ? entry : null
+      } catch {
+        return null
+      }
+    }),
+  )
+
+  return entries.filter((entry): entry is DictionaryEntry => Boolean(entry))
+}
+
 export const toggleFavorite = async (
   userId: string,
   entryId: string,
@@ -1586,11 +1607,14 @@ export const listUserFavorites = async (
     query(
       collection(db, 'userFavorites'),
       where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
     ),
   )
   return snapshot.docs.map(
     (item) => ({ id: item.id, ...item.data() }) as UserFavorite,
+  ).sort(
+    (first, second) =>
+      (second.createdAt?.toMillis() ?? 0) -
+      (first.createdAt?.toMillis() ?? 0),
   )
 }
 
@@ -1849,7 +1873,7 @@ export const getDictionaryAnalytics = async (): Promise<{
       getCountFromServer(
         query(
           collection(db, 'contributions'),
-          where('sourceContributionId', '!=', null),
+          where('sourceContributionId', '>', null),
         ),
       ),
     ])

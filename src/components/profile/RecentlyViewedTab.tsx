@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { listRecentlyViewed, listApprovedDictionaryEntries } from '../../lib/firestore'
+import {
+  listDictionaryEntriesByIds,
+  listRecentlyViewed,
+} from '../../lib/firestore'
 import { LoadingState } from '../common/LoadingState'
 import { EmptyState } from '../common/EmptyState'
 import type { DictionaryEntry } from '../../types'
@@ -11,18 +14,26 @@ export const RecentlyViewedTab = () => {
   const [entries, setEntries] = useState<DictionaryEntry[]>([])
 
   useEffect(() => {
-    if (!appUser) return
+    if (!appUser) {
+      setIsLoading(false)
+      return
+    }
 
     const load = async () => {
       try {
-        const [views, allEntries] = await Promise.all([
-          listRecentlyViewed(appUser.uid),
-          listApprovedDictionaryEntries(),
-        ])
-        const entryMap = new Map(allEntries.map((e) => [e.id, e]))
-        setEntries(views.map((v) => entryMap.get(v.entryId)).filter(Boolean) as DictionaryEntry[])
-      } catch {
-        console.error('Failed to load recently viewed')
+        const views = await listRecentlyViewed(appUser.uid)
+        const viewedEntries = await listDictionaryEntriesByIds(
+          views.map((view) => view.entryId),
+        )
+        const entryMap = new Map(viewedEntries.map((entry) => [entry.id, entry]))
+
+        setEntries(
+          views
+            .map((view) => entryMap.get(view.entryId))
+            .filter((entry): entry is DictionaryEntry => Boolean(entry)),
+        )
+      } catch (error) {
+        console.error('Failed to load recently viewed', error)
       } finally {
         setIsLoading(false)
       }

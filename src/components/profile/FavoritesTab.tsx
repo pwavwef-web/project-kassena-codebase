@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
-import { listUserFavorites, listApprovedDictionaryEntries } from '../../lib/firestore'
+import {
+  listDictionaryEntriesByIds,
+  listUserFavorites,
+} from '../../lib/firestore'
 import { LoadingState } from '../common/LoadingState'
 import { EmptyState } from '../common/EmptyState'
 import type { DictionaryEntry } from '../../types'
@@ -12,18 +15,28 @@ export const FavoritesTab = () => {
   const userId = firebaseUser?.uid
 
   useEffect(() => {
-    if (!appUser || !userId) return
+    if (!appUser || !userId) {
+      setIsLoading(false)
+      return
+    }
 
     const load = async () => {
       try {
-        const [favs, allEntries] = await Promise.all([
-          listUserFavorites(userId),
-          listApprovedDictionaryEntries(),
-        ])
-        const entryMap = new Map(allEntries.map((e) => [e.id, e]))
-        setEntries(favs.map((f) => entryMap.get(f.entryId)).filter(Boolean) as DictionaryEntry[])
-      } catch {
-        console.error('Failed to load favorites')
+        const favorites = await listUserFavorites(userId)
+        const favoriteEntries = await listDictionaryEntriesByIds(
+          favorites.map((favorite) => favorite.entryId),
+        )
+        const entryMap = new Map(
+          favoriteEntries.map((entry) => [entry.id, entry]),
+        )
+
+        setEntries(
+          favorites
+            .map((favorite) => entryMap.get(favorite.entryId))
+            .filter((entry): entry is DictionaryEntry => Boolean(entry)),
+        )
+      } catch (error) {
+        console.error('Failed to load favorites', error)
       } finally {
         setIsLoading(false)
       }
