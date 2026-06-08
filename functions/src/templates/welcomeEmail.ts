@@ -1,5 +1,15 @@
-export const getWelcomeEmailHtml = (displayName: string): string => {
-  const firstName = displayName.split(" ")[0] || "Friend";
+type WelcomeEmailOptions = {
+  appUrl: string
+  displayName: string
+  logoUrl: string
+}
+
+export const getWelcomeEmailHtml = ({
+  appUrl,
+  displayName,
+  logoUrl,
+}: WelcomeEmailOptions): string => {
+  const firstName = displayName.split(" ")[0] || "Friend"
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -8,105 +18,103 @@ export const getWelcomeEmailHtml = (displayName: string): string => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to Kasem App</title>
 </head>
-<body style="margin:0; padding:0; background-color:#fffaf0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<body style="margin:0; padding:0; background-color:#efe9dd; font-family:Arial, Helvetica, sans-serif;">
 
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fffaf0; padding:40px 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(180deg, #efe9dd 0%, #f7f1e7 52%, #ece4d6 100%); padding:40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(20,83,45,0.08);">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 18px 60px rgba(53,38,17,0.16); border:1px solid rgba(145,111,58,0.12);">
 
-          <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #14532d 0%, #1a6b3a 50%, #14532d 100%); padding:48px 40px; text-align:center;">
-              <div style="font-size:40px; margin-bottom:8px;">🌍</div>
-              <h1 style="color:#caa54a; font-size:28px; margin:0 0 4px 0; font-weight:700; letter-spacing:1px;">KASEM APP</h1>
-              <p style="color:#f5eddc; font-size:13px; margin:0; letter-spacing:2px; text-transform:uppercase; opacity:0.85;">Preserving Language. Empowering Culture.</p>
+            <td style="background:radial-gradient(circle at top, #204f32 0%, #163922 45%, #102a18 100%); padding:48px 40px 42px 40px; text-align:center;">
+              <div style="display:inline-block; padding:12px; border-radius:20px; background:rgba(255,255,255,0.08); margin-bottom:16px;">
+                <img src="${logoUrl}" alt="Kasem App logo" width="64" height="64" style="display:block; border:0; outline:none; text-decoration:none;" />
+              </div>
+              <h1 style="color:#f2d38a; font-size:30px; line-height:1.1; margin:0 0 8px 0; font-weight:800; letter-spacing:1.5px;">KASEM APP</h1>
+              <p style="color:#d7e5d8; font-size:13px; margin:0; letter-spacing:2px; text-transform:uppercase;">Preserving language. Empowering culture.</p>
             </td>
           </tr>
 
-          <!-- Gold Accent Bar -->
           <tr>
-            <td style="height:4px; background: linear-gradient(90deg, #caa54a, #c96a2d, #caa54a);"></td>
+            <td style="height:6px; background:linear-gradient(90deg, #d3a84a 0%, #c96a2d 50%, #d3a84a 100%);"></td>
           </tr>
 
-          <!-- Body -->
           <tr>
-            <td style="padding:48px 40px 32px 40px;">
+            <td style="padding:46px 40px 34px 40px;">
 
-              <p style="color:#333; font-size:17px; margin:0 0 24px 0; line-height:1.6;">
-                Hi <strong style="color:#14532d;">${firstName}</strong>,
+              <p style="color:#5f4a2c; font-size:17px; margin:0 0 22px 0; line-height:1.7;">
+                Hi <strong style="color:#1c4c30;">${firstName}</strong>,
               </p>
 
-              <p style="color:#444; font-size:15px; line-height:1.7; margin:0 0 28px 0;">
-                Welcome to <strong style="color:#14532d;">Kasem App</strong> — a community-driven platform dedicated to preserving and celebrating the <strong>Kasem language</strong> and culture. We're absolutely thrilled to have you join us on this meaningful journey.
+              <p style="color:#4f4538; font-size:15px; line-height:1.8; margin:0 0 22px 0;">
+                Welcome to <strong style="color:#1c4c30;">Kasem App</strong>, a community-powered space for preserving and celebrating the <strong>Kasem language</strong> and the stories behind it.
               </p>
 
-              <p style="color:#444; font-size:15px; line-height:1.7; margin:0 0 28px 0;">
-                Every word you contribute, every phrase you share, and every story you tell helps keep our heritage alive for generations to come. Together, we are building something truly special.
+              <p style="color:#4f4538; font-size:15px; line-height:1.8; margin:0 0 30px 0;">
+                Every word you add, every pronunciation you record, and every contribution you make helps keep our heritage alive for the next generation.
               </p>
 
-              <!-- CTA Button -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
                   <td align="center">
-                    <a href="https://kassena-app.web.app/dashboard" style="display:inline-block; background: linear-gradient(135deg, #c96a2d, #caa54a); color:#ffffff; text-decoration:none; padding:16px 44px; border-radius:50px; font-size:16px; font-weight:600; letter-spacing:0.5px; box-shadow:0 4px 16px rgba(201,106,45,0.3);">
+                    <a href="${appUrl}" style="display:inline-block; background:linear-gradient(135deg, #1c4c30 0%, #2f7144 100%); color:#ffffff; text-decoration:none; padding:16px 42px; border-radius:999px; font-size:16px; font-weight:700; letter-spacing:0.3px; box-shadow:0 8px 20px rgba(28,76,48,0.28);">
                       Get Started →
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <!-- Feature Cards -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:30px;">
                 <tr>
-                  <td style="background-color:#f5eddc; border-radius:12px; padding:28px 28px; border-left:4px solid #14532d;">
-                    <h3 style="color:#14532d; font-size:16px; margin:0 0 14px 0;">Here's what you can do:</h3>
+                  <td style="background:linear-gradient(180deg, #fbf7ef 0%, #f3ead7 100%); border-radius:18px; padding:28px; border:1px solid rgba(201,106,45,0.14);">
+                    <h3 style="color:#1c4c30; font-size:16px; margin:0 0 14px 0;">Here is a quick path to get started:</h3>
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="padding:6px 0; color:#444; font-size:14px; line-height:1.6;">📖&nbsp;&nbsp;<strong>Contribute Words</strong> — Add Kasem words and phrases to our growing dictionary</td>
+                        <td style="padding:8px 0; color:#4f4538; font-size:14px; line-height:1.6;"><strong style="color:#1c4c30;">1. Explore the dictionary</strong> to see how Kasem words are organized.</td>
                       </tr>
                       <tr>
-                        <td style="padding:6px 0; color:#444; font-size:14px; line-height:1.6;">🎤&nbsp;&nbsp;<strong>Record Audio</strong> — Share authentic pronunciations for future learners</td>
+                        <td style="padding:8px 0; color:#4f4538; font-size:14px; line-height:1.6;"><strong style="color:#1c4c30;">2. Complete your profile</strong> so others can recognize your contributions.</td>
                       </tr>
                       <tr>
-                        <td style="padding:6px 0; color:#444; font-size:14px; line-height:1.6;">📚&nbsp;&nbsp;<strong>Explore the Dictionary</strong> — Discover and search Kasem words anytime</td>
+                        <td style="padding:8px 0; color:#4f4538; font-size:14px; line-height:1.6;"><strong style="color:#1c4c30;">3. Share a contribution</strong> with a word, phrase, or example sentence.</td>
                       </tr>
                       <tr>
-                        <td style="padding:6px 0; color:#444; font-size:14px; line-height:1.6;">🏆&nbsp;&nbsp;<strong>Earn Rewards</strong> — Climb the leaderboard and unlock achievements</td>
+                        <td style="padding:8px 0; color:#4f4538; font-size:14px; line-height:1.6;"><strong style="color:#1c4c30;">4. Track your progress</strong> through achievements, rewards, and the leaderboard.</td>
                       </tr>
                     </table>
                   </td>
                 </tr>
               </table>
 
-              <p style="color:#444; font-size:15px; line-height:1.7; margin:0 0 8px 0;">
-                We can't wait to see the incredible contributions you'll make. If you ever need help, have questions, or just want to say hello — we're always here for you.
+              <p style="color:#4f4538; font-size:15px; line-height:1.8; margin:0;">
+                If you need help or want to say hello, we are always here for you.
               </p>
 
             </td>
           </tr>
 
-          <!-- Signature -->
           <tr>
-            <td style="padding:0 40px 36px 40px;">
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e8e0d0;">
+            <td style="padding:0 40px 38px 40px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #eadfc8;">
                 <tr>
                   <td style="padding-top:28px;">
-                    <p style="color:#555; font-size:15px; margin:0 0 4px 0;">With warmth and gratitude,</p>
-                    <p style="color:#14532d; font-size:17px; font-weight:700; margin:0 0 2px 0;">Francis Pwavwe</p>
-                    <p style="color:#c96a2d; font-size:13px; margin:0 0 16px 0; font-weight:600;">Co-Founder, Kasem App</p>
+                    <p style="color:#5b5141; font-size:15px; margin:0 0 4px 0;">With warmth and gratitude,</p>
+                    <p style="color:#1c4c30; font-size:17px; font-weight:700; margin:0 0 2px 0;">Francis Pwavwe</p>
+                    <p style="color:#c96a2d; font-size:13px; margin:0 0 16px 0; font-weight:700;">Co-Founder, Kasem App</p>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Footer -->
           <tr>
-            <td style="background-color:#14532d; padding:28px 40px; text-align:center;">
-              <p style="color:#caa54a; font-size:15px; margin:0 0 6px 0; font-weight:600;">Kasem App</p>
-              <p style="color:#a8c4b0; font-size:12px; margin:0 0 14px 0; line-height:1.5;">
-                Preserving the Kasem language, one word at a time.
+            <td style="background:linear-gradient(135deg, #102a18 0%, #163922 100%); padding:28px 40px; text-align:center;">
+              <p style="color:#f2d38a; font-size:15px; margin:0 0 6px 0; font-weight:700;">Kasem App</p>
+              <p style="color:#c3d3c5; font-size:12px; margin:0 0 14px 0; line-height:1.6;">
+                Preserve the Kasem language, one contribution at a time.
+              </p>
+              <p style="color:#8fb49a; font-size:11px; margin:0 0 10px 0;">
+                <a href="${appUrl}" style="color:#f2d38a; text-decoration:none;">${appUrl}</a>
               </p>
               <p style="color:#6b9a7e; font-size:11px; margin:0;">
                 © ${new Date().getFullYear()} Kasem App. All rights reserved.

@@ -5,6 +5,9 @@ import type * as nodemailer from "nodemailer";
 
 const SMTP_USER = "francis@azlearner.me";
 const SMTP_PASS = defineSecret("SMTP_PASS");
+const APP_URL = "https://project-kassena-7e026.web.app";
+const LOGO_URL = `${APP_URL}/favicon.png`;
+const SIGNUP_ALERT_RECIPIENT = "francis@azlearner.me";
 
 export const sendWelcomeEmail = onDocumentCreated(
   {
@@ -31,6 +34,7 @@ export const sendWelcomeEmail = onDocumentCreated(
       import("nodemailer"),
       import("./templates/welcomeEmail.js"),
     ]);
+    const {getSignupAlertEmailHtml} = await import("./templates/signupAlertEmail.js");
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -41,7 +45,22 @@ export const sendWelcomeEmail = onDocumentCreated(
     });
 
     const name = displayName || "there";
-    const htmlContent = getWelcomeEmailHtml(name);
+    const htmlContent = getWelcomeEmailHtml({
+      appUrl: APP_URL,
+      displayName: name,
+      logoUrl: LOGO_URL,
+    });
+    const adminHtmlContent = getSignupAlertEmailHtml({
+      appUrl: APP_URL,
+      createdAt: userData.createdAt,
+      displayName: userData.displayName,
+      email: userData.email,
+      logoUrl: LOGO_URL,
+      photoURL: userData.photoURL,
+      role: userData.role,
+      uid: event.params.userId,
+      userData,
+    });
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: `"Kasem App" <${SMTP_USER}>`,
@@ -50,9 +69,23 @@ export const sendWelcomeEmail = onDocumentCreated(
       html: htmlContent,
     };
 
+    const signupAlertMailOptions: nodemailer.SendMailOptions = {
+      from: `"Kasem App" <${SMTP_USER}>`,
+      to: SIGNUP_ALERT_RECIPIENT,
+      subject: `New signup: ${name}`,
+      html: adminHtmlContent,
+    };
+
     try {
       await transporter.sendMail(mailOptions);
       logger.info(`Welcome email sent successfully to ${email} (${name})`);
+
+      try {
+        await transporter.sendMail(signupAlertMailOptions);
+        logger.info(`Signup alert sent successfully to ${SIGNUP_ALERT_RECIPIENT} for ${email}`);
+      } catch (error) {
+        logger.error(`Failed to send signup alert to ${SIGNUP_ALERT_RECIPIENT} for ${email}:`, error);
+      }
     } catch (error) {
       logger.error(`Failed to send welcome email to ${email}:`, error);
     }
