@@ -1,4 +1,7 @@
 {
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true
+  },
   "include": [
     ".eslintrc.js"
   ]

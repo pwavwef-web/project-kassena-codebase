@@ -1865,18 +1865,19 @@ export const getDictionaryAnalytics = async (): Promise<{
   mostViewedWords: Array<{ entryId: string; englishText: string; kasemText: string; viewCount: number }>
   mostFavoritedWords: Array<{ entryId: string; englishText: string; kasemText: string; favCount: number }>
 }> => {
-  const [searchesSnapshot, viewsSnapshot, favoritesSnapshot, correctionsSnapshot] =
+  const [searchesSnapshot, viewsSnapshot, favoritesSnapshot] =
     await Promise.all([
       getCountFromServer(collection(db, 'searchHistory')),
       getCountFromServer(collection(db, 'recentlyViewed')),
       getCountFromServer(collection(db, 'userFavorites')),
-      getCountFromServer(
-        query(
-          collection(db, 'contributions'),
-          where('sourceContributionId', '>', null),
-        ),
-      ),
     ])
+
+  const contributionsSnapshot = await getDocs(
+    query(collection(db, 'contributions'), limit(1000)),
+  )
+  const totalCorrections = contributionsSnapshot.docs.filter(
+    (docSnap) => docSnap.data().sourceContributionId != null,
+  ).length
 
   const viewsByEntry = new Map<string, number>()
   const allViews = await getDocs(
@@ -1932,7 +1933,7 @@ export const getDictionaryAnalytics = async (): Promise<{
     totalSearches: searchesSnapshot.data().count,
     totalViews: viewsSnapshot.data().count,
     totalFavorites: favoritesSnapshot.data().count,
-    totalCorrections: correctionsSnapshot.data().count,
+    totalCorrections,
     mostViewedWords: enrichedViews.map((e) => ({
       entryId: e.entryId,
       englishText: e.englishText,
