@@ -35,6 +35,11 @@ service firebase.storage {
       allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
     }
 
+    match /pronunciation/{userId}/{entryId}/{fileName} {
+      allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
+    }
+
     match /uploads/{userId}/{uploadId}/{fileName} {
       allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
       allow read: if firestore.get(/databases/(default)/documents/uploads/$(uploadId)).data.isPublished == true ||
