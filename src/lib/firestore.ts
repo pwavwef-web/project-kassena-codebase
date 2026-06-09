@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import {
+  getDisplayRankTitleForProfile,
   getRankTitleForPoints,
   getReviewCounterDeltas,
   getTrustScore,
@@ -81,6 +82,11 @@ const asString = (value: unknown, fallback = ''): string =>
 const asBoolean = (value: unknown, fallback = false): boolean =>
   typeof value === 'boolean' ? value : fallback
 
+const asUserRole = (value: unknown): UserRole | undefined =>
+  value === 'contributor' || value === 'validator' || value === 'admin'
+    ? value
+    : undefined
+
 const normalizeLeaderboardProfile = (
   id: string,
   data: Record<string, unknown>,
@@ -113,7 +119,7 @@ const normalizeLeaderboardProfile = (
     profileDialects.length,
   )
 
-  return {
+  const profile = {
     uid: typeof data.uid === 'string' && data.uid ? data.uid : id,
     displayName:
       typeof data.displayName === 'string' && data.displayName.trim()
@@ -149,12 +155,7 @@ const normalizeLeaderboardProfile = (
       typeof data.badgeTitle === 'string' && data.badgeTitle.trim()
         ? data.badgeTitle.trim()
         : getBadgeTitleForPoints(totalPoints),
-    role:
-      data.role === 'contributor' ||
-      data.role === 'validator' ||
-      data.role === 'admin'
-        ? data.role
-        : undefined,
+    role: asUserRole(data.role),
     staffRank: asString(data.staffRank),
     dialects: profileDialects,
     lastContributionAt:
@@ -165,6 +166,11 @@ const normalizeLeaderboardProfile = (
       data.createdAt && typeof data.createdAt === 'object'
         ? (data.createdAt as LeaderboardProfile['createdAt'])
         : null,
+  }
+
+  return {
+    ...profile,
+    badgeTitle: getDisplayRankTitleForProfile(profile),
   }
 }
 

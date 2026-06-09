@@ -27,6 +27,7 @@ import {
   isFirebaseConfigured,
 } from '../config/firebase'
 import { getBadgeTitleForPoints } from '../lib/firestore'
+import { getDisplayRankTitleForProfile } from '../lib/ranks'
 import type { AppUser, UserRole } from '../types'
 import { AuthContext, type AuthContextValue } from './AuthContextValue'
 
@@ -124,7 +125,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const refreshed = await getDoc(userRef)
     if (refreshed.exists()) {
-      setAppUser({ ...refreshed.data(), uid: user.uid } as AppUser)
+      const refreshedData = refreshed.data() as AppUser
+      setAppUser({
+        ...refreshedData,
+        uid: user.uid,
+        badgeTitle: getDisplayRankTitleForProfile(refreshedData),
+      })
     }
   }, [])
 

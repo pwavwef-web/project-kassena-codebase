@@ -1135,7 +1135,7 @@ export const ProfilePage = () => {
           reachedLevelIds.add(level.id)
           events.push({
             id: `level-${level.id}`,
-            title: `Reached ${level.title}`,
+            title: `Crossed ${level.minPoints.toLocaleString()} XP milestone`,
             date: item.date,
             icon: 'badge',
           })
@@ -1542,7 +1542,9 @@ export const ProfilePage = () => {
             <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-white/88 sm:mt-3 sm:text-sm">
               <span>
                 {nextLevel
-                  ? `${formatNumber(pointsToNextLevel)} XP to ${nextLevel.title}`
+                  ? rankState.requirements.every((requirement) => requirement.met)
+                    ? `${formatNumber(pointsToNextLevel)} XP to ${nextLevel.title}`
+                    : `Requirements pending for ${nextLevel.title}`
                   : rankState.prestigeTitle
                     ? `${rankState.prestigeTitle} prestige active`
                     : 'Top core rank reached'}

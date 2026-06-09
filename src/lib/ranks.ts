@@ -2,7 +2,6 @@ import type {
   AppUser,
   Contribution,
   LeaderboardPeriod,
-  LeaderboardProfile,
   ReviewStatus,
   UploadRecord,
   UserRole,
@@ -90,6 +89,22 @@ export interface RankMetrics {
   uniqueDialects: number
 }
 
+type RankProfileLike = {
+  approvalRate?: number
+  approvedCulturalContributions?: number
+  approvedEntries?: number
+  approvedExampleSentences?: number
+  approvedSubmissions?: number
+  badgeTitle?: string
+  dialects?: string[]
+  reviewedSubmissions?: number
+  role?: UserRole
+  staffRank?: string
+  totalPoints?: number
+  trustScore?: number
+  uniqueDialects?: number
+}
+
 export interface RankRequirementStatus {
   label: string
   met: boolean
@@ -106,6 +121,10 @@ export interface RankState {
   requirements: RankRequirementStatus[]
   trustScore: number
 }
+
+export const getDisplayRankTitleForProfile = (
+  profile: RankProfileLike,
+): string => getRankState(getRankMetricsFromProfile(profile)).displayRank.title
 
 const coreTone = {
   bronze: 'from-[#b97942] to-[#6e3e1f] text-white ring-[#e1b07a]',
@@ -508,22 +527,7 @@ export const getRankMetricsFromActivity = ({
 }
 
 export const getRankMetricsFromProfile = (
-  profile: Pick<
-    LeaderboardProfile,
-    | 'approvalRate'
-    | 'approvedCulturalContributions'
-    | 'approvedEntries'
-    | 'approvedExampleSentences'
-    | 'approvedSubmissions'
-    | 'badgeTitle'
-    | 'dialects'
-    | 'reviewedSubmissions'
-    | 'role'
-    | 'staffRank'
-    | 'totalPoints'
-    | 'trustScore'
-    | 'uniqueDialects'
-  >,
+  profile: RankProfileLike,
 ): RankMetrics => {
   const reviewedSubmissions = profile.reviewedSubmissions ?? 0
   const approvedSubmissions =
@@ -557,7 +561,7 @@ export const getRankMetricsFromProfile = (
     approvedSubmissions,
     hasCulturalContributions,
     hasExampleSentences,
-    points: profile.totalPoints,
+    points: profile.totalPoints ?? 0,
     reviewedSubmissions,
     role: profile.role,
     staffRank: profile.staffRank,
@@ -650,6 +654,10 @@ export const getRankState = (metrics: RankMetrics): RankState => {
     CORE_RANKS.find(
       (rank) => rank.sortOrder > coreRank.sortOrder && !qualifiesForRank(rank, metrics),
     ) ?? null
+  const nextRankRequirements = nextCoreRank
+    ? requirementStatuses(nextCoreRank, metrics)
+    : []
+  const nextRankReady = nextRankRequirements.every((requirement) => requirement.met)
   const staffRank =
     normalizedStaffRank(metrics.staffRank) ??
     (metrics.role === 'admin'
@@ -673,10 +681,11 @@ export const getRankState = (metrics: RankMetrics): RankState => {
     nextCoreRank,
     pointsToNextRank,
     prestigeTitle: getPrestigeTitle(metrics),
-    progressToNextRank: Math.min(100, Math.max(0, progressToNextRank)),
-    requirements: nextCoreRank
-      ? requirementStatuses(nextCoreRank, metrics)
-      : requirementStatuses(coreRank, metrics),
+    progressToNextRank: Math.min(
+      nextRankReady ? 100 : 99,
+      Math.max(0, progressToNextRank),
+    ),
+    requirements: nextCoreRank ? nextRankRequirements : requirementStatuses(coreRank, metrics),
     trustScore: metrics.trustScore,
   }
 }

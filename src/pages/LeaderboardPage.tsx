@@ -6,12 +6,12 @@ import { UnreadAnnouncementBadge } from '../components/common/UnreadAnnouncement
 import { useAnnouncementNotifications } from '../hooks/useAnnouncementNotifications'
 import { useAuth } from '../hooks/useAuth'
 import {
-  getBadgeTitleForPoints,
   getLeaderboardRank,
   subscribeToLeaderboard,
   subscribeToLeaderboardUser,
 } from '../lib/firestore'
 import {
+  getDisplayRankTitleForProfile,
   getLeaderboardTitle,
   getRankMetricsFromProfile,
   getRankState,
@@ -753,8 +753,7 @@ export const LeaderboardPage = () => {
         appUser.approvedCulturalContributions ?? 0,
       uniqueDialects:
         appUser.uniqueDialects ?? appUser.dialects?.length ?? 0,
-      badgeTitle:
-        appUser.badgeTitle || getBadgeTitleForPoints(appUser.totalPoints ?? 0),
+      badgeTitle: getDisplayRankTitleForProfile(appUser),
       role: appUser.role,
       staffRank: appUser.staffRank,
       dialects: appUser.dialects,

@@ -991,7 +991,11 @@ export const RewardsPage = () => {
                     </span>
                     <span className="font-medium text-slate-500">
                       {rankState.nextCoreRank
-                        ? `${rankState.pointsToNextRank.toLocaleString()} pts to ${rankState.nextCoreRank.title}`
+                        ? rankState.requirements.every(
+                            (requirement) => requirement.met,
+                          )
+                          ? `${rankState.pointsToNextRank.toLocaleString()} pts to ${rankState.nextCoreRank.title}`
+                          : `Requirements pending for ${rankState.nextCoreRank.title}`
                         : 'Top core rank reached'}
                     </span>
                   </div>
