@@ -9,6 +9,7 @@ import {
 } from '../../lib/constants'
 import { validateContribution } from '../../lib/validators'
 import type { DictionaryEntry, RewardBounty } from '../../types'
+import { KasemKeyboard } from '../KasemKeyboard'
 
 type ContributionStep = 0 | 1 | 2 | 3
 
@@ -308,6 +309,12 @@ export const ContributionForm = ({
   const audioChunksRef = useRef<Blob[]>([])
   const audioInputRef = useRef<HTMLInputElement>(null)
   const voiceRecordingsRef = useRef<VoiceContribution[]>([])
+  const kasemTextRef = useRef<HTMLInputElement>(null)
+  const kasemExampleRef = useRef<HTMLTextAreaElement>(null)
+  const alternateKasemTermsRef = useRef<HTMLTextAreaElement>(null)
+  const pronunciationRef = useRef<HTMLInputElement>(null)
+  const wordUseRulesRef = useRef<HTMLTextAreaElement>(null)
+  const culturalNoteRef = useRef<HTMLTextAreaElement>(null)
 
   const quality = useMemo(() => getQualityScore(values), [values])
   const canContinueFromStepOne = Boolean(
@@ -734,15 +741,22 @@ export const ContributionForm = ({
                     autoFocus
                   />
                 </FieldLabel>
-                <FieldLabel label="Kasem Translation" required>
-                  <input
-                    value={values.kasemText}
-                    onChange={(event) =>
-                      updateValues({ kasemText: event.target.value })
-                    }
-                    className={baseInputClass}
+                <div>
+                  <FieldLabel label="Kasem Translation" required>
+                    <input
+                      ref={kasemTextRef}
+                      value={values.kasemText}
+                      onChange={(event) =>
+                        updateValues({ kasemText: event.target.value })
+                      }
+                      className={baseInputClass}
+                    />
+                  </FieldLabel>
+                  <KasemKeyboard
+                    inputRef={kasemTextRef}
+                    context="contribution_kasem_translation"
                   />
-                </FieldLabel>
+                </div>
               </div>
 
               {exactDuplicate ? (
@@ -797,15 +811,22 @@ export const ContributionForm = ({
                     className={`${baseInputClass} min-h-28`}
                   />
                 </FieldLabel>
-                <FieldLabel label="Kasem Example">
-                  <textarea
-                    value={values.kasemExample}
-                    onChange={(event) =>
-                      updateValues({ kasemExample: event.target.value })
-                    }
-                    className={`${baseInputClass} min-h-28`}
+                <div>
+                  <FieldLabel label="Kasem Example">
+                    <textarea
+                      ref={kasemExampleRef}
+                      value={values.kasemExample}
+                      onChange={(event) =>
+                        updateValues({ kasemExample: event.target.value })
+                      }
+                      className={`${baseInputClass} min-h-28`}
+                    />
+                  </FieldLabel>
+                  <KasemKeyboard
+                    inputRef={kasemExampleRef}
+                    context="contribution_kasem_example"
                   />
-                </FieldLabel>
+                </div>
               </div>
 
               <div className="rounded-2xl bg-[#fff8ed] p-4 ring-1 ring-kassena-cream">
@@ -884,28 +905,42 @@ export const ContributionForm = ({
 
           {step === 3 ? (
             <div className="space-y-5">
-              <FieldLabel label="Alternative Spellings">
-                <textarea
-                  value={values.alternateKasemTerms}
-                  onChange={(event) =>
-                    updateValues({ alternateKasemTerms: event.target.value })
-                  }
-                  placeholder="Alternate spellings, dialect variants, or similar phrases"
-                  className={`${baseInputClass} min-h-24`}
-                />
-              </FieldLabel>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FieldLabel label="Pronunciation">
-                  <input
-                    value={values.pronunciation}
+              <div>
+                <FieldLabel label="Alternative Spellings">
+                  <textarea
+                    ref={alternateKasemTermsRef}
+                    value={values.alternateKasemTerms}
                     onChange={(event) =>
-                      updateValues({ pronunciation: event.target.value })
+                      updateValues({ alternateKasemTerms: event.target.value })
                     }
-                    placeholder="/lam/ - type how the word sounds"
-                    className={baseInputClass}
+                    placeholder="Alternate spellings, dialect variants, or similar phrases"
+                    className={`${baseInputClass} min-h-24`}
                   />
                 </FieldLabel>
+                <KasemKeyboard
+                  inputRef={alternateKasemTermsRef}
+                  context="contribution_alternate_kasem_terms"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <FieldLabel label="Pronunciation">
+                    <input
+                      ref={pronunciationRef}
+                      value={values.pronunciation}
+                      onChange={(event) =>
+                        updateValues({ pronunciation: event.target.value })
+                      }
+                      placeholder="/lam/ - type how the word sounds"
+                      className={baseInputClass}
+                    />
+                  </FieldLabel>
+                  <KasemKeyboard
+                    inputRef={pronunciationRef}
+                    context="contribution_pronunciation"
+                  />
+                </div>
                 <FieldLabel label="Supporting File">
                   <input
                     type="file"
@@ -926,26 +961,40 @@ export const ContributionForm = ({
               </FieldLabel>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <FieldLabel label="Word Rules">
-                  <textarea
-                    value={values.wordUseRules}
-                    onChange={(event) =>
-                      updateValues({ wordUseRules: event.target.value })
-                    }
-                    placeholder="Grammar, usage restrictions, or typical context"
-                    className={`${baseInputClass} min-h-24`}
+                <div>
+                  <FieldLabel label="Word Rules">
+                    <textarea
+                      ref={wordUseRulesRef}
+                      value={values.wordUseRules}
+                      onChange={(event) =>
+                        updateValues({ wordUseRules: event.target.value })
+                      }
+                      placeholder="Grammar, usage restrictions, or typical context"
+                      className={`${baseInputClass} min-h-24`}
+                    />
+                  </FieldLabel>
+                  <KasemKeyboard
+                    inputRef={wordUseRulesRef}
+                    context="contribution_word_rules"
                   />
-                </FieldLabel>
-                <FieldLabel label="Cultural Note">
-                  <textarea
-                    value={values.culturalNote}
-                    onChange={(event) =>
-                      updateValues({ culturalNote: event.target.value })
-                    }
-                    placeholder="Traditional meaning, ceremony, or cultural context"
-                    className={`${baseInputClass} min-h-24`}
+                </div>
+                <div>
+                  <FieldLabel label="Cultural Note">
+                    <textarea
+                      ref={culturalNoteRef}
+                      value={values.culturalNote}
+                      onChange={(event) =>
+                        updateValues({ culturalNote: event.target.value })
+                      }
+                      placeholder="Traditional meaning, ceremony, or cultural context"
+                      className={`${baseInputClass} min-h-24`}
+                    />
+                  </FieldLabel>
+                  <KasemKeyboard
+                    inputRef={culturalNoteRef}
+                    context="contribution_cultural_note"
                   />
-                </FieldLabel>
+                </div>
               </div>
 
               <div className="rounded-2xl bg-kassena-bg p-4 ring-1 ring-kassena-cream">

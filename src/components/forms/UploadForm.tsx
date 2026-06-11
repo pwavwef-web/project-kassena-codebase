@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { DIALECT_OPTIONS, UPLOAD_CATEGORIES } from '../../lib/constants'
 import { AlertMessage } from '../common/AlertMessage'
+import { KasemKeyboard } from '../KasemKeyboard'
 
 export interface UploadFormValues {
   title: string
@@ -20,6 +21,9 @@ export const UploadForm = ({
   onSubmit: (values: UploadFormValues) => Promise<void>
   isSubmitting: boolean
 }) => {
+  const titleRef = useRef<HTMLInputElement>(null)
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const tagsRef = useRef<HTMLInputElement>(null)
   const [values, setValues] = useState<UploadFormValues>({
     title: '',
     description: '',
@@ -54,26 +58,40 @@ export const UploadForm = ({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       {error ? <AlertMessage type="error" message={error} /> : null}
-      <label className="block space-y-1 text-sm">
-        <span>Title *</span>
-        <input
-          value={values.title}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, title: event.target.value }))
-          }
-          className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+      <div>
+        <label className="block space-y-1 text-sm">
+          <span>Title *</span>
+          <input
+            ref={titleRef}
+            value={values.title}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, title: event.target.value }))
+            }
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          />
+        </label>
+        <KasemKeyboard inputRef={titleRef} context="upload_title" />
+      </div>
+      <div>
+        <label className="block space-y-1 text-sm">
+          <span>Description</span>
+          <textarea
+            ref={descriptionRef}
+            value={values.description}
+            onChange={(event) =>
+              setValues((prev) => ({
+                ...prev,
+                description: event.target.value,
+              }))
+            }
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          />
+        </label>
+        <KasemKeyboard
+          inputRef={descriptionRef}
+          context="upload_description"
         />
-      </label>
-      <label className="block space-y-1 text-sm">
-        <span>Description</span>
-        <textarea
-          value={values.description}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, description: event.target.value }))
-          }
-          className="w-full rounded-lg border border-kassena-cream px-3 py-2"
-        />
-      </label>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block space-y-1 text-sm">
           <span>Category *</span>
@@ -148,17 +166,21 @@ export const UploadForm = ({
           </select>
         </label>
       </div>
-      <label className="block space-y-1 text-sm">
-        <span>Tags</span>
-        <input
-          value={values.tags}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, tags: event.target.value }))
-          }
-          placeholder="education, story, song, proverb"
-          className="w-full rounded-lg border border-kassena-cream px-3 py-2"
-        />
-      </label>
+      <div>
+        <label className="block space-y-1 text-sm">
+          <span>Tags</span>
+          <input
+            ref={tagsRef}
+            value={values.tags}
+            onChange={(event) =>
+              setValues((prev) => ({ ...prev, tags: event.target.value }))
+            }
+            placeholder="education, story, song, proverb"
+            className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+          />
+        </label>
+        <KasemKeyboard inputRef={tagsRef} context="upload_tags" />
+      </div>
       <label className="block space-y-1 text-sm">
         <span>File *</span>
         <input

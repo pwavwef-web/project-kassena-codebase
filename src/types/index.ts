@@ -1,4 +1,5 @@
 import type { Timestamp } from 'firebase/firestore'
+import type { KasemKeyboardPreference } from './kasem'
 
 export type UserRole = 'contributor' | 'validator' | 'admin'
 export type UserStatus = 'active' | 'disabled'
@@ -29,6 +30,7 @@ export interface AppUser {
   phone?: string
   bio?: string
   contributionFocus?: string
+  kasemKeyboard?: KasemKeyboardPreference
   createdAt: Timestamp | null
   lastLoginAt: Timestamp | null
   status: UserStatus

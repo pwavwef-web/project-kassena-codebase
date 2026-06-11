@@ -71,6 +71,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         phone: '',
         bio: '',
         contributionFocus: '',
+        kasemKeyboard: {
+          smartTypingEnabled: false,
+        },
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp(),
       })
@@ -119,6 +122,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         phone: existing.phone ?? '',
         bio: existing.bio ?? '',
         contributionFocus: existing.contributionFocus ?? '',
+        kasemKeyboard: existing.kasemKeyboard ?? {
+          smartTypingEnabled: false,
+        },
         lastLoginAt: serverTimestamp(),
       })
     }

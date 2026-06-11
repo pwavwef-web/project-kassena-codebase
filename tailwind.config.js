@@ -5,6 +5,10 @@ export default {
     extend: {
       colors: {
         kassena: {
+          indigo: '#1E365D',
+          terracotta: '#B65A3A',
+          kente: '#D4A017',
+          plaster: '#F7F2E7',
           green: '#14532d',
           gold: '#caa54a',
           orange: '#c96a2d',

@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { listSearchHistory, deleteSearchHistoryEntry, addSearchHistory } from '../../lib/firestore'
 import { POPULAR_SEARCHES } from '../../lib/constants'
 import type { SearchHistoryEntry } from '../../types'
+import { KasemKeyboard } from '../KasemKeyboard'
 import { AppIcon } from './AppIcon'
 
 interface SearchBarProps {
@@ -122,6 +123,12 @@ export const SearchBar = ({ onSearch, autoFocus = false, onQueryChange }: Search
           </button>
         </div>
       </form>
+
+      <KasemKeyboard
+        inputRef={inputRef}
+        context="dictionary_search"
+        className="mt-1"
+      />
 
       {showDropdown && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 rounded-2xl border border-kassena-cream bg-white p-4 shadow-xl">

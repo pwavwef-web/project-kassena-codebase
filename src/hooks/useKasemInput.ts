@@ -1,66 +1,114 @@
-import { useState, useCallback, useMemo } from 'react'
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { db } from '../config/firebase'
 import type {
+  KasemInsertSource,
+  KasemSuggestion,
+  LongPressSuggestion,
   UseKasemInputOptions,
   UseKasemInputReturn,
-  KasemSuggestion,
 } from '../types/kasem'
 import {
-  insertAtCursor,
-  replaceAtCursor,
+  applyAutoReplaceAtCursor,
   getContextSuggestions,
   getLongPressSuggestions,
-  applyAutoReplace as applyAutoReplaceUtil,
+  insertAtCursor,
+  replaceAtCursor,
 } from '../utils/kasemCharacters'
-import type { LongPressSuggestion } from '../types/kasem'
 
 const AUTO_REPLACE_KEY = 'kasem_auto_replace'
 
 function loadAutoReplacePreference(): boolean {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
   try {
-    const stored = localStorage.getItem(AUTO_REPLACE_KEY)
-    return stored === 'true'
+    return window.localStorage.getItem(AUTO_REPLACE_KEY) === 'true'
   } catch {
     return false
   }
 }
 
-function saveAutoReplacePreference(enabled: boolean): void {
-  try {
-    localStorage.setItem(AUTO_REPLACE_KEY, String(enabled))
-  } catch {
-    // localStorage unavailable
+function saveLocalAutoReplacePreference(enabled: boolean): void {
+  if (typeof window === 'undefined') {
+    return
   }
+
+  try {
+    window.localStorage.setItem(AUTO_REPLACE_KEY, String(enabled))
+  } catch {
+    // Some locked-down browsers disallow localStorage. The keyboard still works.
+  }
+}
+
+async function saveProfileAutoReplacePreference(
+  userId: string | null | undefined,
+  enabled: boolean,
+): Promise<void> {
+  if (!userId) {
+    return
+  }
+
+  await setDoc(
+    doc(db, 'users', userId),
+    {
+      kasemKeyboard: {
+        smartTypingEnabled: enabled,
+        updatedAt: serverTimestamp(),
+      },
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  )
 }
 
 export const useKasemInput = ({
   inputRef,
   autoReplaceEnabled: initialAutoReplace,
+  profileUserId,
+  profilePreference,
   onCharacterInsert,
   onSuggestionSelect,
 }: UseKasemInputOptions): UseKasemInputReturn => {
   const [autoReplaceEnabled, setAutoReplaceEnabledState] = useState<boolean>(
-    () => initialAutoReplace ?? loadAutoReplacePreference(),
+    () => initialAutoReplace ?? profilePreference ?? loadAutoReplacePreference(),
   )
 
-  const setAutoReplaceEnabled = useCallback((enabled: boolean) => {
-    setAutoReplaceEnabledState(enabled)
-    saveAutoReplacePreference(enabled)
-  }, [])
+  useEffect(() => {
+    if (typeof profilePreference === 'boolean') {
+      setAutoReplaceEnabledState(profilePreference)
+      saveLocalAutoReplacePreference(profilePreference)
+    }
+  }, [profilePreference])
+
+  const setAutoReplaceEnabled = useCallback(
+    (enabled: boolean) => {
+      setAutoReplaceEnabledState(enabled)
+      saveLocalAutoReplacePreference(enabled)
+      void saveProfileAutoReplacePreference(profileUserId, enabled).catch(() => {
+        // Preference syncing is best-effort; keep the local setting responsive.
+      })
+    },
+    [profileUserId],
+  )
 
   const insertCharacter = useCallback(
-    (char: string) => {
+    (char: string, source: KasemInsertSource = 'toolbar') => {
       const input = inputRef.current
       if (!input) return
+
       insertAtCursor(input, char)
-      onCharacterInsert?.(char)
+      onCharacterInsert?.(char, source)
     },
     [inputRef, onCharacterInsert],
   )
 
-  const replaceCurrentChar = useCallback(
+  const replaceCurrentText = useCallback(
     (original: string, replacement: string) => {
       const input = inputRef.current
       if (!input) return
+
       replaceAtCursor(input, original, replacement)
       onSuggestionSelect?.(original, replacement)
     },
@@ -78,32 +126,39 @@ export const useKasemInput = ({
     [],
   )
 
-  const applyAutoReplace = useCallback(
-    (text: string): string => {
-      if (!autoReplaceEnabled) return text
-      return applyAutoReplaceUtil(text)
-    },
-    [autoReplaceEnabled],
-  )
+  const applyAutoReplaceToInput = useCallback(() => {
+    const input = inputRef.current
+
+    if (!input || !autoReplaceEnabled) {
+      return null
+    }
+
+    const replacement = applyAutoReplaceAtCursor(input)
+    if (replacement) {
+      onCharacterInsert?.(replacement, 'auto_replace')
+    }
+
+    return replacement
+  }, [autoReplaceEnabled, inputRef, onCharacterInsert])
 
   return useMemo(
     () => ({
       insertCharacter,
-      replaceAtCursor: replaceCurrentChar,
+      replaceAtCursor: replaceCurrentText,
       getSuggestions,
       getLongPressSuggestions: getLongPressSuggestionsForChar,
       autoReplaceEnabled,
       setAutoReplaceEnabled,
-      applyAutoReplace,
+      applyAutoReplaceToInput,
     }),
     [
       insertCharacter,
-      replaceCurrentChar,
+      replaceCurrentText,
       getSuggestions,
       getLongPressSuggestionsForChar,
       autoReplaceEnabled,
       setAutoReplaceEnabled,
-      applyAutoReplace,
+      applyAutoReplaceToInput,
     ],
   )
 }

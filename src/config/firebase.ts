@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import type { Analytics } from 'firebase/analytics'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getFunctions } from 'firebase/functions'
@@ -24,9 +25,24 @@ export const isFirebaseConfigured = [
 ].every(Boolean)
 
 const app = initializeApp(firebaseConfig)
+let analyticsPromise: Promise<Analytics | null> | null = null
 
 export const auth = isFirebaseConfigured ? getAuth(app) : null
 export const googleProvider = new GoogleAuthProvider()
 export const db = getFirestore(app)
 export const functions = getFunctions(app)
 export const storage = getStorage(app)
+
+export const getFirebaseAnalytics = (): Promise<Analytics | null> => {
+  if (!isFirebaseConfigured || typeof window === 'undefined') {
+    return Promise.resolve(null)
+  }
+
+  analyticsPromise ??= import('firebase/analytics')
+    .then(async ({ getAnalytics, isSupported }) =>
+      (await isSupported()) ? getAnalytics(app) : null,
+    )
+    .catch(() => null)
+
+  return analyticsPromise
+}

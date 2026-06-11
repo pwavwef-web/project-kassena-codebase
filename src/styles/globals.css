@@ -27,6 +27,21 @@ a {
   text-decoration: none;
 }
 
+@media (forced-colors: active) {
+  .kasem-keyboard {
+    forced-color-adjust: auto;
+  }
+
+  .kasem-keyboard button {
+    border: 1px solid ButtonText;
+  }
+
+  .kasem-keyboard button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
 .splash-screen {
   position: fixed;
   inset: 0;

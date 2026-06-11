@@ -1,13 +1,22 @@
+import type { RefObject } from 'react'
+
+export type KasemInputElement = HTMLInputElement | HTMLTextAreaElement
+
+export type KasemCharacterGroup = 'critical' | 'accented' | 'future'
+
 export interface KasemCharacter {
   char: string
   label: string
   ariaLabel: string
+  group: KasemCharacterGroup
 }
 
 export interface KasemSuggestion {
+  id: string
   original: string
   replacement: string
   label: string
+  ariaLabel: string
 }
 
 export interface LongPressSuggestion {
@@ -16,29 +25,40 @@ export interface LongPressSuggestion {
   ariaLabel: string
 }
 
+export interface KasemKeyboardPreference {
+  smartTypingEnabled: boolean
+  updatedAt?: unknown
+}
+
 export interface KasemKeyboardProps {
-  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+  inputRef: RefObject<KasemInputElement | null>
   onInsert?: (character: string) => void
   showAutoReplaceToggle?: boolean
   className?: string
+  context?: string
+  fixedOnMobile?: boolean
 }
 
 export interface UseKasemInputOptions {
-  inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+  inputRef: RefObject<KasemInputElement | null>
   autoReplaceEnabled?: boolean
-  onCharacterInsert?: (character: string) => void
+  profileUserId?: string | null
+  profilePreference?: boolean | null
+  onCharacterInsert?: (character: string, source: KasemInsertSource) => void
   onSuggestionSelect?: (original: string, replacement: string) => void
 }
 
 export interface UseKasemInputReturn {
-  insertCharacter: (char: string) => void
+  insertCharacter: (char: string, source?: KasemInsertSource) => void
   replaceAtCursor: (original: string, replacement: string) => void
   getSuggestions: (text: string) => KasemSuggestion[]
   getLongPressSuggestions: (char: string) => LongPressSuggestion[]
   autoReplaceEnabled: boolean
   setAutoReplaceEnabled: (enabled: boolean) => void
-  applyAutoReplace: (text: string) => string
+  applyAutoReplaceToInput: () => string | null
 }
+
+export type KasemInsertSource = 'toolbar' | 'longpress' | 'auto_replace'
 
 export type KasemAnalyticsEvent =
   | 'kasem_character_inserted'

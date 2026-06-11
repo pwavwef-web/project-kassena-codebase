@@ -1,32 +1,43 @@
 import type {
   KasemCharacter,
+  KasemInputElement,
   KasemSuggestion,
   LongPressSuggestion,
 } from '../types/kasem'
 
 export const KASEM_CRITICAL_CHARS: KasemCharacter[] = [
-  { char: '\u0190', label: '\u0190', ariaLabel: 'Insert Open E (\u0190)' },
-  { char: '\u025B', label: '\u025B', ariaLabel: 'Insert Open E (\u025B)' },
-  { char: '\u0186', label: '\u0186', ariaLabel: 'Insert Open O (\u0186)' },
-  { char: '\u0254', label: '\u0254', ariaLabel: 'Insert Open O (\u0254)' },
-  { char: '\u014A', label: '\u014A', ariaLabel: 'Insert Eng (\u014A)' },
-  { char: '\u014B', label: '\u014B', ariaLabel: 'Insert Eng (\u014B)' },
+  { char: 'Ɛ', label: 'Ɛ', ariaLabel: 'Insert Open E (Ɛ)', group: 'critical' },
+  { char: 'ɛ', label: 'ɛ', ariaLabel: 'Insert Open E (ɛ)', group: 'critical' },
+  { char: 'Ɔ', label: 'Ɔ', ariaLabel: 'Insert Open O (Ɔ)', group: 'critical' },
+  { char: 'ɔ', label: 'ɔ', ariaLabel: 'Insert Open O (ɔ)', group: 'critical' },
+  {
+    char: 'Ŋ',
+    label: 'Ŋ',
+    ariaLabel: 'Insert Eng Character (Ŋ)',
+    group: 'critical',
+  },
+  {
+    char: 'ŋ',
+    label: 'ŋ',
+    ariaLabel: 'Insert Eng Character (ŋ)',
+    group: 'critical',
+  },
 ]
 
 export const KASEM_ACCENTED_CHARS: KasemCharacter[] = [
-  { char: '\u00C1', label: '\u00C1', ariaLabel: 'Insert A acute (\u00C1)' },
-  { char: '\u00E1', label: '\u00E1', ariaLabel: 'Insert a acute (\u00E1)' },
-  { char: '\u00C9', label: '\u00C9', ariaLabel: 'Insert E acute (\u00C9)' },
-  { char: '\u00E9', label: '\u00E9', ariaLabel: 'Insert e acute (\u00E9)' },
-  { char: '\u00D3', label: '\u00D3', ariaLabel: 'Insert O acute (\u00D3)' },
-  { char: '\u00F3', label: '\u00F3', ariaLabel: 'Insert o acute (\u00F3)' },
+  { char: 'Á', label: 'Á', ariaLabel: 'Insert A acute (Á)', group: 'accented' },
+  { char: 'á', label: 'á', ariaLabel: 'Insert a acute (á)', group: 'accented' },
+  { char: 'É', label: 'É', ariaLabel: 'Insert E acute (É)', group: 'accented' },
+  { char: 'é', label: 'é', ariaLabel: 'Insert e acute (é)', group: 'accented' },
+  { char: 'Ó', label: 'Ó', ariaLabel: 'Insert O acute (Ó)', group: 'accented' },
+  { char: 'ó', label: 'ó', ariaLabel: 'Insert o acute (ó)', group: 'accented' },
 ]
 
 export const KASEM_FUTURE_CHARS: KasemCharacter[] = [
-  { char: '\u00CD', label: '\u00CD', ariaLabel: 'Insert I acute (\u00CD)' },
-  { char: '\u00ED', label: '\u00ED', ariaLabel: 'Insert i acute (\u00ED)' },
-  { char: '\u00DA', label: '\u00DA', ariaLabel: 'Insert U acute (\u00DA)' },
-  { char: '\u00FA', label: '\u00FA', ariaLabel: 'Insert u acute (\u00FA)' },
+  { char: 'Í', label: 'Í', ariaLabel: 'Insert I acute (Í)', group: 'future' },
+  { char: 'í', label: 'í', ariaLabel: 'Insert i acute (í)', group: 'future' },
+  { char: 'Ú', label: 'Ú', ariaLabel: 'Insert U acute (Ú)', group: 'future' },
+  { char: 'ú', label: 'ú', ariaLabel: 'Insert u acute (ú)', group: 'future' },
 ]
 
 export const ALL_KASEM_CHARS: KasemCharacter[] = [
@@ -36,212 +47,210 @@ export const ALL_KASEM_CHARS: KasemCharacter[] = [
 
 export const LONG_PRESS_MAP: Record<string, LongPressSuggestion[]> = {
   e: [
-    { char: 'e', label: 'e', ariaLabel: 'Letter e' },
-    { char: '\u00E9', label: '\u00E9', ariaLabel: 'e acute' },
-    { char: '\u025B', label: '\u025B', ariaLabel: 'open e' },
+    { char: 'e', label: 'e', ariaLabel: 'Keep letter e' },
+    { char: 'é', label: 'é', ariaLabel: 'Replace with e acute (é)' },
+    { char: 'ɛ', label: 'ɛ', ariaLabel: 'Replace with open e (ɛ)' },
   ],
   E: [
-    { char: 'E', label: 'E', ariaLabel: 'Letter E' },
-    { char: '\u00C9', label: '\u00C9', ariaLabel: 'E acute' },
-    { char: '\u0190', label: '\u0190', ariaLabel: 'Open E' },
+    { char: 'E', label: 'E', ariaLabel: 'Keep letter E' },
+    { char: 'É', label: 'É', ariaLabel: 'Replace with E acute (É)' },
+    { char: 'Ɛ', label: 'Ɛ', ariaLabel: 'Replace with Open E (Ɛ)' },
   ],
   o: [
-    { char: 'o', label: 'o', ariaLabel: 'Letter o' },
-    { char: '\u00F3', label: '\u00F3', ariaLabel: 'o acute' },
-    { char: '\u0254', label: '\u0254', ariaLabel: 'open o' },
+    { char: 'o', label: 'o', ariaLabel: 'Keep letter o' },
+    { char: 'ó', label: 'ó', ariaLabel: 'Replace with o acute (ó)' },
+    { char: 'ɔ', label: 'ɔ', ariaLabel: 'Replace with open o (ɔ)' },
   ],
   O: [
-    { char: 'O', label: 'O', ariaLabel: 'Letter O' },
-    { char: '\u00D3', label: '\u00D3', ariaLabel: 'O acute' },
-    { char: '\u0186', label: '\u0186', ariaLabel: 'Open O' },
+    { char: 'O', label: 'O', ariaLabel: 'Keep letter O' },
+    { char: 'Ó', label: 'Ó', ariaLabel: 'Replace with O acute (Ó)' },
+    { char: 'Ɔ', label: 'Ɔ', ariaLabel: 'Replace with Open O (Ɔ)' },
   ],
   n: [
-    { char: 'n', label: 'n', ariaLabel: 'Letter n' },
-    { char: '\u014B', label: '\u014B', ariaLabel: 'eng' },
+    { char: 'n', label: 'n', ariaLabel: 'Keep letter n' },
+    { char: 'ŋ', label: 'ŋ', ariaLabel: 'Replace with eng character (ŋ)' },
   ],
   N: [
-    { char: 'N', label: 'N', ariaLabel: 'Letter N' },
-    { char: '\u014A', label: '\u014A', ariaLabel: 'Eng' },
+    { char: 'N', label: 'N', ariaLabel: 'Keep letter N' },
+    { char: 'Ŋ', label: 'Ŋ', ariaLabel: 'Replace with Eng Character (Ŋ)' },
   ],
   a: [
-    { char: 'a', label: 'a', ariaLabel: 'Letter a' },
-    { char: '\u00E1', label: '\u00E1', ariaLabel: 'a acute' },
+    { char: 'a', label: 'a', ariaLabel: 'Keep letter a' },
+    { char: 'á', label: 'á', ariaLabel: 'Replace with a acute (á)' },
   ],
   A: [
-    { char: 'A', label: 'A', ariaLabel: 'Letter A' },
-    { char: '\u00C1', label: '\u00C1', ariaLabel: 'A acute' },
+    { char: 'A', label: 'A', ariaLabel: 'Keep letter A' },
+    { char: 'Á', label: 'Á', ariaLabel: 'Replace with A acute (Á)' },
   ],
 }
 
-export const CONTEXT_SUGGESTIONS: Array<{
-  pattern: RegExp
-  suggestions: KasemSuggestion[]
+const CONTEXT_RULES: Array<{
+  trigger: string
+  original: string
+  replacement: string
+  label: string
 }> = [
   {
-    pattern: /\b\w*be\b/i,
-    suggestions: [
-      {
-        original: 'be',
-        replacement: 'b\u025B',
-        label: 'b\u025B (be with open e)',
-      },
-    ],
+    trigger: 'be',
+    original: 'be',
+    replacement: 'bɛ',
+    label: 'bɛ',
   },
   {
-    pattern: /\b\w*ko\b/i,
-    suggestions: [
-      {
-        original: 'ko',
-        replacement: 'k\u0254',
-        label: 'k\u0254 (ko with open o)',
-      },
-    ],
+    trigger: 'ko',
+    original: 'ko',
+    replacement: 'kɔ',
+    label: 'kɔ',
   },
   {
-    pattern: /\b\w*ng\b/i,
-    suggestions: [
-      { original: 'ng', replacement: '\u014Bg', label: '\u014Bg (eng sound)' },
-    ],
+    trigger: 'ng',
+    original: 'ng',
+    replacement: 'ŋ',
+    label: 'ŋ',
   },
   {
-    pattern: /\b\w*ee\b/i,
-    suggestions: [
-      {
-        original: 'ee',
-        replacement: '\u025B\u025B',
-        label: '\u025B\u025B (double open e)',
-      },
-    ],
+    trigger: 'ee',
+    original: 'ee',
+    replacement: 'ɛ',
+    label: 'ɛ',
   },
   {
-    pattern: /\b\w*oo\b/i,
-    suggestions: [
-      {
-        original: 'oo',
-        replacement: '\u0254\u0254',
-        label: '\u0254\u0254 (double open o)',
-      },
-    ],
-  },
-  {
-    pattern: /\b\w*na\b/i,
-    suggestions: [
-      {
-        original: 'na',
-        replacement: 'n\u025B',
-        label: 'n\u025B (na with open e)',
-      },
-    ],
-  },
-  {
-    pattern: /\b\w*ma\b/i,
-    suggestions: [
-      {
-        original: 'ma',
-        replacement: 'm\u0254',
-        label: 'm\u0254 (ma with open o)',
-      },
-    ],
+    trigger: 'oo',
+    original: 'oo',
+    replacement: 'ɔ',
+    label: 'ɔ',
   },
 ]
 
-export const AUTO_REPLACE_MAP: Record<string, string> = {
-  ng: '\u014Bg',
-  NG: '\u014Ag',
-  ee: '\u025B',
-  EE: '\u0190',
-  oo: '\u0254',
-  OO: '\u0186',
+const AUTO_REPLACE_RULES: Array<{ pattern: string; replacement: string }> = [
+  { pattern: 'ng', replacement: 'ŋ' },
+  { pattern: 'Ng', replacement: 'Ŋ' },
+  { pattern: 'NG', replacement: 'Ŋ' },
+  { pattern: 'ee', replacement: 'ɛ' },
+  { pattern: 'EE', replacement: 'Ɛ' },
+  { pattern: 'oo', replacement: 'ɔ' },
+  { pattern: 'OO', replacement: 'Ɔ' },
+]
+
+const getValueSetter = (input: KasemInputElement) => {
+  const prototype =
+    input instanceof HTMLTextAreaElement
+      ? window.HTMLTextAreaElement.prototype
+      : window.HTMLInputElement.prototype
+
+  return Object.getOwnPropertyDescriptor(prototype, 'value')?.set
 }
 
-export function applyAutoReplace(text: string): string {
-  let result = text
-  for (const [pattern, replacement] of Object.entries(AUTO_REPLACE_MAP)) {
-    const regex = new RegExp(pattern, 'g')
-    result = result.replace(regex, replacement)
-  }
-  return result
-}
-
-export function getLongPressSuggestions(char: string): LongPressSuggestion[] {
-  return LONG_PRESS_MAP[char] || []
-}
-
-export function getContextSuggestions(text: string): KasemSuggestion[] {
-  const suggestions: KasemSuggestion[] = []
-  for (const { pattern, suggestions: sugs } of CONTEXT_SUGGESTIONS) {
-    if (pattern.test(text)) {
-      suggestions.push(...sugs)
-    }
-  }
-  const seen = new Set<string>()
-  return suggestions.filter((s) => {
-    if (seen.has(s.replacement)) return false
-    seen.add(s.replacement)
-    return true
-  })
-}
-
-export function insertAtCursor(
-  input: HTMLInputElement | HTMLTextAreaElement,
-  char: string,
+export function setInputValue(
+  input: KasemInputElement,
+  value: string,
+  cursorPosition: number,
 ): void {
-  const start = input.selectionStart ?? input.value.length
-  const end = input.selectionEnd ?? input.value.length
-  const before = input.value.slice(0, start)
-  const after = input.value.slice(end)
-  const nativeInputValueSetter =
-    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')
-      ?.set ||
-    Object.getOwnPropertyDescriptor(
-      window.HTMLTextAreaElement.prototype,
-      'value',
-    )?.set
+  const setter = getValueSetter(input)
 
-  if (nativeInputValueSetter) {
-    nativeInputValueSetter.call(input, before + char + after)
+  if (setter) {
+    setter.call(input, value)
   } else {
-    input.value = before + char + after
+    input.value = value
   }
 
-  const newCursorPos = start + char.length
-  input.setSelectionRange(newCursorPos, newCursorPos)
-
+  input.setSelectionRange(cursorPosition, cursorPosition)
   input.dispatchEvent(new Event('input', { bubbles: true }))
   input.dispatchEvent(new Event('change', { bubbles: true }))
   input.focus()
+}
+
+export function insertAtCursor(input: KasemInputElement, char: string): void {
+  const start = input.selectionStart ?? input.value.length
+  const end = input.selectionEnd ?? input.value.length
+  const nextValue = `${input.value.slice(0, start)}${char}${input.value.slice(
+    end,
+  )}`
+
+  setInputValue(input, nextValue, start + char.length)
 }
 
 export function replaceAtCursor(
-  input: HTMLInputElement | HTMLTextAreaElement,
+  input: KasemInputElement,
   original: string,
   replacement: string,
 ): void {
-  const value = input.value
-  const cursorPos = input.selectionStart ?? value.length
-  const lastOccurrence = value.lastIndexOf(original, cursorPos)
-  if (lastOccurrence === -1) return
+  const cursor = input.selectionStart ?? input.value.length
+  const searchEnd = Math.max(cursor, original.length)
+  const lastOccurrence = input.value.lastIndexOf(original, searchEnd)
 
-  const before = value.slice(0, lastOccurrence)
-  const after = value.slice(lastOccurrence + original.length)
-  const nativeInputValueSetter =
-    Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')
-      ?.set ||
-    Object.getOwnPropertyDescriptor(
-      window.HTMLTextAreaElement.prototype,
-      'value',
-    )?.set
-
-  if (nativeInputValueSetter) {
-    nativeInputValueSetter.call(input, before + replacement + after)
-  } else {
-    input.value = before + replacement + after
+  if (lastOccurrence === -1 || lastOccurrence > cursor) {
+    return
   }
 
-  const newCursorPos = lastOccurrence + replacement.length
-  input.setSelectionRange(newCursorPos, newCursorPos)
+  const nextValue = `${input.value.slice(0, lastOccurrence)}${replacement}${input.value.slice(
+    lastOccurrence + original.length,
+  )}`
 
-  input.dispatchEvent(new Event('input', { bubbles: true }))
-  input.dispatchEvent(new Event('change', { bubbles: true }))
-  input.focus()
+  setInputValue(input, nextValue, lastOccurrence + replacement.length)
+}
+
+export function applyAutoReplaceAtCursor(
+  input: KasemInputElement,
+): string | null {
+  const start = input.selectionStart ?? input.value.length
+  const end = input.selectionEnd ?? start
+
+  if (start !== end) {
+    return null
+  }
+
+  const beforeCursor = input.value.slice(0, start)
+  const match = AUTO_REPLACE_RULES.find(({ pattern }) =>
+    beforeCursor.endsWith(pattern),
+  )
+
+  if (!match) {
+    return null
+  }
+
+  const replacementStart = start - match.pattern.length
+  const nextValue = `${input.value.slice(0, replacementStart)}${match.replacement}${input.value.slice(
+    start,
+  )}`
+
+  setInputValue(input, nextValue, replacementStart + match.replacement.length)
+
+  return match.replacement
+}
+
+export function getLongPressSuggestions(char: string): LongPressSuggestion[] {
+  return LONG_PRESS_MAP[char] ?? []
+}
+
+export function getContextSuggestions(textBeforeCursor: string): KasemSuggestion[] {
+  const lowerText = textBeforeCursor.toLowerCase()
+  const suggestions = CONTEXT_RULES.filter(({ trigger }) =>
+    lowerText.endsWith(trigger),
+  )
+
+  return suggestions.map((suggestion) => ({
+    id: `${suggestion.original}-${suggestion.replacement}`,
+    original: suggestion.original,
+    replacement: suggestion.replacement,
+    label: suggestion.label,
+    ariaLabel: `Replace ${suggestion.original} with ${suggestion.replacement}`,
+  }))
+}
+
+export function getCharacterBeforeCursor(
+  input: KasemInputElement,
+): string | null {
+  const cursor = input.selectionStart ?? input.value.length
+
+  if (cursor <= 0 || input.selectionEnd !== cursor) {
+    return null
+  }
+
+  return input.value[cursor - 1] ?? null
+}
+
+export function getTextBeforeCursor(input: KasemInputElement): string {
+  const cursor = input.selectionStart ?? input.value.length
+  return input.value.slice(0, cursor)
 }

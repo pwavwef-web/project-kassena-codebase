@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EmptyState } from '../../components/common/EmptyState'
+import { KasemKeyboard } from '../../components/KasemKeyboard'
 import { LoadingState } from '../../components/common/LoadingState'
 import { useAuth } from '../../hooks/useAuth'
 import {
@@ -11,6 +12,11 @@ import type { DictionaryEntry } from '../../types'
 
 export const AdminDictionaryPage = () => {
   const { appUser } = useAuth()
+  const editKasemTextRef = useRef<HTMLInputElement>(null)
+  const editPronunciationRef = useRef<HTMLInputElement>(null)
+  const editAlternateTermsRef = useRef<HTMLTextAreaElement>(null)
+  const editKasemExampleRef = useRef<HTMLTextAreaElement>(null)
+  const editCulturalNoteRef = useRef<HTMLTextAreaElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [entries, setEntries] = useState<DictionaryEntry[]>([])
   const [editingEntry, setEditingEntry] = useState<DictionaryEntry | null>(null)
@@ -217,31 +223,52 @@ export const AdminDictionaryPage = () => {
                   className="w-full rounded-lg border border-kassena-cream px-3 py-2"
                 />
               </label>
-              <label className="space-y-1 text-sm">
-                <span>Kasem text</span>
-                <input
-                  value={editValues.kasemText}
-                  onChange={(e) => setEditValues((prev) => ({ ...prev, kasemText: e.target.value }))}
-                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+              <div>
+                <label className="space-y-1 text-sm">
+                  <span>Kasem text</span>
+                  <input
+                    ref={editKasemTextRef}
+                    value={editValues.kasemText}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, kasemText: e.target.value }))}
+                    className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                  />
+                </label>
+                <KasemKeyboard
+                  inputRef={editKasemTextRef}
+                  context="admin_dictionary_kasem_text"
                 />
-              </label>
-              <label className="space-y-1 text-sm">
-                <span>Pronunciation</span>
-                <input
-                  value={editValues.pronunciation}
-                  onChange={(e) => setEditValues((prev) => ({ ...prev, pronunciation: e.target.value }))}
-                  placeholder="/lám/"
-                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+              </div>
+              <div>
+                <label className="space-y-1 text-sm">
+                  <span>Pronunciation</span>
+                  <input
+                    ref={editPronunciationRef}
+                    value={editValues.pronunciation}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, pronunciation: e.target.value }))}
+                    placeholder="/lam/"
+                    className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                  />
+                </label>
+                <KasemKeyboard
+                  inputRef={editPronunciationRef}
+                  context="admin_dictionary_pronunciation"
                 />
-              </label>
-              <label className="space-y-1 text-sm">
-                <span>Alternative spellings</span>
-                <textarea
-                  value={editValues.alternateKasemTerms}
-                  onChange={(e) => setEditValues((prev) => ({ ...prev, alternateKasemTerms: e.target.value }))}
-                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+              </div>
+              <div>
+                <label className="space-y-1 text-sm">
+                  <span>Alternative spellings</span>
+                  <textarea
+                    ref={editAlternateTermsRef}
+                    value={editValues.alternateKasemTerms}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, alternateKasemTerms: e.target.value }))}
+                    className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                  />
+                </label>
+                <KasemKeyboard
+                  inputRef={editAlternateTermsRef}
+                  context="admin_dictionary_alternate_terms"
                 />
-              </label>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <label className="space-y-1 text-sm">
                   <span>English example</span>
@@ -251,23 +278,37 @@ export const AdminDictionaryPage = () => {
                     className="w-full rounded-lg border border-kassena-cream px-3 py-2"
                   />
                 </label>
+                <div>
+                  <label className="space-y-1 text-sm">
+                    <span>Kasem example</span>
+                    <textarea
+                      ref={editKasemExampleRef}
+                      value={editValues.kasemExample}
+                      onChange={(e) => setEditValues((prev) => ({ ...prev, kasemExample: e.target.value }))}
+                      className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                    />
+                  </label>
+                  <KasemKeyboard
+                    inputRef={editKasemExampleRef}
+                    context="admin_dictionary_kasem_example"
+                  />
+                </div>
+              </div>
+              <div>
                 <label className="space-y-1 text-sm">
-                  <span>Kasem example</span>
+                  <span>Cultural note</span>
                   <textarea
-                    value={editValues.kasemExample}
-                    onChange={(e) => setEditValues((prev) => ({ ...prev, kasemExample: e.target.value }))}
+                    ref={editCulturalNoteRef}
+                    value={editValues.culturalNote}
+                    onChange={(e) => setEditValues((prev) => ({ ...prev, culturalNote: e.target.value }))}
                     className="w-full rounded-lg border border-kassena-cream px-3 py-2"
                   />
                 </label>
-              </div>
-              <label className="space-y-1 text-sm">
-                <span>Cultural note</span>
-                <textarea
-                  value={editValues.culturalNote}
-                  onChange={(e) => setEditValues((prev) => ({ ...prev, culturalNote: e.target.value }))}
-                  className="w-full rounded-lg border border-kassena-cream px-3 py-2"
+                <KasemKeyboard
+                  inputRef={editCulturalNoteRef}
+                  context="admin_dictionary_cultural_note"
                 />
-              </label>
+              </div>
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
