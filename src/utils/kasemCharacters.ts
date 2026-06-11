@@ -11,12 +11,6 @@ export const KASEM_CRITICAL_CHARS: KasemCharacter[] = [
   { char: 'Ɔ', label: 'Ɔ', ariaLabel: 'Insert Open O (Ɔ)', group: 'critical' },
   { char: 'ɔ', label: 'ɔ', ariaLabel: 'Insert Open O (ɔ)', group: 'critical' },
   {
-    char: 'Ŋ',
-    label: 'Ŋ',
-    ariaLabel: 'Insert Eng Character (Ŋ)',
-    group: 'critical',
-  },
-  {
     char: 'ŋ',
     label: 'ŋ',
     ariaLabel: 'Insert Eng Character (ŋ)',
@@ -70,10 +64,6 @@ export const LONG_PRESS_MAP: Record<string, LongPressSuggestion[]> = {
     { char: 'n', label: 'n', ariaLabel: 'Keep letter n' },
     { char: 'ŋ', label: 'ŋ', ariaLabel: 'Replace with eng character (ŋ)' },
   ],
-  N: [
-    { char: 'N', label: 'N', ariaLabel: 'Keep letter N' },
-    { char: 'Ŋ', label: 'Ŋ', ariaLabel: 'Replace with Eng Character (Ŋ)' },
-  ],
   a: [
     { char: 'a', label: 'a', ariaLabel: 'Keep letter a' },
     { char: 'á', label: 'á', ariaLabel: 'Replace with a acute (á)' },
@@ -124,8 +114,8 @@ const CONTEXT_RULES: Array<{
 
 const AUTO_REPLACE_RULES: Array<{ pattern: string; replacement: string }> = [
   { pattern: 'ng', replacement: 'ŋ' },
-  { pattern: 'Ng', replacement: 'Ŋ' },
-  { pattern: 'NG', replacement: 'Ŋ' },
+  { pattern: 'Ng', replacement: 'ŋ' },
+  { pattern: 'NG', replacement: 'ŋ' },
   { pattern: 'ee', replacement: 'ɛ' },
   { pattern: 'EE', replacement: 'Ɛ' },
   { pattern: 'oo', replacement: 'ɔ' },
