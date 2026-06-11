@@ -31,16 +31,19 @@ import type {
   AppSettings,
   AuditLog,
   AuditLogRecord,
+  CampaignMetrics,
   CommunityRecognition,
   ContributorLevel,
   Contribution,
   ContributionVoiceRecording,
   DashboardMetrics,
   DictionaryEntry,
+  Donation,
   FileMetadata,
   LeaderboardPeriod,
   LeaderboardProfile,
   PublicDashboardMetrics,
+  PublicSupporter,
   RankedLeaderboardProfile,
   RecentlyViewedWord,
   RewardAchievement,
@@ -49,6 +52,7 @@ import type {
   RewardRedemption,
   ReviewStatus,
   SearchHistoryEntry,
+  SponsorLead,
   UploadRecord,
   UserFavorite,
   UserRole,
@@ -56,6 +60,7 @@ import type {
 } from '../types'
 
 const publicDashboardMetricsRef = doc(db, 'publicStats', 'overview')
+const campaignMetricsRef = doc(db, 'campaignMetrics', 'overview')
 const contributionApprovalBasePoints = 50
 const uploadApprovalPoints = 100
 const leaderboardPointFieldByPeriod: Record<
@@ -81,6 +86,136 @@ const asString = (value: unknown, fallback = ''): string =>
 
 const asBoolean = (value: unknown, fallback = false): boolean =>
   typeof value === 'boolean' ? value : fallback
+
+const defaultCampaignMetrics: CampaignMetrics = {
+  totalRaised: 0,
+  goalAmount: 25000,
+  contributorsFunded: 0,
+  validatorsFunded: 0,
+  entriesSupported: 0,
+  schoolsReached: 0,
+  wordsCollected: 0,
+  validatedEntries: 0,
+  contributors: 0,
+  communitiesReached: 0,
+  contributorRewardsPaid: 0,
+  storiesDocumented: 0,
+  audioHoursRecorded: 0,
+}
+
+const donationTiers = [
+  'language-friend',
+  'community-supporter',
+  'language-champion',
+  'cultural-guardian',
+  'strategic-supporter',
+  'data-drive',
+  'custom',
+] as const
+
+const donationStatuses = ['pending', 'paid', 'failed'] as const
+const sponsorStatuses = ['new', 'contacted', 'converted', 'closed'] as const
+
+const asDonationTier = (value: unknown): Donation['tier'] =>
+  typeof value === 'string' && donationTiers.includes(value as Donation['tier'])
+    ? (value as Donation['tier'])
+    : 'custom'
+
+const asDonationStatus = (value: unknown): Donation['status'] =>
+  typeof value === 'string' &&
+  donationStatuses.includes(value as Donation['status'])
+    ? (value as Donation['status'])
+    : 'pending'
+
+const asSponsorStatus = (value: unknown): SponsorLead['status'] =>
+  typeof value === 'string' &&
+  sponsorStatuses.includes(value as SponsorLead['status'])
+    ? (value as SponsorLead['status'])
+    : 'new'
+
+const normalizeCampaignMetrics = (
+  data: Record<string, unknown> = {},
+): CampaignMetrics => ({
+  totalRaised: asNumber(data.totalRaised),
+  goalAmount: asNumber(data.goalAmount) || defaultCampaignMetrics.goalAmount,
+  contributorsFunded: asNumber(data.contributorsFunded),
+  validatorsFunded: asNumber(data.validatorsFunded),
+  entriesSupported: asNumber(data.entriesSupported),
+  schoolsReached: asNumber(data.schoolsReached),
+  wordsCollected: asNumber(data.wordsCollected),
+  validatedEntries: asNumber(data.validatedEntries),
+  contributors: asNumber(data.contributors),
+  communitiesReached: asNumber(data.communitiesReached),
+  contributorRewardsPaid: asNumber(data.contributorRewardsPaid),
+  storiesDocumented: asNumber(data.storiesDocumented),
+  audioHoursRecorded: asNumber(data.audioHoursRecorded),
+})
+
+const normalizeDonation = (
+  id: string,
+  data: Record<string, unknown>,
+): Donation => ({
+  id,
+  userId: typeof data.userId === 'string' ? data.userId : null,
+  name: asString(data.name, 'Anonymous Supporter'),
+  email: asString(data.email),
+  country: asString(data.country, 'Ghana'),
+  amount: asNumber(data.amount),
+  currency: data.currency === 'GHS' ? 'GHS' : 'GHS',
+  tier: asDonationTier(data.tier),
+  message: asString(data.message),
+  anonymous: asBoolean(data.anonymous),
+  publicDisplay: asBoolean(data.publicDisplay),
+  reference: asString(data.reference),
+  status: asDonationStatus(data.status),
+  createdAt:
+    data.createdAt && typeof data.createdAt === 'object'
+      ? (data.createdAt as Donation['createdAt'])
+      : null,
+  updatedAt:
+    data.updatedAt && typeof data.updatedAt === 'object'
+      ? (data.updatedAt as Donation['updatedAt'])
+      : null,
+})
+
+const normalizePublicSupporter = (
+  id: string,
+  data: Record<string, unknown>,
+): PublicSupporter => ({
+  id,
+  donationId: asString(data.donationId),
+  name: asString(data.name, 'Project Kasena Supporter'),
+  amount: asNumber(data.amount),
+  currency: data.currency === 'GHS' ? 'GHS' : 'GHS',
+  tier: asDonationTier(data.tier),
+  reference: asString(data.reference),
+  createdAt:
+    data.createdAt && typeof data.createdAt === 'object'
+      ? (data.createdAt as PublicSupporter['createdAt'])
+      : null,
+})
+
+const normalizeSponsorLead = (
+  id: string,
+  data: Record<string, unknown>,
+): SponsorLead => ({
+  id,
+  organization: asString(data.organization, 'Unnamed organization'),
+  amount: asNumber(data.amount),
+  package: asString(data.package, 'Sponsorship inquiry'),
+  contactName: asString(data.contactName),
+  contactEmail: asString(data.contactEmail),
+  message: asString(data.message),
+  status: asSponsorStatus(data.status),
+  createdAt:
+    data.createdAt && typeof data.createdAt === 'object'
+      ? (data.createdAt as SponsorLead['createdAt'])
+      : null,
+  updatedAt:
+    data.updatedAt && typeof data.updatedAt === 'object'
+      ? (data.updatedAt as SponsorLead['updatedAt'])
+      : null,
+})
 
 const asUserRole = (value: unknown): UserRole | undefined =>
   value === 'contributor' || value === 'validator' || value === 'admin'
@@ -147,9 +282,7 @@ const normalizeLeaderboardProfile = (
             uniqueDialects,
           }),
     approvedExampleSentences: asNumber(data.approvedExampleSentences),
-    approvedCulturalContributions: asNumber(
-      data.approvedCulturalContributions,
-    ),
+    approvedCulturalContributions: asNumber(data.approvedCulturalContributions),
     uniqueDialects,
     badgeTitle:
       typeof data.badgeTitle === 'string' && data.badgeTitle.trim()
@@ -847,6 +980,173 @@ export const setContributionVoiceData = async (
     voiceRecordings: payload.voiceRecordings,
     updatedAt: serverTimestamp(),
   })
+}
+
+export const getDefaultCampaignMetrics = (): CampaignMetrics => ({
+  ...defaultCampaignMetrics,
+})
+
+export const getCampaignMetrics = async (): Promise<CampaignMetrics> => {
+  const snapshot = await getDoc(campaignMetricsRef)
+
+  return snapshot.exists()
+    ? normalizeCampaignMetrics(snapshot.data())
+    : getDefaultCampaignMetrics()
+}
+
+export const subscribeToCampaignMetrics = (
+  onChange: (metrics: CampaignMetrics) => void,
+  onError: (error: Error) => void,
+): Unsubscribe =>
+  onSnapshot(
+    campaignMetricsRef,
+    (snapshot) => {
+      onChange(
+        snapshot.exists()
+          ? normalizeCampaignMetrics(snapshot.data())
+          : getDefaultCampaignMetrics(),
+      )
+    },
+    onError,
+  )
+
+export const subscribeToPublicDashboardMetrics = (
+  onChange: (metrics: PublicDashboardMetrics) => void,
+  onError: (error: Error) => void,
+): Unsubscribe =>
+  onSnapshot(
+    publicDashboardMetricsRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onChange({
+          totalSubmissions: 0,
+          approvedEntries: 0,
+          pendingReview: 0,
+          activeContributors: 0,
+          approvedMediaItems: 0,
+        })
+        return
+      }
+
+      const data = snapshot.data() as Partial<PublicDashboardMetrics>
+
+      onChange({
+        totalSubmissions: data.totalSubmissions ?? 0,
+        approvedEntries: data.approvedEntries ?? 0,
+        pendingReview: data.pendingReview ?? 0,
+        activeContributors: data.activeContributors ?? 0,
+        approvedMediaItems: data.approvedMediaItems ?? 0,
+      })
+    },
+    onError,
+  )
+
+export const createDonation = async (
+  payload: Omit<Donation, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<string> => {
+  const donationRef = await addDoc(collection(db, 'donations'), {
+    ...payload,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  return donationRef.id
+}
+
+export const listDonations = async (): Promise<Donation[]> => {
+  const snapshot = await getDocs(
+    query(collection(db, 'donations'), orderBy('createdAt', 'desc')),
+  )
+
+  return snapshot.docs.map((item) => normalizeDonation(item.id, item.data()))
+}
+
+export const subscribeToRecentSupporters = (
+  onChange: (supporters: PublicSupporter[]) => void,
+  onError: (error: Error) => void,
+  maxItems = 6,
+): Unsubscribe =>
+  onSnapshot(
+    query(
+      collection(db, 'publicSupporters'),
+      orderBy('createdAt', 'desc'),
+      limit(maxItems),
+    ),
+    (snapshot) => {
+      onChange(
+        snapshot.docs.map((item) =>
+          normalizePublicSupporter(item.id, item.data()),
+        ),
+      )
+    },
+    onError,
+  )
+
+export const createSponsorLead = async (
+  payload: Omit<SponsorLead, 'id' | 'createdAt' | 'updatedAt' | 'status'> & {
+    status?: SponsorLead['status']
+  },
+): Promise<string> => {
+  const sponsorRef = await addDoc(collection(db, 'sponsors'), {
+    ...payload,
+    status: payload.status ?? 'new',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  return sponsorRef.id
+}
+
+export const subscribeToDonationAdminDashboard = (
+  onChange: (payload: {
+    metrics: CampaignMetrics
+    donations: Donation[]
+    sponsors: SponsorLead[]
+  }) => void,
+  onError: (error: Error) => void,
+): Unsubscribe => {
+  let metrics = getDefaultCampaignMetrics()
+  let donations: Donation[] = []
+  let sponsors: SponsorLead[] = []
+
+  const emit = () => onChange({ metrics, donations, sponsors })
+
+  const subscriptions = [
+    subscribeToCampaignMetrics((nextMetrics) => {
+      metrics = nextMetrics
+      emit()
+    }, onError),
+    onSnapshot(
+      query(
+        collection(db, 'donations'),
+        orderBy('createdAt', 'desc'),
+        limit(300),
+      ),
+      (snapshot) => {
+        donations = snapshot.docs.map((item) =>
+          normalizeDonation(item.id, item.data()),
+        )
+        emit()
+      },
+      onError,
+    ),
+    onSnapshot(
+      query(
+        collection(db, 'sponsors'),
+        orderBy('createdAt', 'desc'),
+        limit(100),
+      ),
+      (snapshot) => {
+        sponsors = snapshot.docs.map((item) =>
+          normalizeSponsorLead(item.id, item.data()),
+        )
+        emit()
+      },
+      onError,
+    ),
+  ]
+
+  return () => subscriptions.forEach((unsubscribe) => unsubscribe())
 }
 
 export const listApprovedDictionaryEntries = async (
@@ -1610,18 +1910,15 @@ export const listUserFavorites = async (
   userId: string,
 ): Promise<UserFavorite[]> => {
   const snapshot = await getDocs(
-    query(
-      collection(db, 'userFavorites'),
-      where('userId', '==', userId),
-    ),
+    query(collection(db, 'userFavorites'), where('userId', '==', userId)),
   )
-  return snapshot.docs.map(
-    (item) => ({ id: item.id, ...item.data() }) as UserFavorite,
-  ).sort(
-    (first, second) =>
-      (second.createdAt?.toMillis() ?? 0) -
-      (first.createdAt?.toMillis() ?? 0),
-  )
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as UserFavorite)
+    .sort(
+      (first, second) =>
+        (second.createdAt?.toMillis() ?? 0) -
+        (first.createdAt?.toMillis() ?? 0),
+    )
 }
 
 export const addRecentlyViewed = async (
@@ -1730,7 +2027,7 @@ export const listRelatedWords = async (
   )
 
   return snapshot.docs
-    .map((item) => ({ id: item.id, ...item.data() } as DictionaryEntry))
+    .map((item) => ({ id: item.id, ...item.data() }) as DictionaryEntry)
     .filter((entry) => entry.id !== excludeId)
     .slice(0, 8)
 }
@@ -1868,8 +2165,18 @@ export const getDictionaryAnalytics = async (): Promise<{
   totalViews: number
   totalFavorites: number
   totalCorrections: number
-  mostViewedWords: Array<{ entryId: string; englishText: string; kasemText: string; viewCount: number }>
-  mostFavoritedWords: Array<{ entryId: string; englishText: string; kasemText: string; favCount: number }>
+  mostViewedWords: Array<{
+    entryId: string
+    englishText: string
+    kasemText: string
+    viewCount: number
+  }>
+  mostFavoritedWords: Array<{
+    entryId: string
+    englishText: string
+    kasemText: string
+    favCount: number
+  }>
 }> => {
   const [searchesSnapshot, viewsSnapshot, favoritesSnapshot] =
     await Promise.all([
@@ -1915,7 +2222,14 @@ export const getDictionaryAnalytics = async (): Promise<{
 
   const enrichTopWords = async (
     entries: Array<[string, number]>,
-  ): Promise<Array<{ entryId: string; englishText: string; kasemText: string; count: number }>> => {
+  ): Promise<
+    Array<{
+      entryId: string
+      englishText: string
+      kasemText: string
+      count: number
+    }>
+  > => {
     const enriched = await Promise.all(
       entries.map(async ([entryId, count]) => {
         const entry = await getDictionaryEntry(entryId)

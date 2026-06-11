@@ -9,6 +9,7 @@ import { MainLayout } from '../components/layout/MainLayout'
 import { AdminAnnouncementsPage } from '../pages/admin/AdminAnnouncementsPage'
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 import { AdminDictionaryPage } from '../pages/admin/AdminDictionaryPage'
+import { AdminDonationsPage } from '../pages/admin/AdminDonationsPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminSubmissionsPage } from '../pages/admin/AdminSubmissionsPage'
 import { AdminUploadsPage } from '../pages/admin/AdminUploadsPage'
@@ -20,6 +21,8 @@ import { ContributionsPage } from '../pages/ContributionsPage'
 import { CulturePage } from '../pages/CulturePage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { DictionaryPage } from '../pages/DictionaryPage'
+import { DonatePage } from '../pages/DonatePage'
+import { DonationSuccessPage } from '../pages/DonationSuccessPage'
 import { HomePage } from '../pages/HomePage'
 import { LeaderboardPage } from '../pages/LeaderboardPage'
 import { LoginPage } from '../pages/LoginPage'
@@ -27,6 +30,7 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { RewardsPage } from '../pages/RewardsPage'
 import { SubmitContributionPage } from '../pages/SubmitContributionPage'
+import { SupportPage } from '../pages/SupportPage'
 import { UploadsPage } from '../pages/UploadsPage'
 
 export const router = createBrowserRouter([
@@ -37,6 +41,9 @@ export const router = createBrowserRouter([
       { path: '/login', element: <LoginPage /> },
       { path: '/dictionary', element: <DictionaryPage /> },
       { path: '/culture', element: <CulturePage /> },
+      { path: '/support', element: <SupportPage /> },
+      { path: '/support/donate', element: <DonatePage /> },
+      { path: '/support/success', element: <DonationSuccessPage /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -68,6 +75,7 @@ export const router = createBrowserRouter([
                 children: [
                   { path: 'users', element: <AdminUsersPage /> },
                   { path: 'dictionary', element: <AdminDictionaryPage /> },
+                  { path: 'donations', element: <AdminDonationsPage /> },
                   {
                     path: 'announcements',
                     element: <AdminAnnouncementsPage />,

@@ -234,6 +234,77 @@ export interface Contribution {
   attachedFiles: FileMetadata[]
 }
 
+export type DonationStatus = 'pending' | 'paid' | 'failed'
+
+export type DonationTier =
+  | 'language-friend'
+  | 'community-supporter'
+  | 'language-champion'
+  | 'cultural-guardian'
+  | 'strategic-supporter'
+  | 'data-drive'
+  | 'custom'
+
+export interface Donation {
+  id: string
+  userId: string | null
+  name: string
+  email: string
+  country: string
+  amount: number
+  currency: 'GHS'
+  tier: DonationTier
+  message?: string
+  anonymous: boolean
+  publicDisplay: boolean
+  reference: string
+  status: DonationStatus
+  createdAt: Timestamp | null
+  updatedAt: Timestamp | null
+}
+
+export interface CampaignMetrics {
+  totalRaised: number
+  goalAmount: number
+  contributorsFunded: number
+  validatorsFunded: number
+  entriesSupported: number
+  schoolsReached: number
+  wordsCollected: number
+  validatedEntries: number
+  contributors: number
+  communitiesReached: number
+  contributorRewardsPaid: number
+  storiesDocumented: number
+  audioHoursRecorded: number
+}
+
+export interface PublicSupporter {
+  id: string
+  donationId: string
+  name: string
+  amount: number
+  currency: 'GHS'
+  tier: DonationTier
+  reference: string
+  createdAt: Timestamp | null
+}
+
+export type SponsorStatus = 'new' | 'contacted' | 'converted' | 'closed'
+
+export interface SponsorLead {
+  id: string
+  organization: string
+  amount: number
+  package: string
+  contactName: string
+  contactEmail: string
+  message?: string
+  status: SponsorStatus
+  createdAt: Timestamp | null
+  updatedAt: Timestamp | null
+}
+
 export interface DictionaryEntry {
   id: string
   englishText: string
@@ -362,6 +433,16 @@ export interface DictionaryAnalytics {
   totalViews: number
   totalFavorites: number
   totalCorrections: number
-  mostViewedWords: Array<{ entryId: string; englishText: string; kasemText: string; viewCount: number }>
-  mostFavoritedWords: Array<{ entryId: string; englishText: string; kasemText: string; favCount: number }>
+  mostViewedWords: Array<{
+    entryId: string
+    englishText: string
+    kasemText: string
+    viewCount: number
+  }>
+  mostFavoritedWords: Array<{
+    entryId: string
+    englishText: string
+    kasemText: string
+    favCount: number
+  }>
 }

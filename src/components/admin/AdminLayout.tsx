@@ -9,6 +9,7 @@ type AdminIconName =
   | 'book'
   | 'clipboard'
   | 'globe'
+  | 'heart'
   | 'home'
   | 'settings'
   | 'upload'
@@ -27,6 +28,7 @@ const adminItems: AdminNavItem[] = [
   { to: '/admin/uploads', label: 'Uploads', icon: 'upload' },
   { to: '/admin/announcements', label: 'Announcements', icon: 'bell' },
   { to: '/admin/dictionary', label: 'Dictionary', icon: 'book' },
+  { to: '/admin/donations', label: 'Donations', icon: 'heart' },
   { to: '/admin/users', label: 'Users', icon: 'users' },
   { to: '/admin/settings', label: 'Settings', icon: 'settings' },
   { to: '/', label: 'Back to Home', icon: 'globe' },
@@ -90,6 +92,11 @@ const AdminIcon = ({
         <path d="M12 2a15.3 15.3 0 0 0 0 20" />
       </>
     ),
+    heart: (
+      <>
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+      </>
+    ),
     home: (
       <>
         <path d="m3 11 9-8 9 8" />
@@ -149,7 +156,10 @@ export const AdminLayout = () => {
       return location.pathname === item.to
     }
 
-    return location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
+    return (
+      location.pathname === item.to ||
+      location.pathname.startsWith(`${item.to}/`)
+    )
   }
 
   const renderAdminNav = () => (

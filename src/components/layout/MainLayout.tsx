@@ -29,6 +29,11 @@ const navItems = [
     icon: navIcon('upload'),
   },
   {
+    label: 'Support',
+    to: '/support',
+    icon: navIcon('heart'),
+  },
+  {
     label: 'Profile',
     to: '/profile',
     icon: navIcon('user'),
@@ -45,6 +50,11 @@ const mobileNavItems = [
     label: 'Contribute',
     to: '/contributions',
     icon: navIcon('upload', 'h-11 w-11'),
+  },
+  {
+    label: 'Support',
+    to: '/support',
+    icon: navIcon('heart', 'h-11 w-11'),
   },
   {
     label: 'Learn',
@@ -71,16 +81,19 @@ export const MainLayout = () => {
   const isLeaderboardRoute = location.pathname === '/leaderboard'
   const isProfileRoute = location.pathname === '/profile'
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const isSupportRoute = location.pathname.startsWith('/support')
   const isImmersiveMobileRoute = isRewardsRoute || isLeaderboardRoute
   const mainClassName = isAdminRoute
     ? 'max-w-none px-0 py-0 animate-fade-in'
-    : isRewardsRoute
-      ? 'mx-auto max-w-none px-0 py-0 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
-      : isLeaderboardRoute
-        ? 'mx-auto max-w-none px-4 py-5 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
-        : isHomeRoute || isProfileRoute
-          ? 'mx-auto max-w-6xl px-3 py-3 animate-fade-in sm:px-4 sm:py-5 md:px-4 md:py-6'
-          : 'mx-auto max-w-6xl px-4 py-6 animate-fade-in'
+    : isSupportRoute
+      ? 'max-w-none px-0 py-0 animate-fade-in'
+      : isRewardsRoute
+        ? 'mx-auto max-w-none px-0 py-0 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
+        : isLeaderboardRoute
+          ? 'mx-auto max-w-none px-4 py-5 animate-fade-in md:max-w-6xl md:px-4 md:py-6'
+          : isHomeRoute || isProfileRoute
+            ? 'mx-auto max-w-6xl px-3 py-3 animate-fade-in sm:px-4 sm:py-5 md:px-4 md:py-6'
+            : 'mx-auto max-w-6xl px-4 py-6 animate-fade-in'
   const initials =
     appUser?.displayName
       .split(' ')
@@ -92,7 +105,9 @@ export const MainLayout = () => {
   return (
     <div className="min-h-screen bg-kassena-bg text-slate-800 pb-20 md:pb-0">
       {/* Top Header */}
-      <header className={`${isAdminRoute ? 'hidden' : isImmersiveMobileRoute || isHomeRoute || isProfileRoute ? 'hidden md:block' : ''} sticky top-0 z-50 border-b border-kassena-cream bg-white/80 backdrop-blur-md shadow-sm`}>
+      <header
+        className={`${isAdminRoute ? 'hidden' : isImmersiveMobileRoute || isHomeRoute || isProfileRoute ? 'hidden md:block' : ''} sticky top-0 z-50 border-b border-kassena-cream bg-white/80 backdrop-blur-md shadow-sm`}
+      >
         {!isFirebaseConfigured ? (
           <div className="bg-amber-100 px-4 py-2 text-center text-xs text-amber-800">
             Firebase is not configured. Add values in .env.local to enable
@@ -100,7 +115,10 @@ export const MainLayout = () => {
           </div>
         ) : null}
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="text-lg font-bold text-kassena-green flex items-center gap-2">
+          <Link
+            to="/"
+            className="text-lg font-bold text-kassena-green flex items-center gap-2"
+          >
             <span className="bg-gradient-to-r from-kassena-green to-kassena-orange bg-clip-text text-transparent">
               TribeStudio
             </span>
@@ -172,7 +190,9 @@ export const MainLayout = () => {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className={`${isAdminRoute ? 'hidden' : 'fixed'} bottom-3 left-4 right-4 z-50 flex items-center justify-around rounded-[24px] border border-kassena-cream bg-white/95 px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur-lg shadow-[0_14px_38px_rgba(62,39,16,0.16)] md:hidden`}>
+      <nav
+        className={`${isAdminRoute ? 'hidden' : 'fixed'} bottom-3 left-4 right-4 z-50 flex items-center justify-around rounded-[24px] border border-kassena-cream bg-white/95 px-2 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur-lg shadow-[0_14px_38px_rgba(62,39,16,0.16)] md:hidden`}
+      >
         {mobileNavItems.map((item) => (
           <NavLink
             key={item.to}

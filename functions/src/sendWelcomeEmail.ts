@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions/v1";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { defineSecret } from "firebase-functions/params";
 import * as logger from "firebase-functions/logger";
 import type * as nodemailer from "nodemailer";
@@ -9,10 +9,13 @@ const APP_URL = "https://project-kassena-7e026.web.app";
 const LOGO_URL = `${APP_URL}/favicon.png`;
 const SIGNUP_ALERT_RECIPIENT = "francis@azlearner.me";
 
-export const sendWelcomeEmail = functions
-  .runWith({secrets: [SMTP_PASS]})
-  .firestore.document("users/{userId}")
-  .onCreate(async (snap, context) => {
+export const sendWelcomeEmail = onDocumentCreated(
+  {
+    document: "users/{userId}",
+    secrets: [SMTP_PASS],
+  },
+  async (event) => {
+    const snap = event.data;
 
     if (!snap) {
       logger.warn("No data in Firestore event for users document.");
@@ -21,9 +24,10 @@ export const sendWelcomeEmail = functions
 
     const userData = snap.data();
     const { email, displayName } = userData;
+    const userId = event.params.userId;
 
     if (!email) {
-      logger.warn(`No email found for new user ${context.params.userId}. Skipping welcome email.`);
+      logger.warn(`No email found for new user ${userId}. Skipping welcome email.`);
       return;
     }
 
@@ -55,7 +59,7 @@ export const sendWelcomeEmail = functions
       logoUrl: LOGO_URL,
       photoURL: userData.photoURL,
       role: userData.role,
-      uid: context.params.userId,
+      uid: userId,
       userData,
     });
 
@@ -86,4 +90,5 @@ export const sendWelcomeEmail = functions
     } catch (error) {
       logger.error(`Failed to send welcome email to ${email}:`, error);
     }
-  });
+  },
+);

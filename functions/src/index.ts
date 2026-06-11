@@ -1,1 +1,2 @@
-export {sendWelcomeEmail} from "./sendWelcomeEmail";
+export { sendWelcomeEmail } from './sendWelcomeEmail'
+export { verifyPaystackDonation } from './paystackDonation'
