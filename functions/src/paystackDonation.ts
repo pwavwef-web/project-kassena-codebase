@@ -3,6 +3,10 @@ import { FieldValue, getFirestore } from 'firebase-admin/firestore'
 import { defineSecret } from 'firebase-functions/params'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import * as logger from 'firebase-functions/logger'
+import {
+  DONATION_EMAIL_SMTP_PASS,
+  sendDonationThankYouEmail,
+} from './sendDonationThankYouEmail.js'
 
 const PAYSTACK_SECRET_KEY = defineSecret('PAYSTACK_SECRET_KEY')
 const DEFAULT_CAMPAIGN_GOAL = 25000
@@ -21,6 +25,14 @@ interface PaystackVerifyResponse {
     reference?: string
     status?: string
   }
+}
+
+type DonationThankYouPayload = {
+  amount: number
+  date: string
+  email: string
+  name: string
+  reference: string
 }
 
 const db = getFirestore()
@@ -43,8 +55,24 @@ const getRequiredString = (
   return value.trim()
 }
 
+const getOptionalString = (value: unknown): string =>
+  typeof value === 'string' ? value.trim() : ''
+
+const getThankYouEmailStatus = (value: unknown): string => {
+  if (!value || typeof value !== 'object' || !('status' in value)) {
+    return ''
+  }
+
+  const status = (value as { status?: unknown }).status
+
+  return typeof status === 'string' ? status : ''
+}
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
+
 export const verifyPaystackDonation = onCall(
-  { secrets: [PAYSTACK_SECRET_KEY] },
+  { secrets: [PAYSTACK_SECRET_KEY, DONATION_EMAIL_SMTP_PASS] },
   async (request) => {
     const payload =
       request.data && typeof request.data === 'object'
@@ -85,6 +113,8 @@ export const verifyPaystackDonation = onCall(
 
     const verifiedStatus = body.data?.status === 'success' ? 'paid' : 'failed'
     let verifiedAmount = toGhs(body.data?.amount)
+    const paidAt = body.data?.paid_at || new Date().toISOString()
+    let thankYouEmailPayload: DonationThankYouPayload | null = null
     const donationRef = db.collection('donations').doc(donationId)
     const metricsRef = db.collection('campaignMetrics').doc('overview')
     const publicSupporterRef = db.collection('publicSupporters').doc(donationId)
@@ -106,6 +136,9 @@ export const verifyPaystackDonation = onCall(
       }
 
       const previousStatus = donation.status
+      const thankYouEmailStatus = getThankYouEmailStatus(
+        donation.thankYouEmail,
+      )
       verifiedAmount =
         typeof donation.amount === 'number' && Number.isFinite(donation.amount)
           ? donation.amount
@@ -140,6 +173,29 @@ export const verifyPaystackDonation = onCall(
         )
       }
 
+      if (verifiedStatus === 'paid' && thankYouEmailStatus !== 'sent') {
+        const donorEmail = getOptionalString(donation.email)
+
+        if (donorEmail) {
+          thankYouEmailPayload = {
+            amount: verifiedAmount,
+            date: paidAt,
+            email: donorEmail,
+            name:
+              getOptionalString(donation.name) || 'Project Kasena Supporter',
+            reference,
+          }
+        } else {
+          logger.warn(
+            'Donation paid but no donor email found; thank-you email skipped.',
+            {
+              donationId,
+              reference,
+            },
+          )
+        }
+      }
+
       if (verifiedStatus === 'paid' && donation.publicDisplay === true) {
         transaction.set(
           publicSupporterRef,
@@ -162,6 +218,61 @@ export const verifyPaystackDonation = onCall(
         )
       }
     })
+
+    if (thankYouEmailPayload) {
+      try {
+        const delivery = await sendDonationThankYouEmail(thankYouEmailPayload)
+
+        await donationRef.set(
+          {
+            thankYouEmail: {
+              attempts: delivery.attempts,
+              messageId: delivery.messageId || null,
+              sentAt: FieldValue.serverTimestamp(),
+              status: 'sent',
+              updatedAt: FieldValue.serverTimestamp(),
+            },
+          },
+          { merge: true },
+        )
+
+        logger.info('Donation thank-you email delivery recorded.', {
+          attempts: delivery.attempts,
+          donationId,
+          reference,
+        })
+      } catch (error) {
+        logger.error('Donation thank-you email could not be delivered.', {
+          donationId,
+          error: getErrorMessage(error),
+          reference,
+        })
+
+        await donationRef
+          .set(
+            {
+              thankYouEmail: {
+                attempts: 3,
+                error: getErrorMessage(error),
+                failedAt: FieldValue.serverTimestamp(),
+                status: 'failed',
+                updatedAt: FieldValue.serverTimestamp(),
+              },
+            },
+            { merge: true },
+          )
+          .catch((statusError) => {
+            logger.error(
+              'Failed to record donation thank-you email status.',
+              {
+                donationId,
+                error: getErrorMessage(statusError),
+                reference,
+              },
+            )
+          })
+      }
+    }
 
     return {
       amount: verifiedAmount,
