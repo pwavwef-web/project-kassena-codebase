@@ -16,6 +16,7 @@ export const FavoritesTab = () => {
 
   useEffect(() => {
     if (!appUser || !userId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- guard clause: end loading when there is no signed-in user.
       setIsLoading(false)
       return
     }

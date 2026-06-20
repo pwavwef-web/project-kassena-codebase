@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /complete-profile
+
+Sitemap: https://kassena.azlearner.me/sitemap.xml

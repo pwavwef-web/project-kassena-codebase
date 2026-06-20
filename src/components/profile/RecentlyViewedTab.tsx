@@ -15,6 +15,7 @@ export const RecentlyViewedTab = () => {
 
   useEffect(() => {
     if (!appUser) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- guard clause: end loading when there is no signed-in user.
       setIsLoading(false)
       return
     }

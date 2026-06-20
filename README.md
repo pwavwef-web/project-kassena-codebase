@@ -1,8 +1,34 @@
-# Project Kassena
+# Project Kasena
 
 ## 1. Project overview
 
-Project Kassena is a Kasem language preservation and AI/data collection platform. This MVP provides secure Google sign-in, dictionary browsing, contribution submission, upload review workflows, and an admin/validator control panel.
+Project Kasena is a Kasem language preservation and AI/data platform. It has two
+parts in one codebase:
+
+- **Public website** (premium marketing site) — `src/marketing/`, served at `/`.
+- **Web application** (existing) — dictionary, contribution, rewards, admin —
+  reached via “Launch app” → `/dictionary`.
+
+The application provides secure Google sign-in, dictionary browsing, contribution
+submission, upload review workflows, donations (Paystack), and an admin/validator
+control panel.
+
+### Public website
+
+- Shell: `src/marketing/layout/` (`MarketingLayout`, `SiteHeader`, `MobileNav`, `Footer`).
+- Pages: `src/marketing/pages/`. Routes wired in `src/app/routes.tsx`.
+- Content (edit copy here, not in JSX): `src/content/*.ts` — see
+  [docs/content-model.md](docs/content-model.md).
+- Design system: [docs/design-system.md](docs/design-system.md). Tokens in
+  `tailwind.config.js` + `src/styles/globals.css`.
+- Full route map: [docs/website-information-architecture.md](docs/website-information-architecture.md).
+- Other docs: audit, animation system, SEO, accessibility, Firebase integration,
+  image-generation prompts, deployment, QA — all under `docs/`.
+
+**Editing content:** open the matching file in `src/content/` (e.g. `home.ts`,
+`products.ts`, `updates.ts`, `legal.ts`) and edit the typed objects/arrays.
+Empty/optional fields hide gracefully. Never add fabricated stats, partners,
+funding, team members or testimonials; use the honest status/metric labels.
 
 ## 2. Tech stack
 

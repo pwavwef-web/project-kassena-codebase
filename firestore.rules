@@ -82,6 +82,50 @@ service cloud.firestore {
       );
     }
 
+    function validNewsletterCreate() {
+      return request.resource.data.keys().hasOnly([
+        'email',
+        'source',
+        'createdAt'
+      ])
+      && request.resource.data.email is string
+      && request.resource.data.email.size() <= 160
+      && request.resource.data.email.matches('.*@.*\\..*')
+      && request.resource.data.source is string
+      && request.resource.data.source.size() <= 80
+      && request.resource.data.createdAt == request.time;
+    }
+
+    function validContactCreate() {
+      return request.resource.data.keys().hasOnly([
+        'name',
+        'email',
+        'enquiryType',
+        'organization',
+        'subject',
+        'message',
+        'status',
+        'createdAt'
+      ])
+      && request.resource.data.name is string
+      && request.resource.data.name.size() > 0
+      && request.resource.data.name.size() <= 120
+      && request.resource.data.email is string
+      && request.resource.data.email.size() <= 160
+      && request.resource.data.email.matches('.*@.*\\..*')
+      && request.resource.data.enquiryType is string
+      && request.resource.data.enquiryType.size() <= 60
+      && request.resource.data.organization is string
+      && request.resource.data.organization.size() <= 160
+      && request.resource.data.subject is string
+      && request.resource.data.subject.size() <= 160
+      && request.resource.data.message is string
+      && request.resource.data.message.size() > 0
+      && request.resource.data.message.size() <= 4000
+      && request.resource.data.status == 'new'
+      && request.resource.data.createdAt == request.time;
+    }
+
     function validSponsorCreate() {
       return request.resource.data.keys().hasOnly([
         'organization',
@@ -246,6 +290,20 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if isValidator();
       allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Public marketing-site lead capture: create-only for anyone, readable
+    // only by admins. No public reads of submitted contact details.
+    match /newsletterSubscribers/{subscriberId} {
+      allow create: if validNewsletterCreate();
+      allow read, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /contactMessages/{messageId} {
+      allow create: if validContactCreate();
+      allow read, update: if isAdmin();
       allow delete: if false;
     }
   }

@@ -4,6 +4,7 @@
 
 :root {
   font-family:
+    'Inter Variable',
     Inter,
     system-ui,
     -apple-system,
@@ -12,11 +13,41 @@
     sans-serif;
   line-height: 1.5;
   font-weight: 400;
+
+  /* ---- Project Kasena design tokens (marketing) ---- */
+  --pk-indigo: #1e365d;
+  --pk-indigo-deep: #0c172a;
+  --pk-terracotta: #b65a3a;
+  --pk-kente: #d69b00;
+  --pk-savannah: #245c3b;
+  --pk-cream: #fbf7ee;
+  --pk-charcoal: #111827;
+  --pk-surface: #ffffff;
+  --pk-ring: #d69b00;
+  --pk-z-header: 50;
+  --pk-z-overlay: 80;
+  --pk-z-modal: 90;
+  --pk-z-toast: 100;
+  --pk-shell-max: 1200px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+}
+
+/* Marketing surfaces opt into the display font for headings via .font-display;
+   the Kasem helper guarantees diacritic-safe rendering. */
+.font-kasem {
+  font-family:
+    'Inter Variable',
+    Inter,
+    'Noto Sans',
+    ui-sans-serif,
+    sans-serif;
+  font-feature-settings: 'kern' 1;
 }
 
 * {
@@ -520,3 +551,143 @@ a {
     transition-duration: 1ms;
   }
 }
+
+/* =====================================================================
+   Project Kasena — marketing site base + utilities
+   ===================================================================== */
+
+::selection {
+  background: rgba(214, 155, 0, 0.28);
+  color: #111827;
+}
+
+/* Accessible focus rings for the marketing site. */
+.pk-focus:focus-visible,
+.pk a:focus-visible,
+.pk button:focus-visible,
+.pk [tabindex]:focus-visible,
+.pk input:focus-visible,
+.pk textarea:focus-visible,
+.pk select:focus-visible {
+  outline: 3px solid var(--pk-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip-to-content link. */
+.pk-skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 200;
+  translate: -50% -160%;
+  padding: 0.65rem 1.25rem;
+  border-radius: 9999px;
+  background: var(--pk-indigo);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 12px 30px rgba(12, 23, 42, 0.35);
+  transition: translate 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pk-skip-link:focus {
+  translate: -50% 0;
+  outline: 3px solid var(--pk-kente);
+  outline-offset: 2px;
+}
+
+/* Marquee fade mask. */
+.pk-marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+/* Cultural pattern layers — Sirigu/basketry-inspired geometry, kept subtle. */
+.pk-pattern-sirigu {
+  background-color: transparent;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      currentColor 0,
+      currentColor 1.5px,
+      transparent 1.5px,
+      transparent 14px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      currentColor 0,
+      currentColor 1.5px,
+      transparent 1.5px,
+      transparent 14px
+    );
+}
+.pk-pattern-weave {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      currentColor 0,
+      currentColor 1px,
+      transparent 1px,
+      transparent 10px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      currentColor 0,
+      currentColor 1px,
+      transparent 1px,
+      transparent 10px
+    );
+}
+.pk-pattern-dots {
+  background-image: radial-gradient(currentColor 1.2px, transparent 1.4px);
+  background-size: 18px 18px;
+}
+
+/* Soft aurora blobs behind hero/sections. */
+.pk-aurora {
+  filter: blur(60px);
+  will-change: transform, opacity;
+}
+
+/* Text balance helpers. */
+.text-balance {
+  text-wrap: balance;
+}
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Reduced-motion + Save-Data: neutralise marketing animations. */
+@media (prefers-reduced-motion: reduce) {
+  .pk-animate,
+  .pk-aurora,
+  .animate-marquee,
+  .animate-marquee-slow,
+  .animate-float,
+  .animate-aurora,
+  .animate-shimmer,
+  .animate-spin-slow {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+

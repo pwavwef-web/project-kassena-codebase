@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { isFirebaseConfigured } from '../../config/firebase'
 import { useAuth } from '../../hooks/useAuth'
@@ -186,7 +187,19 @@ export const MainLayout = () => {
 
       {/* Main Content */}
       <main className={mainClassName}>
-        <Outlet />
+        <Suspense
+          fallback={
+            <div
+              className="flex min-h-[50vh] items-center justify-center"
+              role="status"
+              aria-label="Loading"
+            >
+              <span className="h-8 w-8 animate-spin rounded-full border-2 border-kassena-cream border-t-kassena-green" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
 
       {/* Mobile Bottom Navigation */}

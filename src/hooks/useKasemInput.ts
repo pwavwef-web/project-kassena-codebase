@@ -77,6 +77,7 @@ export const useKasemInput = ({
 
   useEffect(() => {
     if (typeof profilePreference === 'boolean') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync local toggle to the loaded profile preference.
       setAutoReplaceEnabledState(profilePreference)
       saveLocalAutoReplacePreference(profilePreference)
     }

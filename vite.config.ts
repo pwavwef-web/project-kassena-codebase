@@ -10,14 +10,15 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.svg', 'icons.svg'],
       manifest: {
-        name: 'TribeStudio',
-        short_name: 'TribeStudio',
-        description: 'Kasem language preservation and AI/data collection platform',
-        theme_color: '#083927',
-        background_color: '#071f18',
+        name: 'Project Kasena',
+        short_name: 'Kasena',
+        description:
+          'Kasem language preservation, contribution and AI/data platform.',
+        theme_color: '#0c172a',
+        background_color: '#0c172a',
         display: 'standalone',
         scope: '/',
-        start_url: '/',
+        start_url: '/dictionary',
         icons: [
           {
             src: '/favicon.png',
