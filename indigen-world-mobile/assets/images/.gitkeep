@@ -1,0 +1,2 @@
+# Place image assets here, then register the directory in pubspec.yaml under
+# flutter > assets. Brand assets live in ../../assets/brand at the repo root.

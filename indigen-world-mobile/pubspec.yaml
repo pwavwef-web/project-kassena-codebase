@@ -1,0 +1,24 @@
+name: indigen_world_mobile
+description: "Indigen World consumer mobile application (starter shell)."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  # Register asset directories here once assets are added, e.g.:
+  # assets:
+  #   - assets/images/

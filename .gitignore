@@ -7,10 +7,33 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies / build output (any workspace)
 node_modules
 dist
 dist-ssr
+build
+.vite
+
+# Env / secrets
 *.local
+.env
+.env.*
+!.env.example
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Flutter / Dart (indigen-world-mobile)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/pubspec.lock
+google-services.json
+GoogleService-Info.plist
+indigen-world-mobile/lib/firebase_options.dart
 
 # Editor directories and files
 .vscode/*

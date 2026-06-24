@@ -1,212 +1,196 @@
-# Project Kasena
+# Indigen World
 
-## 1. Project overview
+**Indigen World** is a cultural-technology ecosystem for preserving Indigenous
+languages and heritage in the AI age. This repository is a monorepo containing
+three products and one shared backend/AI workspace.
 
-Project Kasena is a Kasem language preservation and AI/data platform. It has two
-parts in one codebase:
+**Project Kasena** — the flagship **Kasem** language, data, translation and
+AI-readiness programme — lives on inside Indigen World. See
+[`brand-migration.md`](brand-migration.md) for how the two names relate (and the
+rule: *don't blindly rename Project Kasena*).
 
-- **Public website** (premium marketing site) — `src/marketing/`, served at `/`.
-- **Web application** (existing) — dictionary, contribution, rewards, admin —
-  reached via “Launch app” → `/dictionary`.
+> **Repository status:** post-migration. The four workspaces are clean,
+> compile-ready **starter shells** — the full product features are **not** built
+> yet. The previous, fully-featured app is preserved at
+> [`legacy/project-kasena-web/`](legacy/project-kasena-web). The next agent
+> (**Codex**) builds the MVPs from here — see [Handoff to Codex](#handoff-to-codex).
 
-The application provides secure Google sign-in, dictionary browsing, contribution
-submission, upload review workflows, donations (Paystack), and an admin/validator
-control panel.
+## Ecosystem
 
-### Public website
+| Workspace | Product | What it is |
+| --- | --- | --- |
+| [`indigen-world-web/`](indigen-world-web) | **Indigen World Web** | Public marketing website (React + TS + Vite + Tailwind). |
+| [`tribestudio/`](tribestudio) | **TribeStudio** | Workspace for creators, contributors, translators, validators, elders and admins (React + TS + Vite + Tailwind). |
+| [`indigen-world-mobile/`](indigen-world-mobile) | **Indigen World Mobile** | Consumer mobile app (Flutter, Material 3). |
+| [`backend-ai/`](backend-ai) | **Backend & AI** | Shared Firebase config/functions + the (design-only) AI workspace. |
 
-- Shell: `src/marketing/layout/` (`MarketingLayout`, `SiteHeader`, `MobileNav`, `Footer`).
-- Pages: `src/marketing/pages/`. Routes wired in `src/app/routes.tsx`.
-- Content (edit copy here, not in JSX): `src/content/*.ts` — see
-  [docs/content-model.md](docs/content-model.md).
-- Design system: [docs/design-system.md](docs/design-system.md). Tokens in
-  `tailwind.config.js` + `src/styles/globals.css`.
-- Full route map: [docs/website-information-architecture.md](docs/website-information-architecture.md).
-- Other docs: audit, animation system, SEO, accessibility, Firebase integration,
-  image-generation prompts, deployment, QA — all under `docs/`.
+Supporting: [`legacy/`](legacy) (preserved prior app), [`docs/`](docs),
+[`assets/`](assets), [`reference-materials/`](reference-materials).
 
-**Editing content:** open the matching file in `src/content/` (e.g. `home.ts`,
-`products.ts`, `updates.ts`, `legal.ts`) and edit the typed objects/arrays.
-Empty/optional fields hide gracefully. Never add fabricated stats, partners,
-funding, team members or testimonials; use the honest status/metric labels.
+Full picture: [`architecture.md`](architecture.md).
 
-## 2. Tech stack
+## Prerequisites
 
-- Vite
-- React + TypeScript
-- Firebase Web SDK v10+
-- Firebase Authentication (Google provider)
-- Firestore
-- Firebase Storage
-- Firebase Hosting
-- React Router
-- Tailwind CSS
-- ESLint + Prettier
+- Node.js ≥ 20 (developed on 24) and npm ≥ 10 (developed on 11)
+- Flutter (stable) for the mobile app
+- Firebase CLI for backend/emulator work
 
-## 3. Folder structure
-
-```txt
-src/
-  app/
-    App.tsx
-    routes.tsx
-  components/
-    layout/
-    common/
-    forms/
-    admin/
-  config/
-    firebase.ts
-  contexts/
-    AuthContext.tsx
-  hooks/
-    useAuth.ts
-    useUserRole.ts
-  lib/
-    firestore.ts
-    storage.ts
-    validators.ts
-    constants.ts
-    date.ts
-  pages/
-    HomePage.tsx
-    LoginPage.tsx
-    DashboardPage.tsx
-    SubmitContributionPage.tsx
-    DictionaryPage.tsx
-    UploadsPage.tsx
-    ProfilePage.tsx
-    NotFoundPage.tsx
-    admin/
-      AdminDashboardPage.tsx
-      AdminSubmissionsPage.tsx
-      AdminUsersPage.tsx
-      AdminUploadsPage.tsx
-      AdminDictionaryPage.tsx
-      AdminSettingsPage.tsx
-  types/
-    index.ts
-  styles/
-    globals.css
-```
-
-## 4. Environment variable setup
-
-Create `.env.local` from `.env.example`:
+## Install
 
 ```bash
-cp .env.example .env.local
+npm install        # installs both web workspaces (indigen-world-web + tribestudio)
 ```
 
-Populate:
-
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-- `VITE_FIREBASE_MEASUREMENT_ID`
-
-## 5. Firebase setup steps
-
-1. Create a Firebase project.
-2. Enable Authentication, Firestore, and Storage.
-3. Copy `.firebaserc.example` to `.firebaserc` and set your project id.
-4. Deploy rules:
-   ```bash
-   npm run firebase:deploy:rules
-   ```
-
-## 6. Enable Google Sign-In in Firebase Console
-
-1. Open **Authentication → Sign-in method**.
-2. Enable **Google** provider.
-3. Add your authorized domain(s).
-
-## 7. Firestore collections
-
-- `users`
-- `contributions`
-- `dictionaryEntries`
-- `uploads`
-- `auditLogs`
-- `settings`
-
-Leaderboard reads from `users` with these public-facing ranking fields:
-
-```ts
-users/{uid}: {
-  uid: string
-  displayName: string
-  photoURL?: string
-  totalPoints: number
-  weeklyPoints: number
-  monthlyPoints: number
-  approvedEntries: number
-  badgeTitle: string
-  lastContributionAt: Timestamp
-  createdAt: Timestamp
-}
-```
-
-Firestore indexes are registered in `firestore.indexes.json` for
-`weeklyPoints`, `monthlyPoints`, and `totalPoints` descending leaderboard
-queries. Deploy them with the normal Firebase deploy flow.
-
-## 8. Storage path structure
-
-- `contributions/{uid}/{contributionId}/{filename}`
-- `uploads/{uid}/{uploadId}/{filename}`
-
-## 9. How to run locally
+The mobile app and functions have their own dependencies:
 
 ```bash
-npm install
-npm run dev
+cd indigen-world-mobile && flutter pub get
+cd backend-ai/firebase/functions && npm install
 ```
 
-## 10. How to deploy to Firebase Hosting
+## Start a starter app
 
 ```bash
-npm run build
-npm run firebase:deploy:hosting
+npm run dev:web        # Indigen World website  -> http://localhost:5173
+npm run dev:studio     # TribeStudio workspace  -> http://localhost:5174
 ```
 
-## 11. How to make the first admin user
+Mobile:
 
-1. Sign in once with Google in the app.
-2. Open Firestore `users` collection.
-3. Find your user document (`users/{uid}`).
-4. Set `role` to `admin` manually.
-5. Use Admin panel to manage later users.
+```bash
+cd indigen-world-mobile
+flutter create . --platforms=android,ios   # first time only: generate native folders
+flutter run
+```
 
-## 12. Security notes
+## Root commands
 
-- Frontend role checks are read from `users/{uid}.role`.
-- Firestore rules block users from changing their own `role` and `status`.
-- Public/direct write to `dictionaryEntries` is blocked.
-- Uploads require authentication, MIME checks, and size limits.
-- **TODO (production hardening):** move trusted role assignment/privilege elevation to Firebase custom claims and/or admin-only Cloud Functions.
+| Command | Does |
+| --- | --- |
+| `npm run dev:web` / `npm run dev:studio` | Run a web app in dev. |
+| `npm run build:web` / `npm run build:studio` | Production build. |
+| `npm run test:web` / `npm run test:studio` / `npm run test` | Vitest. |
+| `npm run lint` | ESLint across web workspaces. |
+| `npm run typecheck` | `tsc --noEmit` across web workspaces. |
 
-## 13. MVP test checklist
+Flutter (run inside `indigen-world-mobile/`):
 
-- [ ] Google Sign-In works
-- [ ] User document created
-- [ ] Contribution submitted
-- [ ] File upload works
-- [ ] Admin can approve contribution
-- [ ] Approved entry appears in dictionary
-- [ ] Admin can reject contribution
-- [ ] Upload review works
-- [ ] Firestore rules deployed
-- [ ] Storage rules deployed
-- [ ] Firebase hosting deploy successful
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+```
 
-## 14. Next steps
+## Run tests
 
-- Add Cloud Functions for secure server-side approval flows
-- Add pagination/index tuning for large datasets
-- Add automated tests (unit + integration)
-- Add custom claims based role management
-- Add multilingual UX refinements and moderation analytics
+```bash
+npm run test                       # web + studio (Vitest)
+cd indigen-world-mobile && flutter test
+```
+
+## Firebase status
+
+- Project id: `project-kassena-7e026` (`.firebaserc`).
+- Root [`firebase.json`](firebase.json): two hosting targets (`web`, `studio`),
+  rules/indexes/functions pointing at `backend-ai/firebase/`, and Emulator Suite
+  ports.
+- **Nothing was deployed.** Hosting targets still need mapping before first
+  deploy. See [`migration-report.md`](migration-report.md) §8 and
+  [`backend-ai/firebase/README.md`](backend-ai/firebase/README.md).
+- Local-only: `firebase emulators:start` (from repo root).
+
+## Current limitations
+
+- Web/studio are **starter shells** (shell + 1 page + 1 test each), not the real
+  products.
+- Mobile `android/`/`ios/` are placeholders until `flutter create` is run.
+- `backend-ai/ai/` is **design-only** — no model, provider, or credentials.
+- No Indigen World parent-brand logo yet; OG PNG pending.
+
+## Reference docs
+
+- [`architecture.md`](architecture.md) — system architecture
+- [`brand-migration.md`](brand-migration.md) — naming rules
+- [`asset-manifest.md`](asset-manifest.md) — asset inventory
+- [`migration-report.md`](migration-report.md) — what changed + validation
+- [`docs/project-kasena-web/`](docs/project-kasena-web) — preserved legacy site docs
+- [`docs/reports/READINESS-REPORT.md`](docs/reports/READINESS-REPORT.md) — historical report
+
+---
+
+## Handoff to Codex
+
+### ✅ Completed migration work
+- Four-workspace monorepo created: `indigen-world-web`, `tribestudio`,
+  `indigen-world-mobile`, `backend-ai`.
+- Clean, compile-ready starters for all four. **Validated** (real runs): install,
+  typecheck, lint, tests, and production builds pass for both web apps; Flutter
+  `pub get` / `analyze` / `test` pass for mobile. See
+  [`migration-report.md`](migration-report.md) §6.
+- npm workspaces + root scripts wired (`dev/build/test/lint/typecheck`).
+- Firebase config consolidated under `backend-ai/firebase/` and rewired in root
+  `firebase.json` (two hosting targets + emulator config).
+- Documentation set authored (this README + the four root docs).
+- Safety tag `pre-indigen-world-monorepo-migration` created; history preserved
+  via `git mv`.
+
+### 📦 Preserved assets & code (mine these, don't rebuild blind)
+- `legacy/project-kasena-web/` — the **entire** prior app, runnable. Reuse:
+  - `src/marketing/` → real `indigen-world-web` pages, layout, motion, visuals.
+  - `src/pages/`, `src/pages/admin/`, `src/components/admin/` → `tribestudio`.
+  - `src/lib`, `src/hooks`, `src/contexts`, `src/config/firebase.ts` → backend
+    integration, auth, ranks, achievements.
+  - `src/content/` → honest, typed marketing copy.
+- `backend-ai/firebase/functions/` — working Paystack + email functions.
+- `backend-ai/schemas/firestore-collections.md` — data contracts.
+- `assets/`, `legacy/.../public/` — brand + ~125 app image assets.
+- `docs/project-kasena-web/` — design system, content model, SEO, a11y, IA, etc.
+
+### 🚧 Unfinished implementation work (your job)
+1. **indigen-world-web** — build the real public site from `src/marketing/` +
+   `docs/project-kasena-web/` (honest-content rules apply — see below).
+2. **tribestudio** — build contribution/review/translation/validation/admin
+   surfaces from the legacy app; wire auth + role guards.
+3. **indigen-world-mobile** — run `flutter create` for native folders, then build
+   the consumer experience; add Firebase via `flutterfire configure`.
+4. **backend-ai/ai** — design then implement translation/speech/embeddings/
+   moderation/evaluation behind a provider interface (no model is connected).
+5. Tests beyond the smoke/widget tests; backend rules + functions tests.
+
+### ⚙️ Technical constraints & decisions — do not reverse without approval
+- **Starters are intentionally minimal.** The legacy app was archived, not
+  promoted, so the new products start clean. Don't "restore" the monolith.
+- **Brand:** Indigen World is the parent; Project Kasena is the Kasem programme.
+  **Do not blindly rename "Project Kasena"** or "Kassena" identifiers (Firebase
+  id `project-kassena-7e026`, the readiness report). See
+  [`brand-migration.md`](brand-migration.md).
+- **Honest content rule (carried from the legacy site):** never invent partners,
+  funding, stats, team, testimonials, or endorsements; future AI is
+  `research`/`planned`, never "operational"; legal pages are drafts pending
+  review.
+- **No secrets in client apps or git.** Firebase web config is public and fine;
+  secret keys go in Functions config / Secret Manager. `.env.local` files are
+  git-ignored.
+- **Firebase:** no deploy, no App Check changes, no auth-provider changes, no
+  live AI calls were made — keep it that way until explicitly approved.
+- **Web stack pinning:** React 19 / Vite 7 / Vitest 3 / TS 5.7 / Tailwind 3 are a
+  validated, conflict-free set. Bump deliberately.
+
+### 📁 Important paths
+- Root scripts & workspaces: [`package.json`](package.json)
+- Firebase: [`firebase.json`](firebase.json), [`.firebaserc`](.firebaserc),
+  [`backend-ai/firebase/`](backend-ai/firebase)
+- Web entry: `indigen-world-web/src/main.tsx` → `src/app/router.tsx`
+- Studio entry: `tribestudio/src/main.tsx` → `src/app/router.tsx`
+- Mobile entry: `indigen-world-mobile/lib/main.dart` → `lib/app/app.dart`
+
+### 🛠️ Build commands
+`npm install` · `npm run dev:web` · `npm run dev:studio` ·
+`npm run build:web` · `npm run build:studio` · `npm run test` ·
+`npm run lint` · `npm run typecheck` · (mobile) `flutter pub get|analyze|test|run`
+
+### 🐞 Known issues
+See [`migration-report.md`](migration-report.md) §7 — mobile native folders are
+placeholders, hosting targets need mapping, no parent-brand logo yet, asset
+licensing undocumented, 1 low-severity npm advisory.
