@@ -1,310 +1,612 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Role-bearing identity:
+    //   users/{uid}: uid, displayName, email, role, status, createdAt, updatedAt.
+    //   profiles/{uid}: uid, interests, communities, languages, privacy, consent.
+    //
+    // Community configuration:
+    //   communities, languages, dialects: name, status, community, timestamps.
+    //
+    // Cultural records:
+    //   lexicalEntries, sentencePairs, stories, proverbs, culturalNotes,
+    //   mediaAssets, contributions.
+    //   Common fields: optional type, language, dialect, community, source,
+    //   contributorId, validationStatus, contentTier, consentStatus, licence,
+    //   permittedUses, aiTrainingPermission, commercialUsePermission,
+    //   attribution, reviewHistory, createdAt, updatedAt.
+    //
+    // Protected governance:
+    //   consentRecords, culturalPermissions, reviews, reports, auditLogs.
+    //
+    // Operational/demo collections:
+    //   campaigns, bounties, rewardAccounts, badges, notifications,
+    //   featureFlags.
+    //
+    // Prototype launch posture:
+    //   - no unauthenticated reads or writes;
+    //   - no public writes;
+    //   - no user-controlled privileged role changes;
+    //   - sensitive and restricted material requires elevated roles.
+    // ===============================================================
+
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function currentUserDoc() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    function userPath(uid) {
+      return /databases/$(database)/documents/users/$(uid);
     }
 
-    function isAdmin() {
-      return isSignedIn() && currentUserDoc().data.role == 'admin';
+    function hasProfile() {
+      return isSignedIn() && exists(userPath(request.auth.uid));
     }
 
-    function isValidator() {
-      return isSignedIn() && (
-        currentUserDoc().data.role == 'validator' ||
-        currentUserDoc().data.role == 'admin'
-      );
+    function role() {
+      return hasProfile() ? get(userPath(request.auth.uid)).data.role : 'user';
+    }
+
+    function hasAnyRole(roles) {
+      return isSignedIn() && role() in roles;
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isOwnUserFavorite(favoriteId) {
-      return isSignedIn() && favoriteId.matches('^' + request.auth.uid + '_.*');
+    function isContributor() {
+      return hasAnyRole([
+        'contributor',
+        'creator',
+        'validator',
+        'elder',
+        'cultural custodian',
+        'community manager',
+        'administrator'
+      ]);
     }
 
-    function validDonationCreate() {
-      return request.resource.data.keys().hasOnly([
-        'userId',
-        'name',
+    function isValidator() {
+      return hasAnyRole(['validator', 'community manager', 'administrator']);
+    }
+
+    function isCulturalAuthority() {
+      return hasAnyRole([
+        'elder',
+        'cultural custodian',
+        'community manager',
+        'administrator'
+      ]);
+    }
+
+    function isAdmin() {
+      return hasAnyRole(['administrator']);
+    }
+
+    function validString(value, min, max) {
+      return value is string && value.size() >= min && value.size() <= max;
+    }
+
+    function validOptionalString(data, field, max) {
+      return !(field in data) || (data[field] is string && data[field].size() <= max);
+    }
+
+    function validRole(value) {
+      return value in [
+        'user',
+        'contributor',
+        'creator',
+        'validator',
+        'elder',
+        'cultural custodian',
+        'community manager',
+        'administrator',
+        'researcher',
+        'partner'
+      ];
+    }
+
+    function validStatus(value) {
+      return value in ['active', 'inactive', 'suspended', 'pending'];
+    }
+
+    function validTier(value) {
+      return value in ['OPEN', 'RESTRICTED', 'SENSITIVE'];
+    }
+
+    function validValidationStatus(value) {
+      return value in [
+        'draft',
+        'submitted',
+        'pending_review',
+        'approved',
+        'rejected',
+        'needs_revision',
+        'archived',
+        'takedown_requested'
+      ];
+    }
+
+    function validConsentStatus(value) {
+      return value in [
+        'not_required',
+        'contributor_consented',
+        'source_consented',
+        'pending',
+        'withdrawn',
+        'rejected'
+      ];
+    }
+
+    function validUser(data) {
+      return data.keys().hasOnly([
+        'uid',
+        'displayName',
         'email',
-        'country',
-        'amount',
-        'currency',
-        'tier',
-        'message',
-        'anonymous',
-        'publicDisplay',
-        'reference',
+        'role',
         'status',
         'createdAt',
         'updatedAt'
       ])
-      && request.resource.data.name is string
-      && request.resource.data.name.size() <= 120
-      && request.resource.data.email is string
-      && request.resource.data.email.size() <= 160
-      && request.resource.data.email.matches('.*@.*')
-      && request.resource.data.country is string
-      && request.resource.data.country.size() <= 80
-      && request.resource.data.amount is number
-      && request.resource.data.amount >= 10
-      && request.resource.data.amount <= 100000
-      && request.resource.data.currency == 'GHS'
-      && request.resource.data.tier in [
-        'language-friend',
-        'community-supporter',
-        'language-champion',
-        'cultural-guardian',
-        'strategic-supporter',
-        'data-drive',
-        'custom'
-      ]
-      && request.resource.data.reference is string
-      && request.resource.data.reference.size() >= 8
-      && request.resource.data.reference.size() <= 100
-      && request.resource.data.message is string
-      && request.resource.data.message.size() <= 500
-      && request.resource.data.status == 'pending'
-      && request.resource.data.anonymous is bool
-      && request.resource.data.publicDisplay is bool
-      && request.resource.data.publicDisplay == !request.resource.data.anonymous
-      && request.resource.data.createdAt == request.time
-      && request.resource.data.updatedAt == request.time
-      && (
-        request.resource.data.userId == null ||
-        (isSignedIn() && request.resource.data.userId == request.auth.uid)
-      );
+      && validString(data.uid, 1, 128)
+      && validString(data.displayName, 1, 120)
+      && validString(data.email, 3, 180)
+      && validRole(data.role)
+      && validStatus(data.status)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
     }
 
-    function validNewsletterCreate() {
-      return request.resource.data.keys().hasOnly([
-        'email',
+    function validProfile(data) {
+      return data.keys().hasOnly([
+        'uid',
+        'interests',
+        'communities',
+        'languages',
+        'expertise',
+        'privacy',
+        'consentAcknowledged',
+        'createdAt',
+        'updatedAt'
+      ])
+      && validString(data.uid, 1, 128)
+      && data.interests is list
+      && data.interests.size() <= 30
+      && data.communities is list
+      && data.communities.size() <= 20
+      && data.languages is list
+      && data.languages.size() <= 20
+      && data.expertise is list
+      && data.expertise.size() <= 30
+      && data.privacy is map
+      && data.privacy.keys().hasOnly(['showDisplayName', 'showBadges'])
+      && data.consentAcknowledged is bool
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validReferenceData(data) {
+      return data.keys().hasOnly([
+        'name',
+        'slug',
+        'status',
+        'community',
+        'description',
+        'createdAt',
+        'updatedAt'
+      ])
+      && validString(data.name, 1, 160)
+      && validString(data.slug, 1, 120)
+      && validStatus(data.status)
+      && validOptionalString(data, 'community', 160)
+      && validOptionalString(data, 'description', 1000)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validCulturalRecord(data) {
+      return data.keys().hasOnly([
+        'title',
+        'type',
+        'text',
+        'literalTranslation',
+        'semanticMeaning',
+        'culturalContext',
+        'ageSuitability',
+        'language',
+        'dialect',
+        'community',
         'source',
-        'createdAt'
-      ])
-      && request.resource.data.email is string
-      && request.resource.data.email.size() <= 160
-      && request.resource.data.email.matches('.*@.*\\..*')
-      && request.resource.data.source is string
-      && request.resource.data.source.size() <= 80
-      && request.resource.data.createdAt == request.time;
-    }
-
-    function validContactCreate() {
-      return request.resource.data.keys().hasOnly([
-        'name',
-        'email',
-        'enquiryType',
-        'organization',
-        'subject',
-        'message',
-        'status',
-        'createdAt'
-      ])
-      && request.resource.data.name is string
-      && request.resource.data.name.size() > 0
-      && request.resource.data.name.size() <= 120
-      && request.resource.data.email is string
-      && request.resource.data.email.size() <= 160
-      && request.resource.data.email.matches('.*@.*\\..*')
-      && request.resource.data.enquiryType is string
-      && request.resource.data.enquiryType.size() <= 60
-      && request.resource.data.organization is string
-      && request.resource.data.organization.size() <= 160
-      && request.resource.data.subject is string
-      && request.resource.data.subject.size() <= 160
-      && request.resource.data.message is string
-      && request.resource.data.message.size() > 0
-      && request.resource.data.message.size() <= 4000
-      && request.resource.data.status == 'new'
-      && request.resource.data.createdAt == request.time;
-    }
-
-    function validSponsorCreate() {
-      return request.resource.data.keys().hasOnly([
-        'organization',
-        'amount',
-        'package',
-        'contactName',
-        'contactEmail',
-        'message',
-        'status',
+        'contributorId',
+        'validatorId',
+        'validationStatus',
+        'contentTier',
+        'consentStatus',
+        'licence',
+        'permittedUses',
+        'aiTrainingPermission',
+        'commercialUsePermission',
+        'attribution',
+        'reviewHistory',
+        'takedownStatus',
         'createdAt',
         'updatedAt'
       ])
-      && request.resource.data.organization is string
-      && request.resource.data.organization.size() <= 160
-      && request.resource.data.contactName is string
-      && request.resource.data.contactName.size() <= 120
-      && request.resource.data.contactEmail is string
-      && request.resource.data.contactEmail.size() <= 160
-      && request.resource.data.contactEmail.matches('.*@.*')
-      && request.resource.data.package is string
-      && request.resource.data.package.size() <= 80
-      && request.resource.data.message is string
-      && request.resource.data.message.size() <= 700
-      && request.resource.data.amount is number
-      && request.resource.data.amount >= 1000
-      && request.resource.data.status == 'new'
-      && request.resource.data.createdAt == request.time
-      && request.resource.data.updatedAt == request.time;
+      && validString(data.title, 1, 220)
+      && validOptionalString(data, 'type', 80)
+      && validString(data.text, 0, 5000)
+      && validOptionalString(data, 'literalTranslation', 3000)
+      && validOptionalString(data, 'semanticMeaning', 3000)
+      && validOptionalString(data, 'culturalContext', 4000)
+      && validOptionalString(data, 'ageSuitability', 80)
+      && validString(data.language, 1, 80)
+      && validString(data.dialect, 0, 120)
+      && validString(data.community, 1, 160)
+      && validString(data.source, 1, 220)
+      && validString(data.contributorId, 1, 128)
+      && validOptionalString(data, 'validatorId', 128)
+      && validValidationStatus(data.validationStatus)
+      && validTier(data.contentTier)
+      && validConsentStatus(data.consentStatus)
+      && validString(data.licence, 1, 160)
+      && data.permittedUses is list
+      && data.permittedUses.size() <= 20
+      && data.aiTrainingPermission is bool
+      && data.commercialUsePermission is bool
+      && validString(data.attribution, 1, 220)
+      && data.reviewHistory is list
+      && data.reviewHistory.size() <= 50
+      && validOptionalString(data, 'takedownStatus', 80)
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function immutableCulturalFields() {
+      return request.resource.data.contributorId == resource.data.contributorId
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function canReadCultural(data) {
+      return isAdmin()
+        || isValidator()
+        || isCulturalAuthority()
+        || isOwner(data.contributorId)
+        || (
+          isSignedIn()
+          && data.contentTier == 'OPEN'
+          && data.validationStatus == 'approved'
+        );
+    }
+
+    function validMvpDraftContribution(data) {
+      return isSignedIn()
+        && validCulturalRecord(data)
+        && data.contributorId == request.auth.uid
+        && data.validationStatus == 'draft'
+        && data.contentTier == 'OPEN'
+        && data.aiTrainingPermission == false
+        && data.commercialUsePermission == false
+        && data.consentStatus in ['contributor_consented', 'pending'];
+    }
+
+    function validMvpOwnerContributionUpdate() {
+      return isSignedIn()
+        && isOwner(resource.data.contributorId)
+        && resource.data.validationStatus in ['draft', 'needs_revision']
+        && request.resource.data.contributorId == request.auth.uid
+        && request.resource.data.validationStatus in ['draft', 'submitted', 'pending_review']
+        && request.resource.data.contentTier == 'OPEN'
+        && request.resource.data.aiTrainingPermission == false
+        && request.resource.data.commercialUsePermission == false;
+    }
+
+    function validReview(data) {
+      return data.keys().hasOnly([
+        'contributionId',
+        'reviewerId',
+        'decision',
+        'notes',
+        'rejectionReasons',
+        'dialectConfirmed',
+        'sourceVerified',
+        'consentVerified',
+        'sensitivityFlag',
+        'createdAt',
+        'updatedAt'
+      ])
+      && validString(data.contributionId, 1, 128)
+      && validString(data.reviewerId, 1, 128)
+      && data.decision in ['approve', 'reject', 'request_revision', 'escalate']
+      && validString(data.notes, 0, 3000)
+      && data.rejectionReasons is list
+      && data.rejectionReasons.size() <= 20
+      && data.dialectConfirmed is bool
+      && data.sourceVerified is bool
+      && data.consentVerified is bool
+      && data.sensitivityFlag is bool
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validConsentRecord(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'recordId',
+        'community',
+        'consentStatus',
+        'permittedUses',
+        'aiTrainingPermission',
+        'commercialUsePermission',
+        'withdrawalRequested',
+        'createdAt',
+        'updatedAt'
+      ])
+      && validString(data.userId, 1, 128)
+      && validString(data.recordId, 1, 128)
+      && validString(data.community, 1, 160)
+      && validConsentStatus(data.consentStatus)
+      && data.permittedUses is list
+      && data.permittedUses.size() <= 20
+      && data.aiTrainingPermission is bool
+      && data.commercialUsePermission is bool
+      && data.withdrawalRequested is bool
+      && data.createdAt is timestamp
+      && data.updatedAt is timestamp;
+    }
+
+    function validNotification(data) {
+      return data.keys().hasOnly([
+        'userId',
+        'title',
+        'message',
+        'read',
+        'createdAt'
+      ])
+      && validString(data.userId, 1, 128)
+      && validString(data.title, 1, 160)
+      && validString(data.message, 1, 1000)
+      && data.read is bool
+      && data.createdAt is timestamp;
     }
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isValidator();
-      allow list: if isSignedIn();
-      allow create: if isOwner(userId);
-      allow update: if (
-        isOwner(userId) &&
-        request.resource.data.role == resource.data.role &&
-        request.resource.data.status == resource.data.status
-      ) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId)
+        && validUser(request.resource.data)
+        && request.resource.data.uid == userId
+        && request.resource.data.role == 'user'
+        && request.resource.data.status == 'active';
+      allow update: if validUser(request.resource.data)
+        && request.resource.data.uid == userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (
+          (
+            isOwner(userId)
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.status == resource.data.status
+          )
+          || isAdmin()
+        );
       allow delete: if false;
     }
 
-    match /dictionaryEntries/{entryId} {
-      allow read: if resource.data.isPublished == true;
+    match /profiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId)
+        && validProfile(request.resource.data)
+        && request.resource.data.uid == userId;
+      allow update: if isOwner(userId)
+        && validProfile(request.resource.data)
+        && request.resource.data.uid == userId
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+    }
+
+    match /communities/{documentId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasAnyRole(['community manager', 'administrator'])
+        && validReferenceData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /languages/{documentId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasAnyRole(['community manager', 'administrator'])
+        && validReferenceData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /dialects/{documentId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasAnyRole(['community manager', 'administrator'])
+        && validReferenceData(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /lexicalEntries/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if isContributor()
+        && validCulturalRecord(request.resource.data)
+        && request.resource.data.contributorId == request.auth.uid
+        && request.resource.data.validationStatus in ['draft', 'submitted', 'pending_review'];
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (
+          (isOwner(resource.data.contributorId) && resource.data.validationStatus in ['draft', 'needs_revision'])
+          || isValidator()
+          || isAdmin()
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /sentencePairs/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if isContributor()
+        && validCulturalRecord(request.resource.data)
+        && request.resource.data.contributorId == request.auth.uid;
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (isOwner(resource.data.contributorId) || isValidator() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /stories/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if isContributor()
+        && validCulturalRecord(request.resource.data)
+        && request.resource.data.contributorId == request.auth.uid;
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (isOwner(resource.data.contributorId) || isValidator() || isCulturalAuthority());
+      allow delete: if isAdmin();
+    }
+
+    match /proverbs/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if isContributor()
+        && validCulturalRecord(request.resource.data)
+        && request.resource.data.contributorId == request.auth.uid;
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (isOwner(resource.data.contributorId) || isValidator() || isCulturalAuthority());
+      allow delete: if isAdmin();
+    }
+
+    match /culturalNotes/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if isContributor()
+        && validCulturalRecord(request.resource.data)
+        && request.resource.data.contributorId == request.auth.uid;
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (isOwner(resource.data.contributorId) || isValidator() || isCulturalAuthority());
+      allow delete: if isAdmin();
+    }
+
+    match /mediaAssets/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if isContributor()
+        && validCulturalRecord(request.resource.data)
+        && request.resource.data.contributorId == request.auth.uid;
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (isOwner(resource.data.contributorId) || isValidator() || isCulturalAuthority());
+      allow delete: if isAdmin();
+    }
+
+    match /contributions/{documentId} {
+      allow read: if canReadCultural(resource.data);
+      allow create: if (
+          isContributor()
+          && validCulturalRecord(request.resource.data)
+          && request.resource.data.contributorId == request.auth.uid
+        ) || validMvpDraftContribution(request.resource.data);
+      allow update: if validCulturalRecord(request.resource.data)
+        && immutableCulturalFields()
+        && (
+          validMvpOwnerContributionUpdate()
+          || (
+            isContributor()
+            && isOwner(resource.data.contributorId)
+            && resource.data.validationStatus in ['draft', 'needs_revision']
+          )
+          || isValidator()
+          || isAdmin()
+        );
+      allow delete: if false;
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if isValidator() || isAdmin();
+      allow create: if isValidator()
+        && validReview(request.resource.data)
+        && request.resource.data.reviewerId == request.auth.uid;
+      allow update: if isValidator()
+        && validReview(request.resource.data)
+        && request.resource.data.reviewerId == resource.data.reviewerId
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+    }
+
+    match /campaigns/{documentId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasAnyRole(['community manager', 'administrator']);
+      allow delete: if isAdmin();
+    }
+
+    match /bounties/{documentId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasAnyRole(['community manager', 'administrator']);
+      allow delete: if isAdmin();
+    }
+
+    match /rewardAccounts/{userId} {
+      allow read: if isOwner(userId) || isValidator() || isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /badges/{documentId} {
+      allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    match /contributions/{contributionId} {
-      allow create: if isSignedIn() && request.resource.data.contributorId == request.auth.uid;
-      allow read: if isValidator() || (isSignedIn() && resource.data.contributorId == request.auth.uid);
-      allow update: if isValidator() || (isSignedIn() && resource.data.contributorId == request.auth.uid);
+    match /consentRecords/{documentId} {
+      allow read: if isAdmin()
+        || isCulturalAuthority()
+        || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && validConsentRecord(request.resource.data)
+        && request.resource.data.userId == request.auth.uid;
+      allow update: if validConsentRecord(request.resource.data)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (isAdmin() || isCulturalAuthority());
       allow delete: if false;
     }
 
-    match /uploads/{uploadId} {
-      allow create: if isSignedIn() && request.resource.data.uploadedBy == request.auth.uid;
-      allow read: if resource.data.isPublished == true || isValidator() || (isSignedIn() && resource.data.uploadedBy == request.auth.uid);
-      allow update: if isValidator();
+    match /culturalPermissions/{documentId} {
+      allow read: if isAdmin() || isCulturalAuthority();
+      allow create, update: if isAdmin() || isCulturalAuthority();
+      allow delete: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if (isAdmin() || isValidator())
+        && validNotification(request.resource.data);
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        && request.resource.data.read is bool;
       allow delete: if false;
     }
 
     match /auditLogs/{auditId} {
-      allow read: if isValidator();
-      allow create: if isValidator();
+      allow read: if isAdmin();
+      allow create: if isAdmin() || isValidator();
       allow update, delete: if false;
     }
 
-    match /publicStats/{statId} {
-      allow read: if true;
-      allow create, update: if isSignedIn();
-      allow delete: if false;
+    match /reports/{reportId} {
+      allow read: if isAdmin() || hasAnyRole(['community manager']);
+      allow create, update: if isAdmin() || hasAnyRole(['community manager']);
+      allow delete: if isAdmin();
     }
 
-    match /campaignMetrics/{metricId} {
-      allow read: if true;
-      allow create, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /donations/{donationId} {
-      allow create: if validDonationCreate();
-      allow get: if isAdmin() ||
-        (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow list: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /publicSupporters/{supporterId} {
-      allow read: if true;
-      allow create, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /sponsors/{sponsorId} {
-      allow create: if validSponsorCreate();
-      allow read, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /rewardCatalog/{rewardId} {
+    match /featureFlags/{flagId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
 
-    match /rewardAchievements/{achievementId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /rewardBounties/{bountyId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /contributorLevels/{levelId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /communityRecognitions/{recognitionId} {
-      allow read: if isValidator() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /rewardRedemptions/{redemptionId} {
-      allow read: if isValidator() || (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isValidator();
-      allow delete: if false;
-    }
-
-    match /userFavorites/{favoriteId} {
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && isOwnUserFavorite(favoriteId) && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow update: if false;
-    }
-
-    match /recentlyViewed/{viewId} {
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow update: if false;
-    }
-
-    match /searchHistory/{historyId} {
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow update: if false;
-    }
-
-    match /announcements/{announcementId} {
-      allow read: if isAdmin() || (isSignedIn() && resource.data.isPublished == true);
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /settings/{settingId} {
-      allow read: if isValidator();
-      allow create, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    // Public marketing-site lead capture: create-only for anyone, readable
-    // only by admins. No public reads of submitted contact details.
-    match /newsletterSubscribers/{subscriberId} {
-      allow create: if validNewsletterCreate();
-      allow read, update: if isAdmin();
-      allow delete: if false;
-    }
-
-    match /contactMessages/{messageId} {
-      allow create: if validContactCreate();
-      allow read, update: if isAdmin();
-      allow delete: if false;
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

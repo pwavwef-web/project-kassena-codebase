@@ -1,16 +1,42 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { Navigate, createBrowserRouter } from 'react-router-dom'
 import App from './App'
-import { DashboardPage } from '../pages/DashboardPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import {
+  AdminPage,
+  AnalyticsPage,
+  AchievementsPage,
+  AuthPage,
+  CampaignsPage,
+  ContentPage,
+  CreatePage,
+  DashboardPage,
+  LanguagesPage,
+  OnboardingPage,
+  ProfilePage,
+  ReviewsPage,
+  RewardsPage,
+  SettingsPage,
+} from '../pages/StudioPages'
 
-// Starter route map. Codex will add real workspace areas (contributions,
-// review queues, translation, validation, members, settings). Auth/role guards
-// are intentionally not wired yet — see the legacy admin app for reference.
 export const router = createBrowserRouter([
   {
     element: <App />,
     children: [
-      { path: '/', element: <DashboardPage /> },
+      { path: '/', element: <Navigate to="/dashboard" replace /> },
+      { path: '/auth', element: <AuthPage /> },
+      { path: '/onboarding', element: <OnboardingPage /> },
+      { path: '/dashboard', element: <DashboardPage /> },
+      { path: '/create', element: <CreatePage /> },
+      { path: '/content', element: <ContentPage /> },
+      { path: '/languages', element: <LanguagesPage /> },
+      { path: '/reviews', element: <ReviewsPage /> },
+      { path: '/campaigns', element: <CampaignsPage /> },
+      { path: '/rewards', element: <RewardsPage /> },
+      { path: '/achievements', element: <AchievementsPage /> },
+      { path: '/analytics', element: <AnalyticsPage /> },
+      { path: '/profile', element: <ProfilePage /> },
+      { path: '/settings', element: <SettingsPage /> },
+      { path: '/admin', element: <AdminPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

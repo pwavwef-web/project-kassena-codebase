@@ -5,46 +5,75 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    function userDoc() {
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid));
+    function userPath(uid) {
+      return /databases/(default)/documents/users/$(uid);
     }
 
-    function isAdminOrValidator() {
-      return isSignedIn() && (
-        userDoc().data.role == 'admin' ||
-        userDoc().data.role == 'validator'
-      );
+    function hasProfile() {
+      return isSignedIn() && firestore.exists(userPath(request.auth.uid));
+    }
+
+    function role() {
+      return hasProfile() ? firestore.get(userPath(request.auth.uid)).data.role : 'user';
+    }
+
+    function hasAnyRole(roles) {
+      return isSignedIn() && role() in roles;
     }
 
     function isAllowedType() {
-      return request.resource.contentType.matches('application/pdf') ||
-        request.resource.contentType.matches('image/.*') ||
-        request.resource.contentType.matches('audio/.*') ||
-        request.resource.contentType.matches('video/.*') ||
-        request.resource.contentType.matches('text/plain') ||
-        request.resource.contentType.matches('application/msword') ||
-        request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      return request.resource.contentType.matches('image/.*')
+        || request.resource.contentType.matches('audio/.*')
+        || request.resource.contentType.matches('video/.*')
+        || request.resource.contentType.matches('text/plain')
+        || request.resource.contentType.matches('application/pdf');
     }
 
     function withinFileLimit() {
       return request.resource.size < 20 * 1024 * 1024;
     }
 
-    match /contributions/{userId}/{contributionId}/{fileName} {
-      allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
-      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
+    function canReadTier(tier, ownerId) {
+      return (
+        tier == 'OPEN'
+        && isSignedIn()
+      )
+      || (
+        tier == 'RESTRICTED'
+        && (
+          request.auth.uid == ownerId
+          || hasAnyRole(['validator', 'elder', 'cultural custodian', 'community manager', 'administrator'])
+        )
+      )
+      || (
+        tier == 'SENSITIVE'
+        && hasAnyRole(['elder', 'cultural custodian', 'community manager', 'administrator'])
+      );
     }
 
-    match /pronunciation/{userId}/{entryId}/{fileName} {
-      allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
-      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdminOrValidator();
+    match /media/{tier}/{community}/{ownerId}/{fileName} {
+      allow read: if canReadTier(tier, ownerId);
+      allow write: if isSignedIn()
+        && request.auth.uid == ownerId
+        && tier in ['OPEN', 'RESTRICTED', 'SENSITIVE']
+        && withinFileLimit()
+        && isAllowedType();
     }
 
-    match /uploads/{userId}/{uploadId}/{fileName} {
-      allow write: if isSignedIn() && request.auth.uid == userId && withinFileLimit() && isAllowedType();
-      allow read: if firestore.get(/databases/(default)/documents/uploads/$(uploadId)).data.isPublished == true ||
-        (isSignedIn() && request.auth.uid == userId) ||
-        isAdminOrValidator();
+    match /contributions/{ownerId}/{contributionId}/{fileName} {
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid == ownerId
+          || hasAnyRole(['validator', 'community manager', 'administrator'])
+        );
+      allow write: if isSignedIn()
+        && request.auth.uid == ownerId
+        && withinFileLimit()
+        && isAllowedType();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
     }
   }
 }

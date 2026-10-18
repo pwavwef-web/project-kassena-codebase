@@ -1,45 +1,45 @@
 # Backend & AI architecture
 
-How the shared backend serves the three Indigen World products.
+The shared backend serves three Indigen World products:
 
-## Overview
+- `indigen-world-web`
+- `tribestudio`
+- `indigen-world-mobile`
 
-```
-indigen-world-web ─┐
-tribestudio ───────┼──> Firebase (Auth, Firestore, Storage, Functions) ──> [future] AI services
-indigen-world-mobile ┘
-```
-
-All three clients talk to the **same Firebase project** (`project-kassena-7e026`).
-AI services are a future layer behind the backend, never called directly from
-clients with secrets.
+The MVP is local-first. Clients use seeded data and local service abstractions.
+Firebase is prepared, but production Firebase services are not wired to the
+clients by this implementation.
 
 ## Firebase services
 
-| Service | Role | Status |
-| --- | --- | --- |
-| Authentication | Google sign-in (existing), role via `users/{uid}.role` | preserved |
-| Firestore | Primary datastore (see `../schemas`) | preserved (rules + indexes) |
-| Storage | Audio/image uploads | preserved (rules) |
-| Cloud Functions | Donations (Paystack) + transactional email | preserved (`../firebase/functions`) |
-| Remote Config | Feature flags / kill-switches | see `remote-config.md` (not yet used) |
-| Emulator Suite | Local dev | configured in root `firebase.json` |
-| App Check | Abuse protection | **not enabled** (owner action, post-migration) |
+| Service | MVP status |
+| --- | --- |
+| Authentication | UI, roles and docs prepared; no production provider changes. |
+| Firestore | Data model, indexes and prototype rules prepared. |
+| Storage | Tiered cultural media rules prepared. |
+| Functions v2 | Safe callable mock scaffolds compile. |
+| Hosting | `web` and `studio` hosting targets declared in root `firebase.json`. |
+| Remote Config | Flag defaults documented; no live template updated. |
+| App Check | Documented owner action before production. |
+| Analytics | Event taxonomy drafted; no SDK wiring. |
+| Emulator Suite | Local validation path configured. |
 
-## AI layer (future)
+## Function boundary
 
-Implemented under `../ai` behind a provider interface. Translation, speech,
-embeddings, moderation and evaluation are separate modules so each can be built,
-evaluated and deployed independently. No model is connected in this migration.
+All exported MVP functions validate input and return mock responses. They do not
+write to production Firestore, send email, process payments or call AI providers.
 
-## Authentication & roles
+## AI boundary
 
-See [`authentication.md`](authentication.md). Frontend role checks read
-`users/{uid}.role`; rules block self-elevation. Production should move trusted
-role assignment to custom claims / admin-only callable functions.
+AI code lives under `backend-ai/ai`. The factory defaults to `MockAiProvider`.
+Vertex AI and local providers are placeholders that throw typed errors instead
+of making live calls.
 
-## Non-goals for the migration
+## Production hardening path
 
-- No deploy, no live-resource change.
-- No production App Check, no auth-provider changes.
-- No real AI/Vertex calls, no model wiring, no real credentials.
+1. Replace Firestore role reads with custom claims or admin-only role functions.
+2. Add emulator unit tests for each rule path.
+3. Configure App Check.
+4. Decide Remote Config rollout flags.
+5. Add real Firebase client configuration only after owner approval.
+6. Add AI providers only after consent and governance requirements are satisfied.

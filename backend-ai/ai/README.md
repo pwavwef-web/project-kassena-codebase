@@ -1,25 +1,23 @@
 # AI workspace
 
-Design surface for Indigen World's language AI. **Nothing is connected yet** —
-no models, no providers, no credentials, no endpoints. Each subfolder is a
-placeholder describing intended scope.
+Provider-independent AI scaffolding for Indigen World language and cultural data
+workflows. Nothing here makes a live model call.
 
-| Folder | Intended scope |
+## Files
+
+| Path | Purpose |
 | --- | --- |
-| `providers/` | Adapters for model providers (kept behind an interface so providers are swappable). Default to the latest Claude models when an LLM is wired in. |
-| `translation/` | Kasem ↔ English translation pipelines, glossary/termbase integration, human-in-the-loop review hooks. |
-| `speech/` | Speech-to-text and text-to-speech for Kasem audio contributions. |
-| `embeddings/` | Vector embeddings for dictionary/corpus search and retrieval. |
-| `moderation/` | Safety and quality moderation for community contributions. |
-| `evaluation/` | Offline evaluation + regression harnesses for translation/ASR quality and safety. |
+| `types.ts` | Shared metadata, typed results, config and typed errors. |
+| `interfaces.ts` | Provider interfaces for translation, speech, embeddings, moderation, duplicate detection, dataset preparation, evaluation and human-review escalation. |
+| `providers/mock-provider.ts` | Safe mock provider for local tests. |
+| `providers/vertex-ai-placeholder.ts` | Placeholder that throws `LIVE_CALL_DISABLED`. |
+| `providers/local-provider-placeholder.ts` | Placeholder that throws `PROVIDER_NOT_CONFIGURED`. |
+| `providers/provider-factory.ts` | Factory defaulting to mock with `allowLiveCalls: false`. |
+| `evaluation/evaluation-interfaces.ts` | Evaluation case and harness interfaces. |
 
 ## Principles
 
-- **No live model calls** until explicitly designed and approved.
-- **Provider-agnostic** behind a thin interface; keep keys server-side only.
-- **Cultural data is sensitive** — Kasem language data, elder recordings and
-  community contributions must follow the consent/ownership rules defined by the
-  programme before any AI training or inference use.
-
-See [`../docs/architecture.md`](../docs/architecture.md) for how this fits the
-broader backend.
+- No Gemini, Vertex AI, OpenAI, Hugging Face or external speech calls.
+- No repository content is uploaded to a model.
+- Restricted or sensitive cultural content requires explicit governance review.
+- AI-training permission and commercial-use permission are explicit fields.

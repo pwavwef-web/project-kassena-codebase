@@ -1,38 +1,39 @@
-# Indigen World — Web
+# Indigen World Web
 
-Public marketing website for the **Indigen World** cultural technology ecosystem.
+Public website MVP for the Indigen World cultural technology ecosystem.
 
-> **Status:** starter shell only. This is a clean, compile-ready foundation —
-> the full marketing site has **not** been built here yet. The previous premium
-> site is preserved for reference at
-> [`legacy/project-kasena-web`](../legacy/project-kasena-web) and its docs at
-> [`docs/project-kasena-web`](../docs/project-kasena-web).
+## Built Routes
 
-## Stack
+`/`, `/about`, `/programmes`, `/communities`, `/languages`, `/stories`,
+`/impact`, `/partners`, `/contribute`, `/support`, `/updates`,
+`/updates/:slug`, `/contact`, `/privacy`, `/terms`, `/cultural-data`.
 
-React 19 · TypeScript · Vite · Tailwind CSS · React Router · Vitest
+## Features
 
-## What exists
-
-- App shell with header / footer placeholders and an error boundary
-- Router (home + 404)
-- Brand theme tokens (`src/theme/tokens.ts` + `tailwind.config.js`)
-- Global styles
-- One smoke test (`tests/smoke.test.tsx`)
+- Premium home hero using migrated repository imagery.
+- Mission, value proposition and Project Kasena flagship programme sections.
+- Programme, community, language, story, impact, partner, contribute and support
+  pages.
+- Kasem dictionary preview and language discovery UI.
+- Cultural record cards with Open, Restricted and Sensitive classification.
+- Demo metrics clearly labelled as demonstration data.
+- Local contact/partner/contribution forms with success and error states.
+- Draft legal, privacy, terms and cultural-data governance pages.
+- Responsive navigation, mobile menu, accessible footer and visible focus states.
+- SEO metadata helper, Open Graph defaults, structured data, sitemap and robots.
+- Reduced-motion handling and local loading/empty/error states.
 
 ## Commands
 
-Run from the repo root (npm workspaces) or inside this folder:
-
 ```bash
-npm run dev --workspace indigen-world-web        # or: npm run dev:web   (root)
-npm run build --workspace indigen-world-web      # or: npm run build:web (root)
-npm run test --workspace indigen-world-web       # or: npm run test:web  (root)
+npm run dev --workspace indigen-world-web
 npm run typecheck --workspace indigen-world-web
 npm run lint --workspace indigen-world-web
+npm run test --workspace indigen-world-web
+npm run build --workspace indigen-world-web
 ```
 
-## Environment
+## Data and Integrations
 
-Copy `.env.example` → `.env.local` and fill in the **public** Firebase web
-config. Never put secret keys here.
+All content is local fixture data in `src/content/siteData.ts`. No production
+Firebase, payment or AI service is called by the website.

@@ -1,52 +1,47 @@
 # Firebase
 
-Firebase configuration preserved from the prior Project Kasena / TribeStudio
-system. Paths are referenced by the repo-root [`firebase.json`](../../firebase.json).
+Firebase configuration for the Indigen World MVP. Paths are referenced by the
+repo-root [`firebase.json`](../../firebase.json).
 
 ## Contents
 
 | Path | Purpose |
 | --- | --- |
-| `functions/` | Cloud Functions (TypeScript): Paystack donation verification, welcome + thank-you email |
-| `firestore.rules` | Firestore security rules |
-| `firestore.indexes.json` | Composite indexes (leaderboard queries) |
-| `storage.rules` | Storage security rules |
+| `functions/` | Cloud Functions v2 safe mock callables for profile, contribution, review, reward, publication, takedown, export, notification, audit and AI gateway scaffolds. |
+| `firestore.rules` | Prototype Firestore Security Rules. |
+| `firestore.indexes.json` | MVP query index scaffolding. |
+| `storage.rules` | Prototype Storage Security Rules for tiered media. |
 
 ## Functions
 
 ```bash
 cd backend-ai/firebase/functions
 npm install
-npm run build      # tsc -> lib/
+npm run build
 npm run lint
 ```
 
-Functions still target the existing collections and were authored for the
-current Firebase project. Review before reusing in new flows.
+Legacy Paystack/email Functions from the pre-migration app are preserved under
+`functions/legacy-production/` for reference. They are outside the deployable
+`functions/src/` tree and are not exported by the MVP.
 
-## Emulator Suite (local, safe)
+## Emulator Suite
 
-From the **repo root** (uses root `firebase.json`):
+From the repository root:
 
 ```bash
-firebase emulators:start
+npx -y firebase-tools@latest emulators:start
 ```
 
-Ports are declared under `emulators` in the root `firebase.json`
-(auth 9099, functions 5001, firestore 8080, storage 9199, hosting 5000, UI on).
+Parser smoke checks:
 
-## Deployment — owner action, NOT done by the migration
+```bash
+npx -y firebase-tools@latest emulators:exec --only firestore backend-ai/tests/emulator-smoke.cmd
+npx -y firebase-tools@latest emulators:exec --only storage backend-ai/tests/emulator-smoke.cmd
+```
 
-- No deploy was performed. No live resource was changed.
-- Hosting uses **targets** (`web`, `studio`). Before first deploy the owner must
-  create the Hosting sites and map them:
+## Deployment
 
-  ```bash
-  firebase target:apply hosting web   <web-site-id>
-  firebase target:apply hosting studio <studio-site-id>
-  npm run build:web && npm run build:studio   # from repo root
-  firebase deploy --only hosting
-  ```
-
-- Do **not** enable production App Check or change auth providers as part of the
-  migration. See [`../docs/authentication.md`](../docs/authentication.md).
+No deployment was performed. Before any production deploy, owners must review
+rules, create hosting target mappings, configure secrets, decide App Check, and
+replace role-document authorization with a hardened custom-claims flow.

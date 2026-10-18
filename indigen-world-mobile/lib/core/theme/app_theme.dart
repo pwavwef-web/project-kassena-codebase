@@ -19,6 +19,20 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: scheme.surfaceContainerLowest,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        border: OutlineInputBorder(),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        indicatorColor: scheme.primaryContainer,
+      ),
     );
   }
 
@@ -32,6 +46,20 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: scheme.surface,
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: scheme.surfaceContainerLowest,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        border: OutlineInputBorder(),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        indicatorColor: scheme.primaryContainer,
+      ),
     );
   }
 }

@@ -8,7 +8,7 @@ export function NotFoundPage() {
       </p>
       <h1 className="mt-4 font-display text-4xl font-semibold">Page not found</h1>
       <p className="mt-4 text-ink/70">
-        This route does not exist in the starter shell yet.
+        This route is not part of the Indigen World MVP.
       </p>
       <Link
         to="/"

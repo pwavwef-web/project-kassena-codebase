@@ -126,3 +126,32 @@ Dart (bundled), Firebase CLI 15.19.1, git 2.52.0.
 **No production deployment occurred. No live Firebase resource was changed. No
 emulator or deploy command that touches a live project was run. Nothing was
 pushed to any remote.** The migration is entirely local and staged for review.
+
+## 10. Codex MVP implementation addendum
+
+**Date:** 2026-06-24
+
+Codex built MVP scaffolding inside Claude's four-workspace structure without
+repeating or reversing the migration.
+
+### Implemented after migration
+
+- `indigen-world-web/`: complete public-site MVP route map, local fixtures,
+  responsive navigation, forms, SEO, Open Graph defaults, sitemap, robots file,
+  legal placeholders and cultural-data classification pages.
+- `tribestudio/`: complete local workspace MVP across auth, onboarding,
+  dashboard, create, content, languages, reviews, campaigns, rewards, analytics,
+  profile, settings and admin routes.
+- `indigen-world-mobile/`: Flutter Material 3 MVP with generated Android/iOS
+  scaffolds, five-tab navigation, local seeded data, persistence abstraction,
+  Explore/Kasem search, Learn, Contribute and Profile/Rewards surfaces.
+- `backend-ai/`: prototype Firestore/Storage rules, Firestore indexes, safe
+  mock Cloud Functions v2 exports, provider-independent AI interfaces, mock and
+  placeholder providers, schemas and operational docs.
+
+### Safety confirmations
+
+- No production Firebase deployment occurred.
+- No production payment processing was wired.
+- No Gemini, Vertex AI, OpenAI, Hugging Face or external speech call was made.
+- Demo data remains labelled as local/unverified demonstration content.

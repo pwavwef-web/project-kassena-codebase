@@ -1,5 +1,6 @@
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
+import { AuthProvider } from '../contexts/AuthContext'
 
 /**
  * TribeStudio root. The dashboard chrome (sidebar + topbar) wraps every
@@ -8,7 +9,9 @@ import { DashboardLayout } from '../components/layout/DashboardLayout'
 export default function App() {
   return (
     <ErrorBoundary>
-      <DashboardLayout />
+      <AuthProvider>
+        <DashboardLayout />
+      </AuthProvider>
     </ErrorBoundary>
   )
 }

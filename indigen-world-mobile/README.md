@@ -1,58 +1,54 @@
-# Indigen World — Mobile
+# Indigen World Mobile
 
-Consumer mobile application for **Indigen World**, built with Flutter.
+Flutter Material 3 MVP for the Indigen World consumer app.
 
-> **Status:** starter shell only, **not yet compiled**. The migration
-> environment had the Dart SDK but **no Flutter SDK**, so `flutter pub get`,
-> `flutter analyze` and `flutter test` could not be run here. The Dart sources
-> are hand-authored to standard Flutter conventions. Native `android/` and
-> `ios/` folders must be generated (see below).
+## Navigation
 
-## Stack
+Primary tabs:
 
-Flutter · Dart · Material 3 · feature-first architecture
+- Home
+- Explore
+- Learn
+- Contribute
+- Profile
 
-## Structure
+## Features
 
-```
-lib/
-  main.dart                      # entry point
-  app/
-    app.dart                     # MaterialApp, themes, routing wiring
-    router.dart                  # named routes + onGenerateRoute
-  core/
-    theme/app_theme.dart         # Material 3 light/dark, brand seed colour
-  features/
-    home/presentation/           # placeholder home screen
-    explore/presentation/        # placeholder explore screen
-    profile/presentation/        # placeholder profile screen
-    shell/presentation/          # bottom-navigation shell
-test/
-  widget_test.dart               # boots the app, asserts the home shell
-assets/images/                   # asset directory (register in pubspec)
-```
+- Onboarding surface for welcome, interests, communities, languages, learning
+  goals, offline preference and optional account concept.
+- Home with word of the day, featured story, continue learning, active
+  challenge, community spotlight and saved-content empty state.
+- Explore with community/language/story/proverb/site/artefact filters, Project
+  Kasena Kasem search, direction toggle, result metadata, pronunciation coming
+  soon, suggest correction and save offline.
+- Learn with beginner phrases, greetings, family, food/travel, etiquette,
+  flashcards, quizzes and local progress.
+- Contribute with word, translation, sentence, proverb, cultural note, dialect,
+  source, consent, audio placeholder and local draft saving.
+- Profile with interests, communities, languages, learning progress,
+  contributions, saved content, privacy, consent, settings, rewards, badges,
+  challenges and leaderboard demonstration.
+- Local seeded data, local persistence abstraction, loading/empty/error states,
+  offline indicators, dark-mode readiness, localization structure and
+  tablet-safe layouts.
+- Android and iOS native scaffolds generated with `flutter create`.
 
-## First-time setup (requires Flutter)
+## State Management
+
+The MVP uses `StatefulWidget` for screen-local UI state and
+`LocalStore`/`MemoryLocalStore` as the persistence abstraction. This keeps the
+feature screens independent of future storage or Firebase sync choices.
+
+## Commands
 
 ```bash
-cd indigen-world-mobile
-flutter create . --platforms=android,ios   # generates android/ + ios/ (non-destructive)
 flutter pub get
+dart format lib test
 flutter analyze
 flutter test
 flutter run
 ```
 
-## What exists
+## Integrations
 
-- Material 3 theming (light + dark, brand-seeded)
-- Named-route foundation (dependency-free; swap for `go_router` later)
-- Bottom-navigation shell with Home / Explore / Profile placeholders
-- One widget test
-
-## Notes
-
-- `android/` and `ios/` currently contain placeholder READMEs only.
-- Firebase wiring (`firebase_options.dart`, `google-services.json`,
-  `GoogleService-Info.plist`) is intentionally absent and gitignored — add it
-  via `flutterfire configure` during the real build.
+No production Firebase, analytics, payment or AI provider is initialized.

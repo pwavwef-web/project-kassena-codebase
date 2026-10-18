@@ -1,26 +1,25 @@
 # Authentication architecture
 
-> Preserved from the existing system. **No auth provider was changed during the
-> migration.**
+Authentication is prepared but not connected to production in the MVP apps.
 
-## Current model
+## MVP model
 
-- **Provider:** Google sign-in (Firebase Authentication).
-- **Roles:** stored on `users/{uid}.role` (`visitor` / `contributor` /
-  `validator` / `admin`).
-- **Enforcement:** Firestore security rules block users from changing their own
-  `role` or `status`. The web/admin clients read the role for UI gating.
+- TribeStudio includes sign in, sign up, forgot password, Google button, phone
+  button and demo mode UI.
+- Production Firebase Authentication is inactive.
+- Firestore role strings are documented for local/emulator scaffolding.
+- Prototype rules prevent users from creating privileged roles for themselves.
 
-## Making the first admin (existing procedure)
+## Roles
 
-1. Sign in once with Google.
-2. In Firestore, open your `users/{uid}` document.
-3. Set `role` to `admin`.
-4. Manage further users from the workspace admin tools.
+`user`, `contributor`, `creator`, `validator`, `elder`,
+`cultural custodian`, `community manager`, `administrator`, `researcher`,
+`partner`.
 
-## Production hardening (TODO — owner/Codex)
+## Production hardening
 
-- Move trusted role assignment / privilege elevation to **custom claims** set by
-  an **admin-only Cloud Function**, rather than a Firestore field.
-- Add **App Check** (owner action; not enabled by the migration).
-- Consider re-auth for sensitive actions.
+- Move trusted role assignment to custom claims or admin-only Functions before
+  launch.
+- Enable App Check before broadly sharing production clients.
+- Consider re-authentication for sensitive profile, consent and review actions.
+- Add audit logging for role changes and sensitive content access.

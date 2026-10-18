@@ -1,105 +1,97 @@
 {
   "indexes": [
     {
-      "collectionGroup": "dictionaryEntries",
+      "collectionGroup": "lexicalEntries",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "isPublished",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "englishText",
-          "order": "ASCENDING"
-        }
+        { "fieldPath": "validationStatus", "order": "ASCENDING" },
+        { "fieldPath": "contentTier", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "announcements",
+      "collectionGroup": "sentencePairs",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "isPublished",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "publishedAt",
-          "order": "DESCENDING"
-        }
+        { "fieldPath": "validationStatus", "order": "ASCENDING" },
+        { "fieldPath": "language", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "userFavorites",
+      "collectionGroup": "stories",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
+        { "fieldPath": "contentTier", "order": "ASCENDING" },
+        { "fieldPath": "validationStatus", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "recentlyViewed",
+      "collectionGroup": "proverbs",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "viewedAt",
-          "order": "DESCENDING"
-        }
+        { "fieldPath": "contentTier", "order": "ASCENDING" },
+        { "fieldPath": "validationStatus", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     },
     {
-      "collectionGroup": "searchHistory",
+      "collectionGroup": "contributions",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "searchedAt",
-          "order": "DESCENDING"
-        }
+        { "fieldPath": "contributorId", "order": "ASCENDING" },
+        { "fieldPath": "validationStatus", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reviews",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reviewerId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "campaigns",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "deadline", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "read", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "auditLogs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "action", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
   ],
   "fieldOverrides": [
     {
-      "collectionGroup": "users",
-      "fieldPath": "weeklyPoints",
+      "collectionGroup": "rewardAccounts",
+      "fieldPath": "points",
       "indexes": [
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION"
-        }
+        { "order": "DESCENDING", "queryScope": "COLLECTION" }
       ]
     },
     {
-      "collectionGroup": "users",
-      "fieldPath": "monthlyPoints",
+      "collectionGroup": "rewardAccounts",
+      "fieldPath": "qualityScore",
       "indexes": [
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "fieldPath": "totalPoints",
-      "indexes": [
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION"
-        }
+        { "order": "DESCENDING", "queryScope": "COLLECTION" }
       ]
     }
   ]

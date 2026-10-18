@@ -1,56 +1,76 @@
 # Backend & AI
 
-Shared backend and AI infrastructure for the Indigen World ecosystem
-(consumed by `indigen-world-web`, `tribestudio` and `indigen-world-mobile`).
+Shared Firebase and AI scaffolding for the Indigen World ecosystem.
 
-> **Status:** structure + documentation. The Firebase project configuration and
-> Cloud Functions are **preserved from the existing system** (Paystack donations
-> + transactional email). The AI workspace is **folders and design notes only** —
-> no model is connected, no production API exists, no credentials are configured.
+This workspace is prepared for local development and emulator validation only.
+No production Firebase deployment, payment processing or external AI call is
+made by this MVP.
 
 ## Layout
 
-```
+```txt
 backend-ai/
-  firebase/            Firebase config preserved from the prior system
-    functions/         Cloud Functions (TypeScript) — donations + email
-    firestore.rules    Firestore security rules
-    firestore.indexes.json
-    storage.rules      Storage security rules
-  ai/                  AI workspace (design + future implementation)
-    providers/         model/provider adapters (none connected yet)
-    translation/       Kasem <-> English translation pipelines
-    speech/            ASR / TTS for Kasem audio
-    embeddings/        vector embeddings for search / retrieval
-    moderation/        contribution safety / content moderation
-    evaluation/        quality + safety evaluation harnesses
-  schemas/             Firestore data schemas / contracts
-  docs/                backend architecture & operations docs
-  tests/               backend tests (to be added)
+  firebase/
+    functions/              Cloud Functions v2 mock callables
+      legacy-production/    Inactive preserved Paystack/email reference code
+    firestore.rules          Prototype Firestore rules
+    firestore.indexes.json   MVP query index scaffolding
+    storage.rules            Prototype Storage rules
+  ai/
+    interfaces.ts            Provider-independent AI interfaces
+    types.ts                 Result metadata, config and typed errors
+    providers/               Mock, Vertex placeholder, local placeholder
+    evaluation/              Evaluation harness interfaces
+  schemas/
+    firestore-collections.md Canonical Firestore contracts
+  docs/
+    firebase-setup.md
+    firebase-data-model.md
+    ai-roadmap.md
+    security-model.md
+  tests/
+    emulator-smoke.cmd
+    firestore-rules-analysis.md
 ```
 
-## Firebase
+## Functions
 
-- **Project id:** `project-kassena-7e026` (in repo root `.firebaserc`).
-- Root [`firebase.json`](../firebase.json) points hosting at the two web apps and
-  rules/functions at this workspace.
-- See [`firebase/README.md`](firebase/README.md) and
-  [`docs/`](docs) for emulator, auth, and Remote Config notes.
+The exported Functions are safe scaffolds:
 
-## AI — important constraints
+- `createUserProfile`
+- `submitContribution`
+- `createReviewTask`
+- `reviewContribution`
+- `calculateRewardPoints`
+- `publishApprovedContent`
+- `requestContentTakedown`
+- `generateDatasetExport`
+- `sendNotification`
+- `recordAuditEvent`
+- `aiGateway`
 
-This migration deliberately does **not**:
+They validate basic payload shape and return mock responses. They do not write
+to Firestore, send email, verify payments or call an AI provider.
 
-- connect any AI model or provider,
-- initialise Vertex AI / Gemini / external LLM calls,
-- store real API keys or credentials,
-- create production endpoints.
+## Local commands
 
-The `ai/` tree captures the **intended** architecture so Codex can implement it
-deliberately. See [`docs/architecture.md`](docs/architecture.md).
+```bash
+cd backend-ai/firebase/functions
+npm install
+npm run build
+npm run lint
+```
 
-## Environment
+From the repository root:
 
-Copy `.env.example` → `.env` (gitignored). Secrets (Paystack secret key, SMTP
-credentials, future AI provider keys) belong **only** in Cloud Functions config
-or a secret manager — never in client apps or committed files.
+```bash
+npx -y firebase-tools@latest emulators:exec --only firestore backend-ai/tests/emulator-smoke.cmd
+npx -y firebase-tools@latest emulators:exec --only storage backend-ai/tests/emulator-smoke.cmd
+```
+
+## Documentation
+
+- [`docs/firebase-setup.md`](docs/firebase-setup.md)
+- [`docs/firebase-data-model.md`](docs/firebase-data-model.md)
+- [`docs/ai-roadmap.md`](docs/ai-roadmap.md)
+- [`docs/security-model.md`](docs/security-model.md)

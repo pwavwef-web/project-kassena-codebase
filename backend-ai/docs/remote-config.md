@@ -1,16 +1,19 @@
 # Remote Config
 
-Firebase Remote Config is **not yet used** by any app. This note records the
-intended usage so Codex can wire it deliberately.
+Firebase Remote Config is documented but not wired to production.
 
-## Intended usage
+## Draft keys
 
-- **Feature flags** to roll out new workspace/app areas gradually.
-- **Kill-switches** for AI features (so any AI surface can be disabled instantly).
-- **Content/config** that should change without a redeploy.
+| Key | Default | Purpose |
+| --- | --- | --- |
+| `ai_gateway_enabled` | `false` | Kill-switch for AI gateway UI and Functions. |
+| `dataset_export_enabled` | `false` | Controls dataset export workflows. |
+| `mobile_offline_sync_enabled` | `false` | Future local draft sync. |
+| `support_payments_enabled` | `false` | Future payment processing. |
+| `sensitive_content_reviews_enabled` | `true` | Keeps review warnings active. |
 
 ## Guidance
 
-- Keep flag keys documented and typed in each client.
-- Never put secrets in Remote Config — it is client-readable.
-- Default every AI-related flag to **off** until the feature is approved.
+- Never put secrets in Remote Config because client apps can read it.
+- Default AI-related flags to off.
+- Mirror important defaults in documentation and typed client config.

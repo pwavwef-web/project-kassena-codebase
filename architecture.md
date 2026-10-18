@@ -1,74 +1,98 @@
-# Indigen World — Architecture
+# Indigen World Architecture
 
-A monorepo with three product workspaces and one shared backend/AI workspace.
+Indigen World is a four-workspace monorepo.
 
-## High-level
-
-```
-                         ┌─────────────────────────────┐
-                         │        Indigen World        │
-                         │  cultural technology ecosystem
-                         └─────────────────────────────┘
-            ┌──────────────────────┬───────────────────────┬──────────────────────┐
-            ▼                      ▼                       ▼                      ▼
-   indigen-world-web         tribestudio          indigen-world-mobile        backend-ai
-   (public website)        (workspace/studio)     (consumer mobile app)   (Firebase + AI)
-     React+TS+Vite           React+TS+Vite             Flutter/Dart          functions, rules,
-     Tailwind                Tailwind                  Material 3            schemas, ai/*
-            │                      │                       │                      ▲
-            └──────────────────────┴───────────────────────┴──────────────────────┘
-                                        shared Firebase project
-                                        (project-kassena-7e026)
+```txt
+indigen-world-web       public website MVP
+tribestudio             contributor and validator workspace MVP
+indigen-world-mobile    Flutter consumer app MVP
+backend-ai              Firebase and AI scaffolding
 ```
 
-## Workspaces
+## Product Boundaries
 
-| Folder | Product | Stack | Build tooling |
-| --- | --- | --- | --- |
-| `indigen-world-web/` | Indigen World public website | React 19, TypeScript, Vite, Tailwind, React Router | npm workspace |
-| `tribestudio/` | Contributor/validator/admin workspace | React 19, TypeScript, Vite, Tailwind, React Router | npm workspace |
-| `indigen-world-mobile/` | Consumer mobile app | Flutter, Dart, Material 3 | Flutter (separate) |
-| `backend-ai/` | Shared Firebase + AI infra | TypeScript (Functions), docs | Firebase CLI |
+| Product | Stack | Data mode |
+| --- | --- | --- |
+| Indigen World Web | React, TypeScript, Vite, Tailwind, React Router | Local content fixtures. |
+| TribeStudio | React, TypeScript, Vite, Tailwind, React Router | Typed local fixtures and service interfaces. |
+| Indigen World Mobile | Flutter, Dart, Material 3 | Local seeded repository and persistence abstraction. |
+| Backend & AI | Firebase rules/functions, TypeScript interfaces | Emulator-ready scaffolding, mock Functions and mock AI provider. |
 
-The two React apps are **npm workspaces** under the root `package.json`. The
-Flutter app and the backend are managed by their own toolchains (Flutter, Firebase CLI).
+## Brand Boundaries
 
-## Supporting directories
+- **Indigen World** is the umbrella ecosystem and public/mobile brand.
+- **Project Kasena** is the flagship Kasem-language programme.
+- **TribeStudio** is the workspace for creators, contributors, validators,
+  elders, custodians and administrators.
 
-| Folder | Purpose |
-| --- | --- |
-| `legacy/project-kasena-web/` | The full pre-migration app, preserved & runnable, for reference/reuse. |
-| `docs/` | Architecture + the preserved Project Kasena website docs (`project-kasena-web/`) and reports (`reports/`). |
-| `assets/` | Shared brand assets (`brand/`) + the Project Kasena logo. |
-| `reference-materials/` | UI reference imagery from prior design sessions. |
+## Frontend Architecture
 
-## Frontend conventions (web + studio)
+### Public website
 
-- `src/main.tsx` → `RouterProvider` → `src/app/router.tsx`.
-- `src/app/App.tsx` is the layout shell, wrapped in an `ErrorBoundary`.
-- Pages in `src/pages/`, layout/chrome in `src/components/layout/`.
-- Theme tokens in `src/theme/tokens.ts`, mirrored in `tailwind.config.js`.
-- Tests in `tests/` (Vitest + Testing Library, jsdom).
+Routes:
 
-## Mobile conventions
+`/`, `/about`, `/programmes`, `/communities`, `/languages`, `/stories`,
+`/impact`, `/partners`, `/contribute`, `/support`, `/updates`,
+`/updates/:slug`, `/contact`, `/privacy`, `/terms`, `/cultural-data`.
 
-- Feature-first: `lib/features/<feature>/presentation/...`.
-- App wiring in `lib/app/` (`app.dart`, `router.dart`); theme in
-  `lib/core/theme/`.
-- Material 3, brand-seeded `ColorScheme`, light + dark.
+The site uses `src/content/siteData.ts` for typed fixtures, reusable page
+components in `src/pages/PublicPages.tsx`, route metadata via `Seo`, and static
+`robots.txt`/`sitemap.xml`.
 
-## Backend
+### TribeStudio
 
-- Single Firebase project shared by all clients.
-- Cloud Functions, Firestore/Storage rules, and indexes live under
-  `backend-ai/firebase/`; data contracts under `backend-ai/schemas/`.
-- The `backend-ai/ai/` tree is **design-only** — no model is connected.
-- See [`backend-ai/docs/architecture.md`](backend-ai/docs/architecture.md).
+Routes:
 
-## Data flow (current/preserved)
+`/auth`, `/onboarding`, `/dashboard`, `/create`, `/content`, `/languages`,
+`/reviews`, `/campaigns`, `/rewards`, `/analytics`, `/profile`, `/settings`,
+`/admin`.
 
-1. Clients authenticate via Firebase Auth (Google).
-2. Reads/writes go to Firestore, gated by `firestore.rules`; media to Storage.
-3. Server-side work (donation verification, email) runs in Cloud Functions.
-4. AI services are a **future** layer behind the backend, never called from
-   clients with secrets.
+The workspace uses typed fixtures in `src/data/studioData.ts` and a
+`StudioService` interface in `src/services/studioService.ts`. Production Firebase
+is intentionally inactive.
+
+### Mobile
+
+Primary navigation:
+
+Home, Explore, Learn, Contribute, Profile.
+
+The Flutter app uses feature folders, Material 3, local seed data, a local
+persistence boundary and StatefulWidget for short-lived UI state. Native Android
+and iOS scaffolds have been generated by `flutter create`.
+
+## Backend Architecture
+
+Firebase remains the selected platform:
+
+- Authentication model and roles documented.
+- Firestore schemas, indexes and prototype rules prepared.
+- Cloud Storage tiered media rules prepared.
+- Cloud Functions v2 safe mock callables compile.
+- Hosting targets remain declared for web and studio.
+- Remote Config and Analytics taxonomies are documented.
+- Emulator Suite is used for local parser smoke checks.
+
+## AI Architecture
+
+AI lives behind provider-independent interfaces in `backend-ai/ai`.
+
+- `MockAiProvider` returns typed local responses.
+- Vertex AI and local providers are placeholders that throw typed errors.
+- `allowLiveCalls` is always `false` in the default config.
+- No repository content is uploaded to any model.
+
+## Cultural Data Model
+
+Cultural records carry language, dialect, community, source, contributor,
+validator, validation status, content tier, consent status, licence, permitted
+uses, AI-training permission, commercial-use permission, attribution, review
+history and timestamps.
+
+Tiers:
+
+- `OPEN`
+- `RESTRICTED`
+- `SENSITIVE`
+
+Restricted and sensitive records require human review and role-gated access.
